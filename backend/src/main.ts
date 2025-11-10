@@ -14,6 +14,7 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+
   await app.listen(port);
   Logger.debug(`==== API CORRIENDO [${process.env.MODE_ENV}] =====`);
 }
