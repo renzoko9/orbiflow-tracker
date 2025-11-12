@@ -1,14 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { join } from 'path';
-// import * as entities from '@Entities';
+import * as entities from '@Entities';
 
 export function typeOrmConfig(): TypeOrmModuleOptions {
-  const isProduction = process.env.MODE_ENV === 'prod';
-
-  const entities = isProduction
-    ? [join(__dirname, '/../**/*.entity.ts')]
-    : [join(__dirname, '/../**/*.entity.ts')];
-
   return {
     type: 'postgres',
     host: process.env.DATABASE_HOST,
@@ -16,7 +9,8 @@ export function typeOrmConfig(): TypeOrmModuleOptions {
     username: process.env.DATABASE_USERNAME,
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
-    entities,
+    // entities: [join(__dirname, '../database/entities/*.entity.{ts,js}')],
+    entities: Object.values(entities),
     synchronize: true,
   };
 }
