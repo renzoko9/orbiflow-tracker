@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from 'src/database/entities/user.entity';
 import { UserRepository } from 'src/database/repositories/user.repository';
+import { FindOptionsWhere } from 'typeorm';
 
 @Injectable()
 export class UsersService {
@@ -18,6 +19,20 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+
+    return user;
+  }
+
+  async findOneByAnyField(field: FindOptionsWhere<User>): Promise<User | null> {
+    return await this.userRepository.findOne({ where: field });
   }
 
   async create(data: Partial<User>): Promise<User> {
