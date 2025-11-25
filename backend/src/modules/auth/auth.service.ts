@@ -11,10 +11,15 @@ import * as bcrypt from 'bcrypt';
 import { RegisterRequest } from './dto/register.dto';
 import { RegisterResponse } from './models/register.model';
 import { TipoRespuestaEnum } from '@/common/enum/tipo-respuesta.enum';
+import { JwtProvider } from '@/common/providers/jwt/jwt.provider';
+import { JwtUtil } from '@/common/utils/jwt.utils';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtProvider: JwtProvider,
+  ) {}
 
   async login(request: LoginRequest): Promise<ResponseAPI<LoginResponse>> {
     const user = await this.usersService.findOneByAnyField({
@@ -27,15 +32,14 @@ export class AuthService {
 
     if (!match) throw new UnauthorizedException('Contraseña inválida');
 
+    const tokens = await this.jwtProvider.generateTokens(user);
+
     return {
       tipoRespuesta: TipoRespuestaEnum.Success,
       message: 'Inicio de sesión exitoso',
       data: {
-        usuario: user,
-        tokens: {
-          access: 'fake-access-token',
-          refresh: 'fake-refresh-token',
-        },
+        usuario: JwtUtil.sanitizeUser(user),
+        tokens,
       },
     };
   }
@@ -61,7 +65,7 @@ export class AuthService {
     return {
       tipoRespuesta: TipoRespuestaEnum.Success,
       message: 'Usuario registrado exitosamente',
-      data: { user: newUser },
+      data: { user: JwtUtil.sanitizeUser(newUser) },
     };
   }
 }
