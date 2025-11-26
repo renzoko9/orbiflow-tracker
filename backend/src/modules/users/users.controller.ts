@@ -6,14 +6,17 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from 'src/database/entities/user.entity';
+import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(JwtAccessGuard)
   @Get()
   findAll(): Promise<User[]> {
     return this.usersService.findAll();

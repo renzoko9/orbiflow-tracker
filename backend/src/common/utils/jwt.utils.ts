@@ -1,7 +1,7 @@
 import { User } from '@/database/entities';
 
 function sanitizeUser(user: User) {
-  const { password, ...rest } = user;
+  const { password, refreshToken, ...rest } = user;
   return rest;
 }
 

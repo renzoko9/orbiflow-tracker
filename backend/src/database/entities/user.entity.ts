@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { Transaction } from './transaction.entity';
 import { Category } from './category.entity';
+import { text } from 'stream/consumers';
 
 @Entity('users')
 export class User {
@@ -25,6 +26,9 @@ export class User {
 
   @Column()
   password: string;
+
+  @Column({ type: 'text', nullable: true })
+  refreshToken: string | null;
 
   @OneToMany(() => Transaction, (transaction) => transaction.user)
   transactions: Transaction[];

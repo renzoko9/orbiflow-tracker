@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
@@ -11,28 +12,44 @@ import * as bcrypt from 'bcrypt';
 import { RegisterRequest } from './dto/register.dto';
 import { RegisterResponse } from './models/register.model';
 import { TipoRespuestaEnum } from '@/common/enum/tipo-respuesta.enum';
-import { JwtProvider } from '@/common/providers/jwt/jwt.provider';
+import { JwtProvider } from '@/common/jwt/jwt.provider';
 import { JwtUtil } from '@/common/utils/jwt.utils';
+import { TokenPayload } from '@/common/interfaces/auth/payload.interface';
+import { LoginTokensResponse } from '@/common/models/tokens.model';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtProvider: JwtProvider,
   ) {}
 
   async login(request: LoginRequest): Promise<ResponseAPI<LoginResponse>> {
+    const { email, password } = request;
+
+    this.logger.log('Obteniendo usuario...');
     const user = await this.usersService.findOneByAnyField({
-      email: request.email,
+      email,
     });
+    this.logger.log('Usuario obtenido');
 
-    if (!user) throw new UnauthorizedException('Email inválido');
+    if (!user) throw new UnauthorizedException('Este email no está registrado');
 
-    const match = await bcrypt.compare(request.password, user.password);
+    const match = await bcrypt.compare(password, user.password);
 
     if (!match) throw new UnauthorizedException('Contraseña inválida');
 
+    this.logger.log('Generando tokens...');
     const tokens = await this.jwtProvider.generateTokens(user);
+    this.logger.log('Tokens generados');
+
+    const refreshTokenHash = await bcrypt.hash(tokens.refresh!, 10);
+
+    await this.usersService.update(user.id, {
+      refreshToken: refreshTokenHash,
+    });
 
     return {
       tipoRespuesta: TipoRespuestaEnum.Success,
@@ -47,9 +64,11 @@ export class AuthService {
   async register(
     request: RegisterRequest,
   ): Promise<ResponseAPI<RegisterResponse>> {
+    this.logger.log('Verificando si el email ya está en uso...');
     const existingUser = await this.usersService.findOneByAnyField({
       email: request.email,
     });
+    this.logger.log('Verificación completada');
 
     if (existingUser) throw new BadRequestException('El email ya está en uso');
 
@@ -67,5 +86,26 @@ export class AuthService {
       message: 'Usuario registrado exitosamente',
       data: { user: JwtUtil.sanitizeUser(newUser) },
     };
+  }
+
+  async refreshTokens(refreshToken: string): Promise<LoginTokensResponse> {
+    const payload: TokenPayload =
+      await this.jwtProvider.verifyRefreshToken(refreshToken);
+
+    const user = await this.usersService.findOne(payload.id);
+
+    const isMatch = await bcrypt.compare(refreshToken, user.refreshToken!);
+
+    if (!isMatch) throw new UnauthorizedException('Token inválido');
+
+    const tokens = await this.jwtProvider.generateTokens(user);
+
+    const refreshTokenHash = await bcrypt.hash(tokens.refresh!, 10);
+
+    await this.usersService.update(user.id, {
+      refreshToken: refreshTokenHash,
+    });
+
+    return tokens;
   }
 }

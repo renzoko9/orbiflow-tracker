@@ -21,4 +21,9 @@ export class AuthController {
   ): Promise<ResponseAPI<RegisterResponse>> {
     return this.authService.register(data);
   }
+
+  @Post('refresh')
+  async refresh(@Body('refreshToken') token: string) {
+    return this.authService.refreshTokens(token);
+  }
 }
