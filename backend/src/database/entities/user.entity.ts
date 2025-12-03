@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { Transaction } from './transaction.entity';
 import { Category } from './category.entity';
-import { text } from 'stream/consumers';
+import { Account } from './account.entity';
 
 @Entity('users')
 export class User {
@@ -35,6 +35,9 @@ export class User {
 
   @OneToMany(() => Category, (category) => category.user)
   categories: Category[];
+
+  @OneToMany(() => Account, (account) => account.user)
+  accounts: Account[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

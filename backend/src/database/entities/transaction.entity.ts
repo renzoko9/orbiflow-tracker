@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Category } from './category.entity';
+import { Account } from './account.entity';
 import { CategoryType } from 'src/common/enum/category-type.enum';
 
 @Entity('transactions')
@@ -36,6 +37,12 @@ export class Transaction {
   })
   @JoinColumn({ name: 'category_id' })
   category: Category;
+
+  @ManyToOne(() => Account, (account) => account.transactions, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'account_id' })
+  account: Account;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
