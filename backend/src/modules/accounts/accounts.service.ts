@@ -5,14 +5,17 @@ import {
 } from '@nestjs/common';
 import { Account } from 'src/database/entities/account.entity';
 import { AccountRepository } from 'src/database/repositories/account.repository';
-import { CreateAccountDto } from './dto/create-account.dto';
-import { UpdateAccountDto } from './dto/update-account.dto';
+import { CreateAccountRequest } from './dto/create-account.dto';
+import { UpdateAccountRequest } from './dto/update-account.dto';
 
 @Injectable()
 export class AccountsService {
   constructor(private readonly accountRepository: AccountRepository) {}
 
-  async create(userId: number, createAccountDto: CreateAccountDto): Promise<Account> {
+  async create(
+    userId: number,
+    createAccountDto: CreateAccountRequest,
+  ): Promise<Account> {
     const newAccount = this.accountRepository.create({
       ...createAccountDto,
       user: { id: userId },
@@ -44,7 +47,7 @@ export class AccountsService {
   async update(
     id: number,
     userId: number,
-    updateAccountDto: UpdateAccountDto,
+    updateAccountDto: UpdateAccountRequest,
   ): Promise<Account> {
     const account = await this.findOne(id, userId);
 
