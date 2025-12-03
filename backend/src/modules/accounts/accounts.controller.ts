@@ -9,8 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
-import { CreateAccountDto } from './dto/create-account.dto';
-import { UpdateAccountDto } from './dto/update-account.dto';
+import { CreateAccountRequest } from './dto/create-account.dto';
+import { UpdateAccountRequest } from './dto/update-account.dto';
 import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
 import { User } from '@/common/decorators/user.decorator';
 import { Account } from '@/database/entities/account.entity';
@@ -23,9 +23,9 @@ export class AccountsController {
   @Post()
   create(
     @User('id') userId: number,
-    @Body() createAccountDto: CreateAccountDto,
+    @Body() createAccountRequest: CreateAccountRequest,
   ): Promise<Account> {
-    return this.accountsService.create(userId, createAccountDto);
+    return this.accountsService.create(userId, createAccountRequest);
   }
 
   @Get()
@@ -45,9 +45,9 @@ export class AccountsController {
   update(
     @Param('id') id: string,
     @User('id') userId: number,
-    @Body() updateAccountDto: UpdateAccountDto,
+    @Body() updateAccountRequest: UpdateAccountRequest,
   ): Promise<Account> {
-    return this.accountsService.update(+id, userId, updateAccountDto);
+    return this.accountsService.update(+id, userId, updateAccountRequest);
   }
 
   @Delete(':id')

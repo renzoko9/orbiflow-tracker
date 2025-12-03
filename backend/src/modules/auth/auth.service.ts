@@ -16,6 +16,7 @@ import { JwtProvider } from '@/common/jwt/jwt.provider';
 import { JwtUtil } from '@/common/utils/jwt.utils';
 import { TokenPayload } from '@/common/interfaces/auth/payload.interface';
 import { LoginTokensResponse } from '@/common/models/tokens.model';
+import { AccountsService } from '../accounts/accounts.service';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtProvider: JwtProvider,
+    private readonly accountsService: AccountsService,
   ) {}
 
   async login(request: LoginRequest): Promise<ResponseAPI<LoginResponse>> {
@@ -74,12 +76,22 @@ export class AuthService {
 
     const hashPassword = await bcrypt.hash(request.password, 10);
 
+    this.logger.log('Creando nuevo usuario...');
     const newUser = await this.usersService.create({
       name: request.name,
       lastname: request.lastname,
       email: request.email,
       password: hashPassword,
     });
+    this.logger.log('Usuario creado exitosamente');
+
+    this.logger.log('Creando cuenta por defecto...');
+    await this.accountsService.create(newUser.id, {
+      name: 'Cuenta Principal',
+      description: 'Cuenta inicial',
+      balance: 0,
+    });
+    this.logger.log('Cuenta por defecto creada');
 
     return {
       tipoRespuesta: TipoRespuestaEnum.Success,
