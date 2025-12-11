@@ -1,98 +1,212 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Orbiflow Tracker - Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Sistema de gestión financiera personal construido con NestJS y PostgreSQL.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tecnologías
 
-## Description
+- **Framework**: NestJS 11.x
+- **Base de datos**: PostgreSQL con TypeORM 0.3.x
+- **Autenticación**: JWT (Access & Refresh Tokens)
+- **Validación**: class-validator, class-transformer
+- **Seguridad**: bcrypt para hashing de contraseñas
+- **Testing**: Jest
+- **Linting**: ESLint con Prettier
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Estructura del Proyecto
 
-## Project setup
-
-```bash
-$ npm install
+```
+backend/
+├── src/
+│   ├── common/                 # Utilidades compartidas
+│   │   ├── decorators/         # Decoradores personalizados (@User)
+│   │   ├── enum/               # Enumeraciones (CategoryType)
+│   │   ├── interfaces/         # Interfaces comunes (ResponseAPI)
+│   │   └── jwt/                # Guards de autenticación JWT
+│   ├── config/                 # Configuración
+│   │   └── orm.config.ts       # Configuración de TypeORM
+│   ├── database/
+│   │   └── entities/           # Entidades de base de datos
+│   ├── modules/                # Módulos de la aplicación
+│   │   ├── accounts/           # Gestión de cuentas
+│   │   ├── auth/               # Autenticación y registro
+│   │   ├── categories/         # Gestión de categorías
+│   │   ├── transactions/       # Gestión de transacciones
+│   │   └── users/              # Gestión de usuarios
+│   ├── app.module.ts           # Módulo principal
+│   └── main.ts                 # Punto de entrada
+└── package.json
 ```
 
-## Compile and run the project
+## Modelos de Base de Datos
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+### User
+```typescript
+{
+  id: number
+  name: string
+  lastname: string
+  email: string (único)
+  password: string (hasheado)
+  refreshToken: string | null
+  createdAt: Date
+}
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+### Account
+```typescript
+{
+  id: number
+  name: string
+  balance: decimal(10,2)
+  description: string | null
+  user_id: number (FK)
+  createdAt: Date
+}
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+### Category
+```typescript
+{
+  id: number
+  name: string
+  type: CategoryType (INCOME | EXPENSE)
+  user_id: number | null (null = categoría global)
+  createdAt: Date
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Transaction
+```typescript
+{
+  id: number
+  amount: decimal(10,2)
+  description: string | null
+  type: CategoryType (INCOME | EXPENSE)
+  date: Date
+  user_id: number (FK)
+  category_id: number (FK)
+  account_id: number (FK)
+  createdAt: Date
+}
+```
 
-## Resources
+## API Endpoints
 
-Check out a few resources that may come in handy when working with NestJS:
+### Autenticación
+- `POST /auth/login` - Iniciar sesión
+- `POST /auth/register` - Registrar nuevo usuario (crea cuenta inicial automáticamente)
+- `POST /auth/refresh` - Refrescar tokens
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Cuentas (requiere autenticación)
+- `POST /accounts` - Crear nueva cuenta
+- `GET /accounts` - Listar todas las cuentas del usuario
+- `GET /accounts/:id` - Obtener cuenta por ID
+- `PATCH /accounts/:id` - Actualizar cuenta
+- `DELETE /accounts/:id` - Eliminar cuenta
 
-## Support
+### Categorías (requiere autenticación)
+- `POST /categories` - Crear nueva categoría
+- `GET /categories` - Listar categorías del usuario
+- `GET /categories/global` - Listar categorías globales
+- `GET /categories/:id` - Obtener categoría por ID
+- `PUT /categories/:id` - Actualizar categoría
+- `DELETE /categories/:id` - Eliminar categoría
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Transacciones (requiere autenticación)
+- `POST /transactions` - Crear nueva transacción
+- `GET /transactions` - Listar todas las transacciones del usuario
+- `GET /transactions/account/:accountId` - Listar transacciones por cuenta
+- `GET /transactions/:id` - Obtener transacción por ID
+- `PUT /transactions/:id` - Actualizar transacción
+- `DELETE /transactions/:id` - Eliminar transacción
 
-## Stay in touch
+## Instalación
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Requisitos previos
+- Node.js (v18 o superior)
+- PostgreSQL
+- npm o yarn
 
-## License
+### Configuración
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+1. Instalar dependencias:
+```bash
+cd backend
+npm install
+```
+
+2. Configurar variables de entorno:
+Crear archivo `.env` en `backend/`:
+```env
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=postgres
+DATABASE_PASSWORD=tu_password
+DATABASE_NAME=orbiflow_tracker
+JWT_SECRET=tu_secret_token
+```
+
+3. Ejecutar migraciones:
+```bash
+npm run migration:run
+```
+
+## Scripts Disponibles
+
+### Desarrollo
+```bash
+npm run start:dev      # Iniciar en modo desarrollo con hot reload
+npm run start:debug    # Iniciar en modo debug
+```
+
+### Producción
+```bash
+npm run build          # Compilar para producción
+npm run start:prod     # Iniciar en modo producción
+```
+
+### Testing
+```bash
+npm test               # Ejecutar tests unitarios
+npm run test:watch     # Ejecutar tests en modo watch
+npm run test:cov       # Ejecutar tests con cobertura
+npm run test:e2e       # Ejecutar tests end-to-end
+```
+
+### Base de datos
+```bash
+npm run migration:generate   # Generar nueva migración
+npm run migration:run        # Ejecutar migraciones pendientes
+npm run migration:revert     # Revertir última migración
+```
+
+### Calidad de código
+```bash
+npm run lint           # Ejecutar ESLint
+npm run format         # Formatear código con Prettier
+```
+
+## Autenticación
+
+El sistema utiliza JWT con dos tipos de tokens:
+
+- **Access Token**: Válido por corto tiempo, usado en cada petición
+- **Refresh Token**: Válido por más tiempo, usado para renovar access tokens
+
+### Uso
+1. Registrarse con `POST /auth/register` (crea automáticamente una cuenta inicial)
+2. Login con `POST /auth/login` para obtener tokens
+3. Incluir access token en header: `Authorization: Bearer {token}`
+4. Refrescar tokens con `POST /auth/refresh` cuando expiren
+
+## Características
+
+- Autenticación segura con JWT y refresh tokens
+- Hashing de contraseñas con bcrypt
+- Validación automática de DTOs con class-validator
+- Creación automática de cuenta inicial al registrarse
+- Categorías globales y por usuario
+- Gestión completa de transacciones con actualización automática de balances
+- Guards de autenticación en endpoints protegidos
+- Relaciones CASCADE para integridad de datos
+- Decorador personalizado `@User()` para acceder al usuario autenticado

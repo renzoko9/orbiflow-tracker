@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Category } from 'src/database/entities/category.entity';
 import { CategoryRepository } from 'src/database/repositories/category.repository';
 import { CreateCategoryRequest } from './dto/create-category.dto';
@@ -23,6 +17,7 @@ export class CategoriesService {
       ...createCategoryRequest,
       user: { id: userId },
     });
+
     return this.categoryRepository.save(newCategory);
   }
 
@@ -30,7 +25,6 @@ export class CategoriesService {
     // Retorna categorias globales (user null) + categorias del usuario
     const categories = await this.categoryRepository.find({
       where: [{ user: IsNull() }, { user: { id: userId } }],
-      relations: ['user'],
       order: {
         name: 'ASC',
       },
@@ -50,7 +44,6 @@ export class CategoriesService {
   async findByUser(userId: number): Promise<Category[]> {
     return this.categoryRepository.find({
       where: { user: { id: userId } },
-      relations: ['user'],
       order: {
         name: 'ASC',
       },
@@ -58,14 +51,11 @@ export class CategoriesService {
   }
 
   async findOne(id: number, userId: number): Promise<Category> {
-    // if (!userId) throw new BadRequestException('User id is required');
-
     const category = await this.categoryRepository.findOne({
       where: [
         { id, user: IsNull() },
         { id, user: { id: userId } },
       ],
-      relations: ['user'],
     });
 
     if (!category) {
@@ -80,18 +70,15 @@ export class CategoriesService {
     userId: number,
     updateCategoryRequest: UpdateCategoryRequest,
   ): Promise<Category> {
+    // Solo se pueden actualizar categorias del usuario, no las globales
     const category = await this.categoryRepository.findOne({
-      where: { id },
-      relations: ['user'],
+      where: { id, user: { id: userId } },
     });
 
     if (!category) {
-      throw new NotFoundException(`Category with id ${id} not found`);
-    }
-
-    // Solo se pueden actualizar categorias del usuario, no las globales
-    if (!category.user || category.user.id !== userId) {
-      throw new ForbiddenException('You can only update your own categories');
+      throw new NotFoundException(
+        `Category with id ${id} not found or you don't have permission to update it`,
+      );
     }
 
     Object.assign(category, updateCategoryRequest);
@@ -99,18 +86,15 @@ export class CategoriesService {
   }
 
   async delete(id: number, userId: number): Promise<void> {
+    // Solo se pueden eliminar categorias del usuario, no las globales
     const category = await this.categoryRepository.findOne({
-      where: { id },
-      relations: ['user'],
+      where: { id, user: { id: userId } },
     });
 
     if (!category) {
-      throw new NotFoundException(`Category with id ${id} not found`);
-    }
-
-    // Solo se pueden eliminar categorias del usuario, no las globales
-    if (!category.user || category.user.id !== userId) {
-      throw new ForbiddenException('You can only delete your own categories');
+      throw new NotFoundException(
+        `Category with id ${id} not found or you don't have permission to delete it`,
+      );
     }
 
     await this.categoryRepository.remove(category);

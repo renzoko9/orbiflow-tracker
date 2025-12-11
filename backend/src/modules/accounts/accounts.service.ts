@@ -27,14 +27,14 @@ export class AccountsService {
   async findAll(userId: number): Promise<Account[]> {
     return this.accountRepository.find({
       where: { user: { id: userId } },
-      relations: ['user'],
+      // relations: ['user'],
     });
   }
 
   async findOne(id: number, userId: number): Promise<Account> {
     const account = await this.accountRepository.findOne({
       where: { id, user: { id: userId } },
-      relations: ['user'],
+      // relations: ['user'],
     });
 
     if (!account) {
