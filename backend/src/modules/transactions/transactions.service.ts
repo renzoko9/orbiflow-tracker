@@ -13,12 +13,14 @@ import {
   TransactionResponse,
   TransactionListResponse,
 } from './models/transaction-response.model';
+import { TransactionsMapper } from './transactions.mapper';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private readonly transactionRepository: TransactionRepository,
     private readonly accountRepository: AccountRepository,
+    private readonly transactionsMapper: TransactionsMapper,
   ) {}
 
   async create(
@@ -70,7 +72,9 @@ export class TransactionsService {
       },
     });
 
-    return transactions.map((transaction) => this.mapToListResponse(transaction));
+    return transactions.map((transaction) =>
+      this.transactionsMapper.toListResponse(transaction),
+    );
   }
 
   async findByAccount(
@@ -95,7 +99,9 @@ export class TransactionsService {
       },
     });
 
-    return transactions.map((transaction) => this.mapToListResponse(transaction));
+    return transactions.map((transaction) =>
+      this.transactionsMapper.toListResponse(transaction),
+    );
   }
 
   async findOne(id: number, userId: number): Promise<TransactionResponse> {
@@ -108,7 +114,7 @@ export class TransactionsService {
       throw new NotFoundException(`Transaction with id ${id} not found`);
     }
 
-    return this.mapToResponse(transaction);
+    return this.transactionsMapper.toResponse(transaction);
   }
 
   async update(
@@ -250,52 +256,5 @@ export class TransactionsService {
 
     account.balance = Number(account.balance) + balanceChange;
     await this.accountRepository.save(account);
-  }
-
-  private mapToResponse(transaction: Transaction): TransactionResponse {
-    const dateStr = transaction.date instanceof Date
-      ? transaction.date.toISOString().split('T')[0]
-      : String(transaction.date);
-
-    return {
-      id: transaction.id,
-      amount: Number(transaction.amount),
-      description: transaction.description,
-      type: transaction.type,
-      date: dateStr,
-      category: transaction.category
-        ? {
-            id: transaction.category.id,
-            name: transaction.category.name,
-            type: transaction.category.type,
-          }
-        : null,
-      account: {
-        id: transaction.account.id,
-        name: transaction.account.name,
-        balance: Number(transaction.account.balance),
-      },
-      createdAt: transaction.createdAt,
-    };
-  }
-
-  private mapToListResponse(transaction: Transaction): TransactionListResponse {
-    const dateStr = transaction.date instanceof Date
-      ? transaction.date.toISOString().split('T')[0]
-      : String(transaction.date);
-
-    return {
-      id: transaction.id,
-      amount: Number(transaction.amount),
-      description: transaction.description,
-      type: transaction.type,
-      typeName: transaction.type === CategoryType.INCOME ? 'Ingreso' : 'Gasto',
-      date: dateStr,
-      categoryId: transaction.category?.id || null,
-      categoryName: transaction.category?.name || null,
-      accountId: transaction.account.id,
-      accountName: transaction.account.name,
-      createdAt: transaction.createdAt,
-    };
   }
 }

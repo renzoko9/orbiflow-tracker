@@ -5,11 +5,12 @@ import { TransactionRepository } from 'src/database/repositories/transaction.rep
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Transaction } from 'src/database/entities/transaction.entity';
 import { AccountsModule } from '../accounts/accounts.module';
+import { TransactionsMapper } from './transactions.mapper';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Transaction]), AccountsModule],
   controllers: [TransactionsController],
-  providers: [TransactionsService, TransactionRepository],
+  providers: [TransactionsService, TransactionRepository, TransactionsMapper],
   exports: [TransactionsService, TransactionRepository],
 })
 export class TransactionsModule {}
