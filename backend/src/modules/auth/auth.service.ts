@@ -11,7 +11,7 @@ import { LoginResponse } from '@/modules/auth/models/login.model';
 import * as bcrypt from 'bcrypt';
 import { RegisterRequest } from './dto/register.dto';
 import { RegisterResponse } from './models/register.model';
-import { TipoRespuestaEnum } from '@/common/enum/tipo-respuesta.enum';
+import { ResponseTypeEnum } from '@/common/enum/response-type.enum';
 import { JwtProvider } from '@/common/jwt/jwt.provider';
 import { JwtUtil } from '@/common/utils/jwt.utils';
 import { TokenPayload } from '@/common/interfaces/auth/payload.interface';
@@ -54,7 +54,7 @@ export class AuthService {
     });
 
     return {
-      tipoRespuesta: TipoRespuestaEnum.Success,
+      responseType: ResponseTypeEnum.Success,
       message: 'Inicio de sesión exitoso',
       data: {
         usuario: JwtUtil.sanitizeUser(user),
@@ -94,7 +94,7 @@ export class AuthService {
     this.logger.log('Cuenta por defecto creada');
 
     return {
-      tipoRespuesta: TipoRespuestaEnum.Success,
+      responseType: ResponseTypeEnum.Success,
       message: 'Usuario registrado exitosamente',
       data: { user: JwtUtil.sanitizeUser(newUser) },
     };

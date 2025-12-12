@@ -13,10 +13,10 @@ import { User } from 'src/database/entities/user.entity';
 import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
 
 @Controller('users')
+@UseGuards(JwtAccessGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAccessGuard)
   @Get()
   findAll(): Promise<User[]> {
     return this.usersService.findAll();

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ResponseAPI } from '../interfaces/response.interface';
-import { TipoRespuestaEnum } from '../enum/tipo-respuesta.enum';
+import { ResponseTypeEnum } from '../enum/response-type.enum';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -21,6 +21,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Ha ocurrido un error inesperado en el servidor';
+    let title = 'Error';
 
     // Si es una HttpException, extraer su información
     if (exception instanceof HttpException) {
@@ -33,6 +34,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         typeof exceptionResponse === 'object' &&
         'message' in exceptionResponse
       ) {
+        // Extraer title personalizado si existe
+        if ('title' in exceptionResponse && exceptionResponse.title) {
+          title = exceptionResponse.title as string;
+        }
+
+        // Extraer mensaje
         if (Array.isArray(exceptionResponse.message)) {
           message = exceptionResponse.message.join(', ');
         } else {
@@ -58,8 +65,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Construir la respuesta en formato ResponseAPI
     const errorResponse: ResponseAPI = {
-      tipoRespuesta: TipoRespuestaEnum.Error,
-      title: 'Error',
+      responseType: ResponseTypeEnum.Error,
+      title,
       message,
       data: undefined,
     };

@@ -1,4 +1,4 @@
-export enum TipoRespuestaEnum {
+export enum ResponseTypeEnum {
   Success = 1,
   Warning = 2,
   Error = 3,

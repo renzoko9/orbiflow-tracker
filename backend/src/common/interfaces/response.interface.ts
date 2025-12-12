@@ -1,7 +1,7 @@
-import { TipoRespuestaEnum } from '../enum/tipo-respuesta.enum';
+import { ResponseTypeEnum } from '../enum/response-type.enum';
 
 export interface ResponseAPI<T = {}> {
-  tipoRespuesta?: TipoRespuestaEnum;
+  responseType?: ResponseTypeEnum;
   title?: string;
   message: string;
   data?: T;
