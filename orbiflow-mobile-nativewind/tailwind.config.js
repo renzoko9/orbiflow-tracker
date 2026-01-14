@@ -6,6 +6,10 @@ module.exports = {
     extend: {
       colors: {
         // Agrega aquí tus tokens de color personalizados
+        base: "#0c1111",
+        inverse: "#f1f6f6",
+        subordinary: "#a6a6a6",
+        disabled: "#d9d9d9",
         primary: {
           1: "#e3eded",
           2: "#c8dcdc",
