@@ -113,11 +113,11 @@ function DonutChart() {
 
 function CategoriaLegend() {
   return (
-    <View className="flex-row flex-wrap justify-center gap-x-4 gap-y-2 px-4">
+    <View className="flex-row flex-wrap px-2 mt-4">
       {CATEGORIAS.map((cat, index) => (
-        <View key={index} className="flex-row items-center gap-1">
+        <View key={index} className="flex-row items-center w-1/2 mb-3 px-2">
           <View
-            className="w-3 h-3 rounded-full"
+            className="w-3 h-3 rounded-full mr-2"
             style={{ backgroundColor: cat.color }}
           />
           <Text className="text-xs text-subordinary">{cat.nombre}</Text>
@@ -135,7 +135,7 @@ function TransaccionItem({
   const Icono = transaccion.icono;
 
   return (
-    <View className="flex-row items-center py-3 px-4 bg-white rounded-xl mb-2">
+    <View className="flex-row items-center py-3 px-4 bg-white rounded-2xl mb-2">
       <View
         className="w-10 h-10 rounded-full items-center justify-center mr-3"
         style={{ backgroundColor: `${transaccion.color}20` }}
@@ -161,42 +161,45 @@ function TransaccionItem({
 export default function InicioScreen() {
   return (
     <SafeAreaView className="flex-1">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View className="px-4 pt-4 pb-2">
-          <Text className="text-subordinary text-sm">Balance total</Text>
-          <Text className="text-4xl font-bold text-base">S/ 12,450.80</Text>
-        </View>
-
-        {/* Selector de mes */}
-        <View className="items-center py-2">
-          <View className="bg-white px-4 py-2 rounded-full">
-            <Text className="text-base font-medium text-primary-7">
-              Enero 2026
-            </Text>
+      <ScrollView className="flex-1 px-4 pt-4" showsVerticalScrollIndicator={false}>
+        <View className="flex flex-col gap-4">
+          {/* Header */}
+          <View className="items-center">
+            <Text className="text-subordinary text-sm">Balance total</Text>
+            <Text className="text-3xl font-bold text-base">S/ 12,450.80</Text>
           </View>
-        </View>
 
-        {/* Gráfico Donut */}
-        <View className="py-4">
-          <DonutChart />
-        </View>
+          {/* Selector de mes */}
+          <View className="p-4 rounded-2xl bg-white">
+            <View className="flex-row justify-between items-center">
+              <Text className="text-xl font-semibold text-base">Desglose de gastos</Text>
+              <Text className="text-base font-medium text-primary-6 bg-primary-1 px-4 py-1 rounded-full">
+                Enero 2026
+              </Text>
+            </View>
 
-        {/* Leyenda de categorías */}
-        <CategoriaLegend />
+            {/* Gráfico Donut */}
+            <View className="py-4">
+              <DonutChart />
+            </View>
 
-        {/* Últimas transacciones */}
-        <View className="px-4 pt-6 pb-4">
-          <View className="flex-row justify-between items-center mb-3">
+            {/* Leyenda de categorías */}
+            <CategoriaLegend />
+          </View>
+
+          {/* Últimas transacciones */}
+          <View className="flex-row justify-between items-center">
             <Text className="text-lg font-semibold text-base">
               Últimas transacciones
             </Text>
             <MoreHorizontal size={20} color="#a6a6a6" />
           </View>
 
-          {TRANSACCIONES.map((transaccion) => (
-            <TransaccionItem key={transaccion.id} transaccion={transaccion} />
-          ))}
+          <View className="flex flex-col">
+            {TRANSACCIONES.map((transaccion) => (
+              <TransaccionItem key={transaccion.id} transaccion={transaccion} />
+            ))}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
