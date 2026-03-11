@@ -4,16 +4,24 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "start:dev": "cross-env APP_ENV=dev expo start",
+    "start:prod": "cross-env APP_ENV=production expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
+    "android:dev": "cross-env APP_ENV=dev expo start --android",
+    "android:prod": "cross-env APP_ENV=production expo start --android",
     "ios": "expo start --ios",
+    "ios:dev": "cross-env APP_ENV=dev expo start --ios",
+    "ios:prod": "cross-env APP_ENV=production expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.0.1",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "axios": "^1.13.6",
     "expo": "~54.0.31",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.10",
@@ -43,6 +51,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"

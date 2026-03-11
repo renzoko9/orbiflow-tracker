@@ -11,6 +11,8 @@ interface InputProps {
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   className?: string;
+  keyboardType?: import("react-native").KeyboardTypeOptions;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
   multiline?: boolean;
   numberOfLines?: number;
 }
@@ -25,6 +27,8 @@ export function Input({
   leftIcon,
   rightIcon,
   className = '',
+  keyboardType,
+  autoCapitalize,
   multiline = false,
   numberOfLines,
 }: InputProps) {
@@ -52,6 +56,8 @@ export function Input({
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
           multiline={multiline}
           numberOfLines={numberOfLines}
         />
