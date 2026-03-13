@@ -9,15 +9,7 @@ import { GENERAL_CONSTANTS } from "../constants/general.constant";
 import { API_CONFIG, STORAGE_KEYS } from "../config/environment.config";
 import StorageService from "../storage/storage.service";
 import { ResponseAPI } from "../api/dto/api-response.interface";
-
-/**
- * Configuración de error personalizado
- */
-interface HttpError {
-  message: string;
-  status?: number;
-  data?: unknown;
-}
+import { ApiError } from "../api/api-error";
 
 /**
  * Servicio HTTP abstracto base
@@ -132,29 +124,23 @@ export abstract class HttpService {
   }
 
   /**
-   * Maneja y formatea errores de axios
+   * Maneja y formatea errores de axios en un ApiError tipado
    */
-  private handleError(error: AxiosError): HttpError {
+  private handleError(error: AxiosError): ApiError {
     if (error.response) {
-      // El servidor respondió con un código de error
-      const responseData = error.response.data as ResponseAPI;
-
-      return {
-        message: responseData?.message || "Error en la petición",
-        status: error.response.status,
-        data: responseData?.data,
-      };
+      const response = error.response.data as ResponseAPI;
+      return new ApiError(
+        {
+          message: response?.message || "Error en la petición",
+          title: response?.title,
+          responseType: response?.responseType,
+        },
+        error.response.status,
+      );
     } else if (error.request) {
-      // La petición se hizo pero no hubo respuesta
-      return {
-        message: "No se pudo conectar con el servidor",
-        status: 0,
-      };
+      return new ApiError({ message: "No se pudo conectar con el servidor" }, 0);
     } else {
-      // Error al configurar la petición
-      return {
-        message: error.message || "Error desconocido",
-      };
+      return new ApiError({ message: error.message || "Error desconocido" });
     }
   }
 

@@ -41,9 +41,21 @@ module.exports = {
         // O define colores simples
         brand: "#3b82f6",
         accent: "#d946ef",
-        success: "#10b981",
-        warning: "#f59e0b",
-        error: "#ef4444",
+        success: {
+          soft: "#d1fae5",
+          medium: "#10b981",
+          hard: "#065f46",
+        },
+        warning: {
+          soft: "#fef3c7",
+          medium: "#f59e0b",
+          hard: "#92400e",
+        },
+        error: {
+          soft: "#fee2e2",
+          medium: "#ef4444",
+          hard: "#991b1b",
+        },
         background: {
           light: "#ffffff",
           dark: "#0f172a",

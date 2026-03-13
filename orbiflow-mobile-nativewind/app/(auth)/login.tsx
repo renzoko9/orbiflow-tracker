@@ -1,39 +1,36 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { Link, router } from "expo-router";
-import { Button, Input } from "@/src/ui/atoms";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Alert, Button, FormField } from "@/src/ui/atoms";
 import AuthService from "@/src/core/services/auth.service";
+import { loginSchema, LoginFormValues } from "@/src/core/schemas/auth/login.schema";
+import { ApiError } from "@/src/core/api/api-error";
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [apiError, setApiError] = useState<ApiError | null>(null);
 
-  async function handleLogin() {
-    if (!email || !password) {
-      setError("Completa todos los campos.");
-      return;
-    }
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
 
-    setError("");
-    setLoading(true);
-
+  async function onSubmit(values: LoginFormValues) {
+    setApiError(null);
     try {
-      await AuthService.login({ email, password });
+      await AuthService.login(values);
       router.replace("/(tabs)/inicio");
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Error al iniciar sesión.";
-      setError(message);
-    } finally {
-      setLoading(false);
+      if (err instanceof ApiError) {
+        setApiError(err);
+      } else {
+        setApiError(new ApiError({ message: "Error al iniciar sesión." }));
+      }
     }
   }
 
@@ -53,39 +50,39 @@ export default function LoginScreen() {
 
         {/* Form */}
         <View className="gap-4">
-          <Input
+          <FormField
+            control={control}
+            name="email"
             label="Correo electrónico"
-            placeholder="correo@ejemplo.com"
-            value={email}
-            onChangeText={setEmail}
+            placeholder="tucorreo@ejemplo.com"
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <Input
+          <FormField
+            control={control}
+            name="password"
             label="Contraseña"
             placeholder="••••••••"
-            value={password}
-            onChangeText={setPassword}
             secureTextEntry
           />
-
-          {error ? (
-            <Text className="text-sm text-red-500">{error}</Text>
-          ) : null}
 
           <TouchableOpacity className="self-end">
             <Text className="text-sm text-primary-6 font-medium">
               ¿Olvidaste tu contraseña?
             </Text>
           </TouchableOpacity>
+
+          {apiError && (
+            <Alert variant="error" title={apiError.title} message={apiError.message} />
+          )}
         </View>
 
         {/* Submit */}
         <Button
           className="mt-8 w-full"
           size="lg"
-          loading={loading}
-          onPress={handleLogin}
+          loading={isSubmitting}
+          onPress={handleSubmit(onSubmit)}
         >
           Iniciar sesión
         </Button>

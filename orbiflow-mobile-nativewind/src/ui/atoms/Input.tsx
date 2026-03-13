@@ -6,6 +6,7 @@ interface InputProps {
   placeholder?: string;
   value?: string;
   onChangeText?: (text: string) => void;
+  onBlur?: () => void;
   secureTextEntry?: boolean;
   error?: string;
   leftIcon?: ReactNode;
@@ -22,6 +23,7 @@ export function Input({
   placeholder,
   value,
   onChangeText,
+  onBlur,
   secureTextEntry = false,
   error,
   leftIcon,
@@ -55,6 +57,7 @@ export function Input({
           placeholderTextColor="#9ca3af"
           value={value}
           onChangeText={onChangeText}
+          onBlur={onBlur}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
