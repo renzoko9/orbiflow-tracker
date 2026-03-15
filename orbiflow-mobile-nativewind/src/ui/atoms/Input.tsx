@@ -1,5 +1,6 @@
 import { TextInput, View, Text } from 'react-native';
 import { ReactNode } from 'react';
+import { colors } from '@/src/ui/theme/colors';
 
 interface InputProps {
   label?: string;
@@ -45,7 +46,7 @@ export function Input({
       <View
         className={`
           flex-row items-center border rounded-lg px-3 bg-white
-          ${error ? 'border-error' : 'border-gray-300 focus:border-primary-6'}
+          ${error ? 'border-error-medium' : 'border-gray-300 focus:border-primary-6'}
           ${multiline ? 'py-2' : 'py-3'}
         `}
       >
@@ -54,7 +55,7 @@ export function Input({
         <TextInput
           className="flex-1 text-base text-gray-900"
           placeholder={placeholder}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={error ? colors.error.medium : colors.subordinary}
           value={value}
           onChangeText={onChangeText}
           onBlur={onBlur}
@@ -69,7 +70,7 @@ export function Input({
       </View>
 
       {error && (
-        <Text className="text-sm text-error mt-1">
+        <Text className="text-sm text-error-medium mt-1">
           {error}
         </Text>
       )}

@@ -1,8 +1,45 @@
+import { useState } from "react";
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
-import { Link } from "expo-router";
-import { Button, Input } from "@/src/ui/atoms";
+import { Link, router } from "expo-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Alert, Button, FormField } from "@/src/ui/atoms";
+import AuthService from "@/src/core/services/auth.service";
+import { registerSchema, RegisterFormValues } from "@/src/core/schemas/auth/register.schema";
+import { ApiError } from "@/src/core/api/api-error";
 
 export default function RegisterScreen() {
+  const [apiError, setApiError] = useState<ApiError | null>(null);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      lastname: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  async function onSubmit({ confirmPassword: _, ...values }: RegisterFormValues) {
+    setApiError(null);
+    try {
+      await AuthService.register(values);
+      router.replace("/(tabs)/inicio");
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        setApiError(err);
+      } else {
+        setApiError(new ApiError({ message: "Error al crear la cuenta." }));
+      }
+    }
+  }
+
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-white"
@@ -23,31 +60,62 @@ export default function RegisterScreen() {
 
         {/* Form */}
         <View className="gap-4">
-          <Input
-            label="Nombre completo"
-            placeholder="Juan Pérez"
-            autoCapitalize="words"
-          />
-          <Input
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <FormField
+                control={control}
+                name="name"
+                label="Nombre"
+                placeholder="Juan"
+                autoCapitalize="words"
+              />
+            </View>
+            <View className="flex-1">
+              <FormField
+                control={control}
+                name="lastname"
+                label="Apellido"
+                placeholder="Pérez"
+                autoCapitalize="words"
+              />
+            </View>
+          </View>
+
+          <FormField
+            control={control}
+            name="email"
             label="Correo electrónico"
-            placeholder="correo@ejemplo.com"
+            placeholder="tucorreo@ejemplo.com"
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <Input
+          <FormField
+            control={control}
+            name="password"
             label="Contraseña"
             placeholder="••••••••"
             secureTextEntry
           />
-          <Input
+          <FormField
+            control={control}
+            name="confirmPassword"
             label="Confirmar contraseña"
             placeholder="••••••••"
             secureTextEntry
           />
+
+          {apiError && (
+            <Alert variant="error" title={apiError.title} message={apiError.message} />
+          )}
         </View>
 
         {/* Submit */}
-        <Button className="mt-8 w-full" size="lg">
+        <Button
+          className="mt-8 w-full"
+          size="lg"
+          loading={isSubmitting}
+          onPress={handleSubmit(onSubmit)}
+        >
           Crear cuenta
         </Button>
 
