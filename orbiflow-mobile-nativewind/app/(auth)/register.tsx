@@ -1,11 +1,21 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 import { Link, router } from "expo-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Alert, Button, FormField } from "@/src/ui/atoms";
 import AuthService from "@/src/core/services/auth.service";
-import { registerSchema, RegisterFormValues } from "@/src/core/schemas/auth/register.schema";
+import {
+  registerSchema,
+  RegisterFormValues,
+} from "@/src/core/schemas/auth/register.schema";
 import { ApiError } from "@/src/core/api/api-error";
 
 export default function RegisterScreen() {
@@ -26,7 +36,10 @@ export default function RegisterScreen() {
     },
   });
 
-  async function onSubmit({ confirmPassword: _, ...values }: RegisterFormValues) {
+  async function onSubmit({
+    confirmPassword: _,
+    ...values
+  }: RegisterFormValues) {
     setApiError(null);
     try {
       await AuthService.register(values);
@@ -66,7 +79,7 @@ export default function RegisterScreen() {
                 control={control}
                 name="name"
                 label="Nombre"
-                placeholder="Juan"
+                placeholder="Ingresa tu nombre"
                 autoCapitalize="words"
               />
             </View>
@@ -75,7 +88,7 @@ export default function RegisterScreen() {
                 control={control}
                 name="lastname"
                 label="Apellido"
-                placeholder="Pérez"
+                placeholder="Ingresa tu apellido"
                 autoCapitalize="words"
               />
             </View>
@@ -85,7 +98,7 @@ export default function RegisterScreen() {
             control={control}
             name="email"
             label="Correo electrónico"
-            placeholder="tucorreo@ejemplo.com"
+            placeholder="Ingresa tu correo electrónico"
             keyboardType="email-address"
             autoCapitalize="none"
           />
@@ -93,19 +106,23 @@ export default function RegisterScreen() {
             control={control}
             name="password"
             label="Contraseña"
-            placeholder="••••••••"
+            placeholder="Ingresa tu contraseña"
             secureTextEntry
           />
           <FormField
             control={control}
             name="confirmPassword"
             label="Confirmar contraseña"
-            placeholder="••••••••"
+            placeholder="Ingresa tu contraseña"
             secureTextEntry
           />
 
           {apiError && (
-            <Alert variant="error" title={apiError.title} message={apiError.message} />
+            <Alert
+              variant="error"
+              title={apiError.title}
+              message={apiError.message}
+            />
           )}
         </View>
 

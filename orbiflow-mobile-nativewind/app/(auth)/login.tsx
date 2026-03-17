@@ -1,11 +1,20 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { Link, router } from "expo-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Alert, Button, FormField } from "@/src/ui/atoms";
 import AuthService from "@/src/core/services/auth.service";
-import { loginSchema, LoginFormValues } from "@/src/core/schemas/auth/login.schema";
+import {
+  loginSchema,
+  LoginFormValues,
+} from "@/src/core/schemas/auth/login.schema";
 import { ApiError } from "@/src/core/api/api-error";
 
 export default function LoginScreen() {
@@ -54,7 +63,7 @@ export default function LoginScreen() {
             control={control}
             name="email"
             label="Correo electrónico"
-            placeholder="tucorreo@ejemplo.com"
+            placeholder="Ingresa tu correo electrónico"
             keyboardType="email-address"
             autoCapitalize="none"
           />
@@ -62,7 +71,7 @@ export default function LoginScreen() {
             control={control}
             name="password"
             label="Contraseña"
-            placeholder="••••••••"
+            placeholder="Ingresa tu contraseña"
             secureTextEntry
           />
 
@@ -73,7 +82,11 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           {apiError && (
-            <Alert variant="error" title={apiError.title} message={apiError.message} />
+            <Alert
+              variant="info"
+              title={apiError.title}
+              message={apiError.message}
+            />
           )}
         </View>
 

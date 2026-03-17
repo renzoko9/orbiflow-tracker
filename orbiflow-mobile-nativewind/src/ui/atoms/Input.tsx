@@ -1,5 +1,6 @@
-import { TextInput, View, Text } from 'react-native';
-import { ReactNode } from 'react';
+import { TextInput, View, Text, TouchableOpacity } from 'react-native';
+import { ReactNode, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { colors } from '@/src/ui/theme/colors';
 
 interface InputProps {
@@ -35,6 +36,19 @@ export function Input({
   multiline = false,
   numberOfLines,
 }: InputProps) {
+  const [showPassword, setShowPassword] = useState(false);
+
+  const resolvedRightIcon = secureTextEntry
+    ? (
+      <TouchableOpacity onPress={() => setShowPassword((prev) => !prev)} hitSlop={8}>
+        {showPassword
+          ? <EyeOff size={20} color={colors.subordinary} />
+          : <Eye size={20} color={colors.subordinary} />
+        }
+      </TouchableOpacity>
+    )
+    : rightIcon;
+
   return (
     <View className={`w-full ${className}`}>
       {label && (
@@ -59,14 +73,14 @@ export function Input({
           value={value}
           onChangeText={onChangeText}
           onBlur={onBlur}
-          secureTextEntry={secureTextEntry}
+          secureTextEntry={secureTextEntry && !showPassword}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           multiline={multiline}
           numberOfLines={numberOfLines}
         />
 
-        {rightIcon && <View className="ml-2">{rightIcon}</View>}
+        {resolvedRightIcon && <View className="ml-2">{resolvedRightIcon}</View>}
       </View>
 
       {error && (
