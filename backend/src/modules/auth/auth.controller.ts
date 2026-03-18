@@ -5,6 +5,9 @@ import { ResponseAPI } from '@/common/interfaces/response.interface';
 import { LoginResponse } from './models/login.model';
 import { RegisterRequest } from './dto/register.dto';
 import { RegisterResponse } from './models/register.model';
+import { VerifyEmailRequest } from './dto/verify-email.dto';
+import { ResendVerificationRequest } from './dto/resend-verification.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -20,6 +23,19 @@ export class AuthController {
     @Body() data: RegisterRequest,
   ): Promise<ResponseAPI<RegisterResponse>> {
     return this.authService.register(data);
+  }
+
+  @Post('verify-email')
+  async verifyEmail(@Body() data: VerifyEmailRequest): Promise<ResponseAPI> {
+    return this.authService.verifyEmail(data.token);
+  }
+
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
+  @Post('resend-verification')
+  async resendVerification(
+    @Body() data: ResendVerificationRequest,
+  ): Promise<ResponseAPI> {
+    return this.authService.resendVerification(data.email);
   }
 
   @Post('refresh')

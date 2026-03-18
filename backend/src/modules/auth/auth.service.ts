@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -17,6 +18,7 @@ import { JwtUtil } from '@/common/utils/jwt.utils';
 import { TokenPayload } from '@/common/interfaces/auth/payload.interface';
 import { LoginTokensResponse } from '@/common/models/tokens.model';
 import { AccountsService } from '../accounts/accounts.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -26,15 +28,14 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtProvider: JwtProvider,
     private readonly accountsService: AccountsService,
+    private readonly mailService: MailService,
   ) {}
 
   async login(request: LoginRequest): Promise<ResponseAPI<LoginResponse>> {
     const { email, password } = request;
 
     this.logger.log('Obteniendo usuario...');
-    const user = await this.usersService.findOneByAnyField({
-      email,
-    });
+    const user = await this.usersService.findOneByAnyField({ email });
     this.logger.log('Usuario obtenido');
 
     if (!user) throw new UnauthorizedException('Este email no está registrado');
@@ -42,6 +43,12 @@ export class AuthService {
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) throw new UnauthorizedException('Contraseña inválida');
+
+    if (!user.isVerified) {
+      throw new ForbiddenException(
+        'Debes verificar tu correo electrónico antes de iniciar sesión',
+      );
+    }
 
     this.logger.log('Generando tokens...');
     const tokens = await this.jwtProvider.generateTokens(user);
@@ -93,10 +100,73 @@ export class AuthService {
     });
     this.logger.log('Cuenta por defecto creada');
 
+    await this.mailService.createAndSendVerificationToken(
+      newUser.id,
+      newUser.email,
+      newUser.name,
+    );
+
     return {
       responseType: ResponseTypeEnum.Success,
-      message: 'Usuario registrado exitosamente',
+      message: 'Usuario registrado. Revisa tu correo para verificar tu cuenta.',
       data: { user: JwtUtil.sanitizeUser(newUser) },
+    };
+  }
+
+  async verifyEmail(token: string): Promise<ResponseAPI> {
+    const verificationToken = await this.mailService.verifyToken(token);
+
+    if (!verificationToken) {
+      throw new BadRequestException('Token de verificación inválido');
+    }
+
+    if (verificationToken.expiresAt < new Date()) {
+      await this.mailService.deleteTokensByUserId(verificationToken.user.id);
+      throw new BadRequestException(
+        'El token de verificación ha expirado. Solicita uno nuevo.',
+      );
+    }
+
+    await this.usersService.update(verificationToken.user.id, {
+      isVerified: true,
+    });
+
+    await this.mailService.deleteTokensByUserId(verificationToken.user.id);
+
+    this.logger.log(
+      `Usuario ${verificationToken.user.email} verificado exitosamente`,
+    );
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      message: 'Correo verificado exitosamente. Ya puedes iniciar sesión.',
+    };
+  }
+
+  async resendVerification(email: string): Promise<ResponseAPI> {
+    const user = await this.usersService.findOneByAnyField({ email });
+
+    // Respuesta genérica para no revelar si el email existe
+    const genericMessage =
+      'Si el correo está registrado y no verificado, recibirás un enlace de verificación.';
+
+    if (!user || user.isVerified) {
+      return {
+        responseType: ResponseTypeEnum.Success,
+        message: genericMessage,
+      };
+    }
+
+    await this.mailService.deleteTokensByUserId(user.id);
+    await this.mailService.createAndSendVerificationToken(
+      user.id,
+      user.email,
+      user.name,
+    );
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      message: genericMessage,
     };
   }
 

@@ -83,7 +83,7 @@ export default function LoginScreen() {
 
           {apiError && (
             <Alert
-              variant="info"
+              variant="error"
               title={apiError.title}
               message={apiError.message}
             />

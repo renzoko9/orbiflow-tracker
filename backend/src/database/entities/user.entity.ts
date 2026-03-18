@@ -27,6 +27,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
+
   @Column({ type: 'text', nullable: true })
   refreshToken: string | null;
 
