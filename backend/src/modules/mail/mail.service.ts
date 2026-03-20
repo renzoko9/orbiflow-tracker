@@ -1,17 +1,38 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ConfigService } from '@nestjs/config';
 import { randomInt } from 'crypto';
 import { EmailVerificationTokenRepository } from '@Repositories';
+import { SendMailOptions } from './interfaces/send-mail-options.interface';
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private readonly TOKEN_EXPIRY_HOURS = 24;
+  private readonly tokenExpiryHours: number;
 
   constructor(
     private readonly mailerService: MailerService,
+    private readonly configService: ConfigService,
     private readonly emailVerificationTokenRepository: EmailVerificationTokenRepository,
-  ) {}
+  ) {
+    this.tokenExpiryHours = this.configService.get<number>(
+      'TOKEN_EXPIRY_HOURS',
+      24,
+    );
+  }
+
+  async sendMail(options: SendMailOptions): Promise<void> {
+    this.logger.log(`Enviando correo a ${options.to}`);
+
+    await this.mailerService.sendMail({
+      to: options.to,
+      subject: options.subject,
+      template: options.template,
+      context: options.context,
+    });
+
+    this.logger.log(`Correo enviado a ${options.to}`);
+  }
 
   async createAndSendVerificationToken(
     userId: number,
@@ -20,7 +41,7 @@ export class MailService {
   ): Promise<void> {
     const code = this.generateVerificationCode();
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + this.TOKEN_EXPIRY_HOURS);
+    expiresAt.setHours(expiresAt.getHours() + this.tokenExpiryHours);
 
     this.logger.log('Creando token de verificación...');
     await this.emailVerificationTokenRepository.save({
@@ -29,7 +50,12 @@ export class MailService {
       userId,
     });
 
-    await this.sendVerificationEmail(email, name, code);
+    await this.sendMail({
+      to: email,
+      subject: 'Verifica tu cuenta - OrbiFlow',
+      template: 'verify-email',
+      context: { name, code, year: new Date().getFullYear() },
+    });
   }
 
   async verifyToken(token: string) {
@@ -45,26 +71,5 @@ export class MailService {
 
   private generateVerificationCode(): string {
     return randomInt(100000, 999999).toString();
-  }
-
-  private async sendVerificationEmail(
-    email: string,
-    name: string,
-    code: string,
-  ): Promise<void> {
-    this.logger.log(`Enviando correo de verificación a ${email}`);
-
-    await this.mailerService.sendMail({
-      to: email,
-      subject: 'Verifica tu cuenta - OrbiFlow',
-      template: 'verify-email',
-      context: {
-        name,
-        code,
-        year: new Date().getFullYear(),
-      },
-    });
-
-    this.logger.log(`Correo de verificación enviado a ${email}`);
   }
 }
