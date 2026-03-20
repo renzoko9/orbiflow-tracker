@@ -7,13 +7,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtAccessStrategy } from '@/common/jwt/access-token/jwt-access.strategy';
 import { JwtRefreshStrategy } from '@/common/jwt/refresh-token/jwt-refresh.strategy';
 import { AccountsModule } from '../accounts/accounts.module';
-import { MailModule } from '../mail/mail.module';
+import { EmailVerificationModule } from '../email-verification/email-verification.module';
 
 @Module({
   imports: [
     UsersModule,
     AccountsModule,
-    MailModule,
+    EmailVerificationModule,
     JwtModule.register({
       // global: true,
       secret: process.env.JWT_SECRET || 'default_secret_key',

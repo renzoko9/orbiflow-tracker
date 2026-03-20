@@ -24,7 +24,7 @@ export function mailConfig(): MailerAsyncOptions {
         ),
       },
       template: {
-        dir: join(__dirname, '..', 'modules', 'mail', 'templates'),
+        dir: join(__dirname, '..', 'common', 'providers', 'mail', 'templates'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,

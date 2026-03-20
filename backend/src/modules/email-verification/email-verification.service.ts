@@ -1,17 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
-import { randomInt } from 'crypto';
+import { randomInt, createHash } from 'crypto';
 import { EmailVerificationTokenRepository } from '@Repositories';
-import { SendMailOptions } from './interfaces/send-mail-options.interface';
+import { MailProvider } from '@/common/providers/mail/mail.provider';
 
 @Injectable()
-export class MailService {
-  private readonly logger = new Logger(MailService.name);
+export class EmailVerificationService {
+  private readonly logger = new Logger(EmailVerificationService.name);
   private readonly tokenExpiryHours: number;
 
   constructor(
-    private readonly mailerService: MailerService,
+    private readonly mailProvider: MailProvider,
     private readonly configService: ConfigService,
     private readonly emailVerificationTokenRepository: EmailVerificationTokenRepository,
   ) {
@@ -21,36 +20,24 @@ export class MailService {
     );
   }
 
-  async sendMail(options: SendMailOptions): Promise<void> {
-    this.logger.log(`Enviando correo a ${options.to}`);
-
-    await this.mailerService.sendMail({
-      to: options.to,
-      subject: options.subject,
-      template: options.template,
-      context: options.context,
-    });
-
-    this.logger.log(`Correo enviado a ${options.to}`);
-  }
-
   async createAndSendVerificationToken(
     userId: number,
     email: string,
     name: string,
   ): Promise<void> {
     const code = this.generateVerificationCode();
+    const hashedCode = this.hashToken(code);
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + this.tokenExpiryHours);
 
     this.logger.log('Creando token de verificación...');
     await this.emailVerificationTokenRepository.save({
-      token: code,
+      token: hashedCode,
       expiresAt,
       userId,
     });
 
-    await this.sendMail({
+    await this.mailProvider.sendMail({
       to: email,
       subject: 'Verifica tu cuenta - OrbiFlow',
       template: 'verify-email',
@@ -59,8 +46,9 @@ export class MailService {
   }
 
   async verifyToken(token: string) {
+    const hashedToken = this.hashToken(token);
     return this.emailVerificationTokenRepository.findOne({
-      where: { token },
+      where: { token: hashedToken },
       relations: ['user'],
     });
   }
@@ -71,5 +59,9 @@ export class MailService {
 
   private generateVerificationCode(): string {
     return randomInt(100000, 999999).toString();
+  }
+
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 }

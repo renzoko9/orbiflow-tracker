@@ -18,7 +18,7 @@ import { JwtUtil } from '@/common/utils/jwt.utils';
 import { TokenPayload } from '@/common/interfaces/auth/payload.interface';
 import { LoginTokensResponse } from '@/common/models/tokens.model';
 import { AccountsService } from '../accounts/accounts.service';
-import { MailService } from '../mail/mail.service';
+import { EmailVerificationService } from '../email-verification/email-verification.service';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +28,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtProvider: JwtProvider,
     private readonly accountsService: AccountsService,
-    private readonly mailService: MailService,
+    private readonly emailVerificationService: EmailVerificationService,
   ) {}
 
   async login(request: LoginRequest): Promise<ResponseAPI<LoginResponse>> {
@@ -100,7 +100,7 @@ export class AuthService {
     });
     this.logger.log('Cuenta por defecto creada');
 
-    await this.mailService.createAndSendVerificationToken(
+    await this.emailVerificationService.createAndSendVerificationToken(
       newUser.id,
       newUser.email,
       newUser.name,
@@ -114,14 +114,14 @@ export class AuthService {
   }
 
   async verifyEmail(token: string): Promise<ResponseAPI> {
-    const verificationToken = await this.mailService.verifyToken(token);
+    const verificationToken = await this.emailVerificationService.verifyToken(token);
 
     if (!verificationToken) {
       throw new BadRequestException('Token de verificación inválido');
     }
 
     if (verificationToken.expiresAt < new Date()) {
-      await this.mailService.deleteTokensByUserId(verificationToken.user.id);
+      await this.emailVerificationService.deleteTokensByUserId(verificationToken.user.id);
       throw new BadRequestException(
         'El token de verificación ha expirado. Solicita uno nuevo.',
       );
@@ -131,7 +131,7 @@ export class AuthService {
       isVerified: true,
     });
 
-    await this.mailService.deleteTokensByUserId(verificationToken.user.id);
+    await this.emailVerificationService.deleteTokensByUserId(verificationToken.user.id);
 
     this.logger.log(
       `Usuario ${verificationToken.user.email} verificado exitosamente`,
@@ -157,8 +157,8 @@ export class AuthService {
       };
     }
 
-    await this.mailService.deleteTokensByUserId(user.id);
-    await this.mailService.createAndSendVerificationToken(
+    await this.emailVerificationService.deleteTokensByUserId(user.id);
+    await this.emailVerificationService.createAndSendVerificationToken(
       user.id,
       user.email,
       user.name,
