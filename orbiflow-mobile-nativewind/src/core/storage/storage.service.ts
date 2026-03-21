@@ -1,82 +1,51 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 /**
- * Servicio para manejo de almacenamiento local (AsyncStorage)
- * Gestiona tokens JWT y datos del usuario
+ * Servicio de almacenamiento seguro.
+ * Usa expo-secure-store en móvil (Keychain/Keystore) y localStorage en web.
  */
 class StorageService {
-  /**
-   * Guarda un valor en el storage
-   */
+  private isWeb = Platform.OS === 'web';
+
   async setItem(key: string, value: string): Promise<void> {
-    try {
-      await AsyncStorage.setItem(key, value);
-    } catch (error) {
-      console.error(`Error guardando ${key} en storage:`, error);
-      throw error;
+    if (this.isWeb) {
+      localStorage.setItem(key, value);
+    } else {
+      await SecureStore.setItemAsync(key, value);
     }
   }
 
-  /**
-   * Obtiene un valor del storage
-   */
   async getItem(key: string): Promise<string | null> {
-    try {
-      return await AsyncStorage.getItem(key);
-    } catch (error) {
-      console.error(`Error obteniendo ${key} del storage:`, error);
-      return null;
+    if (this.isWeb) {
+      return localStorage.getItem(key);
     }
+    return await SecureStore.getItemAsync(key);
   }
 
-  /**
-   * Elimina un valor del storage
-   */
   async removeItem(key: string): Promise<void> {
-    try {
-      await AsyncStorage.removeItem(key);
-    } catch (error) {
-      console.error(`Error eliminando ${key} del storage:`, error);
-      throw error;
+    if (this.isWeb) {
+      localStorage.removeItem(key);
+    } else {
+      await SecureStore.deleteItemAsync(key);
     }
   }
 
-  /**
-   * Limpia completamente el storage
-   */
   async clear(): Promise<void> {
-    try {
-      await AsyncStorage.clear();
-    } catch (error) {
-      console.error('Error limpiando storage:', error);
-      throw error;
+    if (this.isWeb) {
+      localStorage.clear();
     }
+    // SecureStore no tiene clear(), se eliminan las keys individualmente
   }
 
-  /**
-   * Guarda un objeto serializado
-   */
   async setObject<T>(key: string, value: T): Promise<void> {
-    try {
-      const jsonValue = JSON.stringify(value);
-      await this.setItem(key, jsonValue);
-    } catch (error) {
-      console.error(`Error guardando objeto ${key}:`, error);
-      throw error;
-    }
+    const jsonValue = JSON.stringify(value);
+    await this.setItem(key, jsonValue);
   }
 
-  /**
-   * Obtiene un objeto deserializado
-   */
   async getObject<T>(key: string): Promise<T | null> {
-    try {
-      const jsonValue = await this.getItem(key);
-      return jsonValue ? JSON.parse(jsonValue) : null;
-    } catch (error) {
-      console.error(`Error obteniendo objeto ${key}:`, error);
-      return null;
-    }
+    const jsonValue = await this.getItem(key);
+    return jsonValue ? JSON.parse(jsonValue) : null;
   }
 }
 

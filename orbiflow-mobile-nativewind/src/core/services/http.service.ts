@@ -7,9 +7,17 @@ import axios, {
 } from "axios";
 import { GENERAL_CONSTANTS } from "../constants/general.constant";
 import { API_CONFIG, STORAGE_KEYS } from "../config/environment.config";
+import { ENDPOINTS } from "../constants/endpoints.constant";
 import StorageService from "../storage/storage.service";
 import { ResponseAPI } from "../api/dto/api-response.interface";
 import { ApiError } from "../api/api-error";
+
+const PUBLIC_ENDPOINTS: string[] = [
+  ENDPOINTS.auth.login,
+  ENDPOINTS.auth.register,
+  ENDPOINTS.auth.verifyEmail,
+  ENDPOINTS.auth.resendVerification,
+];
 
 /**
  * Servicio HTTP abstracto base
@@ -45,13 +53,17 @@ export abstract class HttpService {
    * Configura los interceptors de request y response
    */
   private setupInterceptors(): void {
-    // Request interceptor - Agrega el token JWT a cada petición
+    // Request interceptor - Agrega el token JWT solo a rutas protegidas
     this.api.interceptors.request.use(
       async (config: InternalAxiosRequestConfig) => {
-        const token = await StorageService.getItem(STORAGE_KEYS.accessToken);
+        const isPublic = PUBLIC_ENDPOINTS.some((ep) => config.url?.includes(ep));
 
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
+        if (!isPublic) {
+          const token = await StorageService.getItem(STORAGE_KEYS.accessToken);
+
+          if (token && config.headers) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
         }
 
         return config;
@@ -128,6 +140,7 @@ export abstract class HttpService {
    */
   private handleError(error: AxiosError): ApiError {
     if (error.response) {
+      console.log("Error response data:", error.response.data);
       const response = error.response.data as ResponseAPI;
       return new ApiError(
         {
