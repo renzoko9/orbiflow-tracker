@@ -8,6 +8,8 @@ import {
   LoginResponse,
   RegisterRequest,
   RegisterResponse,
+  VerifyEmailRequest,
+  ResendVerificationRequest,
   RefreshTokenRequest,
   LoginTokens,
   UserResponse,
@@ -46,6 +48,26 @@ class AuthService extends HttpService {
     return this.post<ResponseAPI<RegisterResponse>, RegisterRequest>(
       ENDPOINTS.auth.register,
       userData
+    );
+  }
+
+  /**
+   * Verifica el email con el código de 6 dígitos
+   */
+  async verifyEmail(token: string): Promise<ResponseAPI> {
+    return this.post<ResponseAPI, VerifyEmailRequest>(
+      ENDPOINTS.auth.verifyEmail,
+      { token }
+    );
+  }
+
+  /**
+   * Reenvía el código de verificación al email
+   */
+  async resendVerification(email: string): Promise<ResponseAPI> {
+    return this.post<ResponseAPI, ResendVerificationRequest>(
+      ENDPOINTS.auth.resendVerification,
+      { email }
     );
   }
 

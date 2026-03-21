@@ -30,6 +30,14 @@ export interface RegisterResponse {
   user: UserResponse;
 }
 
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
+}
+
 export interface RefreshTokenRequest {
   refreshToken: string;
 }

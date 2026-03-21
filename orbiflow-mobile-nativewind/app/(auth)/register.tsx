@@ -43,7 +43,10 @@ export default function RegisterScreen() {
     setApiError(null);
     try {
       await AuthService.register(values);
-      router.replace("/(tabs)/inicio");
+      router.replace({
+        pathname: "/(auth)/verify-email",
+        params: { email: values.email },
+      });
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setApiError(err);

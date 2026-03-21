@@ -2,6 +2,8 @@ export const ENDPOINTS = Object.freeze({
   auth: {
     login: "/auth/login",
     register: "/auth/register",
+    verifyEmail: "/auth/verify-email",
+    resendVerification: "/auth/resend-verification",
     refresh: "/auth/refresh",
   },
   accounts: {
