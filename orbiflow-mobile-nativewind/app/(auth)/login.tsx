@@ -75,7 +75,10 @@ export default function LoginScreen() {
             secureTextEntry
           />
 
-          <TouchableOpacity className="self-end">
+          <TouchableOpacity
+            className="self-end"
+            onPress={() => router.replace("/(auth)/forgot-password")}
+          >
             <Text className="text-sm text-primary-6 font-medium">
               ¿Olvidaste tu contraseña?
             </Text>

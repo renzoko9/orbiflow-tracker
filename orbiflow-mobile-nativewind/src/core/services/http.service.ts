@@ -17,6 +17,9 @@ const PUBLIC_ENDPOINTS: string[] = [
   ENDPOINTS.auth.register,
   ENDPOINTS.auth.verifyEmail,
   ENDPOINTS.auth.resendVerification,
+  ENDPOINTS.auth.forgotPassword,
+  ENDPOINTS.auth.verifyResetCode,
+  ENDPOINTS.auth.resetPassword,
 ];
 
 /**

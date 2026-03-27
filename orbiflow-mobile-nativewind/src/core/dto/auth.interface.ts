@@ -41,3 +41,16 @@ export interface ResendVerificationRequest {
 export interface RefreshTokenRequest {
   refreshToken: string;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyResetCodeRequest {
+  token: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}

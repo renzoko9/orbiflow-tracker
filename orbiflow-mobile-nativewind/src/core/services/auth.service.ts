@@ -11,6 +11,9 @@ import {
   VerifyEmailRequest,
   ResendVerificationRequest,
   RefreshTokenRequest,
+  ForgotPasswordRequest,
+  VerifyResetCodeRequest,
+  ResetPasswordRequest,
   LoginTokens,
   UserResponse,
 } from '../dto/auth.interface';
@@ -90,6 +93,27 @@ class AuthService extends HttpService {
     await StorageService.setItem(STORAGE_KEYS.refreshToken, response.refresh);
 
     return response;
+  }
+
+  async forgotPassword(email: string): Promise<ResponseAPI> {
+    return this.post<ResponseAPI, ForgotPasswordRequest>(
+      ENDPOINTS.auth.forgotPassword,
+      { email }
+    );
+  }
+
+  async verifyResetCode(token: string): Promise<ResponseAPI> {
+    return this.post<ResponseAPI, VerifyResetCodeRequest>(
+      ENDPOINTS.auth.verifyResetCode,
+      { token }
+    );
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<ResponseAPI> {
+    return this.post<ResponseAPI, ResetPasswordRequest>(
+      ENDPOINTS.auth.resetPassword,
+      { token, newPassword }
+    );
   }
 
   async logout(): Promise<void> {
