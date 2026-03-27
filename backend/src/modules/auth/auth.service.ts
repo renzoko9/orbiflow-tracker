@@ -197,6 +197,26 @@ export class AuthService {
     };
   }
 
+  async verifyResetCode(token: string): Promise<ResponseAPI> {
+    const resetToken = await this.passwordResetService.verifyToken(token);
+
+    if (!resetToken) {
+      throw new BadRequestException('Código de restablecimiento inválido');
+    }
+
+    if (resetToken.expiresAt < new Date()) {
+      await this.passwordResetService.deleteTokensByUserId(resetToken.user.id);
+      throw new BadRequestException(
+        'El código ha expirado. Solicita uno nuevo.',
+      );
+    }
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      message: 'Código verificado correctamente.',
+    };
+  }
+
   async resetPassword(token: string, newPassword: string): Promise<ResponseAPI> {
     const resetToken = await this.passwordResetService.verifyToken(token);
 

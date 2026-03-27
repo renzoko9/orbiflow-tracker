@@ -9,6 +9,7 @@ import { VerifyEmailRequest } from './dto/verify-email.dto';
 import { ResendVerificationRequest } from './dto/resend-verification.dto';
 import { ForgotPasswordRequest } from './dto/forgot-password.dto';
 import { ResetPasswordRequest } from './dto/reset-password.dto';
+import { VerifyResetCodeRequest } from './dto/verify-reset-code.dto';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
@@ -46,6 +47,13 @@ export class AuthController {
     @Body() data: ForgotPasswordRequest,
   ): Promise<ResponseAPI> {
     return this.authService.forgotPassword(data.email);
+  }
+
+  @Post('verify-reset-code')
+  async verifyResetCode(
+    @Body() data: VerifyResetCodeRequest,
+  ): Promise<ResponseAPI> {
+    return this.authService.verifyResetCode(data.token);
   }
 
   @Post('reset-password')
