@@ -7,6 +7,8 @@ import { RegisterRequest } from './dto/register.dto';
 import { RegisterResponse } from './models/register.model';
 import { VerifyEmailRequest } from './dto/verify-email.dto';
 import { ResendVerificationRequest } from './dto/resend-verification.dto';
+import { ForgotPasswordRequest } from './dto/forgot-password.dto';
+import { ResetPasswordRequest } from './dto/reset-password.dto';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
@@ -36,6 +38,19 @@ export class AuthController {
     @Body() data: ResendVerificationRequest,
   ): Promise<ResponseAPI> {
     return this.authService.resendVerification(data.email);
+  }
+
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
+  @Post('forgot-password')
+  async forgotPassword(
+    @Body() data: ForgotPasswordRequest,
+  ): Promise<ResponseAPI> {
+    return this.authService.forgotPassword(data.email);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() data: ResetPasswordRequest): Promise<ResponseAPI> {
+    return this.authService.resetPassword(data.token, data.newPassword);
   }
 
   @Post('refresh')

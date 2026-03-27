@@ -18,7 +18,8 @@ import { JwtUtil } from '@/common/utils/jwt.utils';
 import { TokenPayload } from '@/common/interfaces/auth/payload.interface';
 import { LoginTokensResponse } from '@/common/models/tokens.model';
 import { AccountsService } from '../accounts/accounts.service';
-import { EmailVerificationService } from '../email-verification/email-verification.service';
+import { EmailVerificationService } from './services/email-verification.service';
+import { PasswordResetService } from './services/password-reset.service';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +30,7 @@ export class AuthService {
     private readonly jwtProvider: JwtProvider,
     private readonly accountsService: AccountsService,
     private readonly emailVerificationService: EmailVerificationService,
+    private readonly passwordResetService: PasswordResetService,
   ) {}
 
   async login(request: LoginRequest): Promise<ResponseAPI<LoginResponse>> {
@@ -167,6 +169,63 @@ export class AuthService {
     return {
       responseType: ResponseTypeEnum.Success,
       message: genericMessage,
+    };
+  }
+
+  async forgotPassword(email: string): Promise<ResponseAPI> {
+    const user = await this.usersService.findOneByAnyField({ email });
+
+    const genericMessage =
+      'Si el correo está registrado, recibirás un código para restablecer tu contraseña.';
+
+    if (!user) {
+      return {
+        responseType: ResponseTypeEnum.Success,
+        message: genericMessage,
+      };
+    }
+
+    await this.passwordResetService.createAndSendResetToken(
+      user.id,
+      user.email,
+      user.name,
+    );
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      message: genericMessage,
+    };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<ResponseAPI> {
+    const resetToken = await this.passwordResetService.verifyToken(token);
+
+    if (!resetToken) {
+      throw new BadRequestException('Código de restablecimiento inválido');
+    }
+
+    if (resetToken.expiresAt < new Date()) {
+      await this.passwordResetService.deleteTokensByUserId(resetToken.user.id);
+      throw new BadRequestException(
+        'El código ha expirado. Solicita uno nuevo.',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.usersService.update(resetToken.user.id, {
+      password: hashedPassword,
+    });
+
+    await this.passwordResetService.deleteTokensByUserId(resetToken.user.id);
+
+    this.logger.log(
+      `Contraseña restablecida para ${resetToken.user.email}`,
+    );
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      message: 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión.',
     };
   }
 

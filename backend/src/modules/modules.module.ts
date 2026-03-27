@@ -4,7 +4,6 @@ import { AuthModule } from './auth/auth.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { CategoriesModule } from './categories/categories.module';
 import { TransactionsModule } from './transactions/transactions.module';
-import { EmailVerificationModule } from './email-verification/email-verification.module';
 
 @Module({
   imports: [
@@ -13,7 +12,6 @@ import { EmailVerificationModule } from './email-verification/email-verification
     AccountsModule,
     CategoriesModule,
     TransactionsModule,
-    EmailVerificationModule,
   ],
 })
 export class ModulesModule {}
