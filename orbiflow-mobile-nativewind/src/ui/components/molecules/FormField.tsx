@@ -1,6 +1,6 @@
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
 import { KeyboardTypeOptions } from "react-native";
-import { Input } from "./Input";
+import { Input } from "@/src/ui/components/atoms";
 
 interface FormFieldProps<T extends FieldValues> {
   control: Control<T>;

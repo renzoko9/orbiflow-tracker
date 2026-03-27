@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { Tabs } from "expo-router";
 import { Home, ArrowLeftRight, Wallet, Settings } from "lucide-react-native";
-import { FloatingAddButton } from "@/src/ui/common/FloatingAddButton";
+import { FloatingAddButton } from "@/src/ui/components/molecules";
 
 export default function TabLayout() {
   return (

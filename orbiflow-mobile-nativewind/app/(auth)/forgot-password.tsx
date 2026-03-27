@@ -11,7 +11,8 @@ import { router } from "expo-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { KeyRound } from "lucide-react-native";
-import { Alert, Button, FormField } from "@/src/ui/atoms";
+import { Alert, Button } from "@/src/ui/components/atoms";
+import { FormField } from "@/src/ui/components/molecules";
 import AuthService from "@/src/core/services/auth.service";
 import {
   forgotPasswordSchema,

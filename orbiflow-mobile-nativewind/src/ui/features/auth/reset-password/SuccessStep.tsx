@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import { router } from "expo-router";
 import { CircleCheck } from "lucide-react-native";
-import { Button } from "@/src/ui/atoms";
+import { Button } from "@/src/ui/components/atoms";
 
 interface SuccessStepProps {
   message: string;

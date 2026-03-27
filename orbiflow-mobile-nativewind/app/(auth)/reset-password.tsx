@@ -5,7 +5,7 @@ import {
   VerifyCodeStep,
   NewPasswordStep,
   SuccessStep,
-} from "@/src/ui/common/reset-password";
+} from "@/src/ui/features/auth";
 
 type Step = "code" | "password" | "success";
 
