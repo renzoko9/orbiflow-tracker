@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -23,7 +23,10 @@ import { ResponseTypeEnum } from "@/src/core/enums/response-type.enum";
 import { EMAIL_REGEX } from "@/src/core/schemas/auth/login.schema";
 
 export default function VerifyEmailScreen() {
-  const { email } = useLocalSearchParams<{ email: string }>();
+  const { email, autoResend } = useLocalSearchParams<{
+    email: string;
+    autoResend?: string;
+  }>();
 
   if (!email || !EMAIL_REGEX.test(email)) {
     return <Redirect href="/(auth)/register" />;
@@ -42,6 +45,12 @@ export default function VerifyEmailScreen() {
     resolver: zodResolver(verifyEmailSchema),
     defaultValues: { code: "" },
   });
+
+  useEffect(() => {
+    if (autoResend === "true" && email) {
+      handleResend();
+    }
+  }, []);
 
   async function onSubmit({ code }: VerifyEmailFormValues) {
     setApiError(null);

@@ -37,6 +37,12 @@ export default function LoginScreen() {
       router.replace("/(tabs)/inicio");
     } catch (err: unknown) {
       if (err instanceof ApiError) {
+        if (err.errorCode === "EMAIL_NOT_VERIFIED") {
+          router.push(
+            `/(auth)/verify-email?email=${encodeURIComponent(values.email)}&autoResend=true`,
+          );
+          return;
+        }
         setApiError(err);
       } else {
         setApiError(new ApiError({ message: "Error al iniciar sesión." }));
