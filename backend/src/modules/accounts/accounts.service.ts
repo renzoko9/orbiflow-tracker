@@ -7,6 +7,7 @@ import { Account } from 'src/database/entities/account.entity';
 import { AccountRepository } from 'src/database/repositories/account.repository';
 import { CreateAccountRequest } from './dto/create-account.dto';
 import { UpdateAccountRequest } from './dto/update-account.dto';
+import { ErrorCode } from '@/common/enum/error-code.enum';
 
 @Injectable()
 export class AccountsService {
@@ -38,7 +39,10 @@ export class AccountsService {
     });
 
     if (!account) {
-      throw new NotFoundException(`Account with id ${id} not found`);
+      throw new NotFoundException({
+        message: `Account with id ${id} not found`,
+        errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+      });
     }
 
     return account;
@@ -52,7 +56,10 @@ export class AccountsService {
     const account = await this.findOne(id, userId);
 
     if (account.user.id !== userId) {
-      throw new ForbiddenException('You can only update your own accounts');
+      throw new ForbiddenException({
+        message: 'You can only update your own accounts',
+        errorCode: ErrorCode.FORBIDDEN_RESOURCE,
+      });
     }
 
     Object.assign(account, updateAccountDto);
@@ -63,7 +70,10 @@ export class AccountsService {
     const account = await this.findOne(id, userId);
 
     if (account.user.id !== userId) {
-      throw new ForbiddenException('You can only delete your own accounts');
+      throw new ForbiddenException({
+        message: 'You can only delete your own accounts',
+        errorCode: ErrorCode.FORBIDDEN_RESOURCE,
+      });
     }
 
     await this.accountRepository.remove(account);

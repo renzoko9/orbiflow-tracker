@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from 'src/database/entities/user.entity';
 import { UserRepository } from 'src/database/repositories/user.repository';
 import { FindOptionsWhere } from 'typeorm';
+import { ErrorCode } from '@/common/enum/error-code.enum';
 
 @Injectable()
 export class UsersService {
@@ -15,7 +16,10 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { id } });
 
     if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      throw new NotFoundException({
+        message: `User with id ${id} not found`,
+        errorCode: ErrorCode.USER_NOT_FOUND,
+      });
     }
 
     return user;
@@ -25,7 +29,10 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
-      throw new NotFoundException(`User with email ${email} not found`);
+      throw new NotFoundException({
+        message: `User with email ${email} not found`,
+        errorCode: ErrorCode.USER_NOT_FOUND,
+      });
     }
 
     return user;

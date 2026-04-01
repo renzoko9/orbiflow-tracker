@@ -13,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 import { RegisterRequest } from './dto/register.dto';
 import { RegisterResponse } from './models/register.model';
 import { ResponseTypeEnum } from '@/common/enum/response-type.enum';
+import { ErrorCode } from '@/common/enum/error-code.enum';
 import { JwtProvider } from '@/common/jwt/jwt.provider';
 import { JwtUtil } from '@/common/utils/jwt.utils';
 import { TokenPayload } from '@/common/interfaces/auth/payload.interface';
@@ -40,16 +41,29 @@ export class AuthService {
     const user = await this.usersService.findOneByAnyField({ email });
     this.logger.log('Usuario obtenido');
 
-    if (!user) throw new UnauthorizedException('Este email no está registrado');
+    if (!user) {
+      throw new UnauthorizedException({
+        message: 'Este email no está registrado',
+        errorCode: ErrorCode.EMAIL_NOT_REGISTERED,
+      });
+    }
 
     const match = await bcrypt.compare(password, user.password);
 
-    if (!match) throw new UnauthorizedException('Contraseña inválida');
+    if (!match) {
+      throw new UnauthorizedException({
+        message: 'Contraseña inválida',
+        errorCode: ErrorCode.INVALID_PASSWORD,
+      });
+    }
 
     if (!user.isVerified) {
-      throw new ForbiddenException(
-        'Debes verificar tu correo electrónico antes de iniciar sesión',
-      );
+      throw new ForbiddenException({
+        title: 'Cuenta no verificada',
+        message:
+          'Debes verificar tu correo electrónico antes de iniciar sesión',
+        errorCode: ErrorCode.EMAIL_NOT_VERIFIED,
+      });
     }
 
     this.logger.log('Generando tokens...');
@@ -81,7 +95,12 @@ export class AuthService {
     });
     this.logger.log('Verificación completada');
 
-    if (existingUser) throw new BadRequestException('El email ya está en uso');
+    if (existingUser) {
+      throw new BadRequestException({
+        message: 'El email ya está en uso',
+        errorCode: ErrorCode.EMAIL_ALREADY_IN_USE,
+      });
+    }
 
     const hashPassword = await bcrypt.hash(request.password, 10);
 
@@ -119,14 +138,18 @@ export class AuthService {
     const verificationToken = await this.emailVerificationService.verifyToken(token);
 
     if (!verificationToken) {
-      throw new BadRequestException('Token de verificación inválido');
+      throw new BadRequestException({
+        message: 'Token de verificación inválido',
+        errorCode: ErrorCode.INVALID_VERIFICATION_TOKEN,
+      });
     }
 
     if (verificationToken.expiresAt < new Date()) {
       await this.emailVerificationService.deleteTokensByUserId(verificationToken.user.id);
-      throw new BadRequestException(
-        'El token de verificación ha expirado. Solicita uno nuevo.',
-      );
+      throw new BadRequestException({
+        message: 'El token de verificación ha expirado. Solicita uno nuevo.',
+        errorCode: ErrorCode.VERIFICATION_TOKEN_EXPIRED,
+      });
     }
 
     await this.usersService.update(verificationToken.user.id, {
@@ -201,14 +224,18 @@ export class AuthService {
     const resetToken = await this.passwordResetService.verifyToken(token);
 
     if (!resetToken) {
-      throw new BadRequestException('Código de restablecimiento inválido');
+      throw new BadRequestException({
+        message: 'Código de restablecimiento inválido',
+        errorCode: ErrorCode.INVALID_RESET_CODE,
+      });
     }
 
     if (resetToken.expiresAt < new Date()) {
       await this.passwordResetService.deleteTokensByUserId(resetToken.user.id);
-      throw new BadRequestException(
-        'El código ha expirado. Solicita uno nuevo.',
-      );
+      throw new BadRequestException({
+        message: 'El código ha expirado. Solicita uno nuevo.',
+        errorCode: ErrorCode.RESET_CODE_EXPIRED,
+      });
     }
 
     return {
@@ -221,14 +248,18 @@ export class AuthService {
     const resetToken = await this.passwordResetService.verifyToken(token);
 
     if (!resetToken) {
-      throw new BadRequestException('Código de restablecimiento inválido');
+      throw new BadRequestException({
+        message: 'Código de restablecimiento inválido',
+        errorCode: ErrorCode.INVALID_RESET_CODE,
+      });
     }
 
     if (resetToken.expiresAt < new Date()) {
       await this.passwordResetService.deleteTokensByUserId(resetToken.user.id);
-      throw new BadRequestException(
-        'El código ha expirado. Solicita uno nuevo.',
-      );
+      throw new BadRequestException({
+        message: 'El código ha expirado. Solicita uno nuevo.',
+        errorCode: ErrorCode.RESET_CODE_EXPIRED,
+      });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -257,7 +288,12 @@ export class AuthService {
 
     const isMatch = await bcrypt.compare(refreshToken, user.refreshToken!);
 
-    if (!isMatch) throw new UnauthorizedException('Token inválido');
+    if (!isMatch) {
+      throw new UnauthorizedException({
+        message: 'Token inválido',
+        errorCode: ErrorCode.INVALID_REFRESH_TOKEN,
+      });
+    }
 
     const tokens = await this.jwtProvider.generateTokens(user);
 

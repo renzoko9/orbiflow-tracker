@@ -9,6 +9,7 @@ import { AccountRepository } from 'src/database/repositories/account.repository'
 import { CreateTransactionRequest } from './dto/create-transaction.dto';
 import { UpdateTransactionRequest } from './dto/update-transaction.dto';
 import { CategoryType } from 'src/common/enum/category-type.enum';
+import { ErrorCode } from '@/common/enum/error-code.enum';
 import {
   TransactionResponse,
   TransactionListResponse,
@@ -33,9 +34,10 @@ export class TransactionsService {
     });
 
     if (!account) {
-      throw new NotFoundException(
-        `Account with id ${createTransactionRequest.accountId} not found`,
-      );
+      throw new NotFoundException({
+        message: `Account with id ${createTransactionRequest.accountId} not found`,
+        errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+      });
     }
 
     // Crear la transaccion
@@ -87,7 +89,10 @@ export class TransactionsService {
     });
 
     if (!account) {
-      throw new NotFoundException(`Account with id ${accountId} not found`);
+      throw new NotFoundException({
+        message: `Account with id ${accountId} not found`,
+        errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+      });
     }
 
     const transactions = await this.transactionRepository.find({
@@ -111,7 +116,10 @@ export class TransactionsService {
     });
 
     if (!transaction) {
-      throw new NotFoundException(`Transaction with id ${id} not found`);
+      throw new NotFoundException({
+        message: `Transaction with id ${id} not found`,
+        errorCode: ErrorCode.TRANSACTION_NOT_FOUND,
+      });
     }
 
     return this.transactionsMapper.toResponse(transaction);
@@ -128,11 +136,17 @@ export class TransactionsService {
     });
 
     if (!transaction) {
-      throw new NotFoundException(`Transaction with id ${id} not found`);
+      throw new NotFoundException({
+        message: `Transaction with id ${id} not found`,
+        errorCode: ErrorCode.TRANSACTION_NOT_FOUND,
+      });
     }
 
     if (transaction.user.id !== userId) {
-      throw new ForbiddenException('You can only update your own transactions');
+      throw new ForbiddenException({
+        message: 'You can only update your own transactions',
+        errorCode: ErrorCode.FORBIDDEN_RESOURCE,
+      });
     }
 
     // Si se cambia la cuenta, verificar que la nueva cuenta pertenezca al usuario
@@ -145,9 +159,10 @@ export class TransactionsService {
       });
 
       if (!newAccount) {
-        throw new NotFoundException(
-          `Account with id ${updateTransactionDto.accountId} not found`,
-        );
+        throw new NotFoundException({
+          message: `Account with id ${updateTransactionDto.accountId} not found`,
+          errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+        });
       }
 
       // Revertir el efecto en la cuenta anterior
@@ -210,11 +225,17 @@ export class TransactionsService {
     });
 
     if (!transaction) {
-      throw new NotFoundException(`Transaction with id ${id} not found`);
+      throw new NotFoundException({
+        message: `Transaction with id ${id} not found`,
+        errorCode: ErrorCode.TRANSACTION_NOT_FOUND,
+      });
     }
 
     if (transaction.user.id !== userId) {
-      throw new ForbiddenException('You can only delete your own transactions');
+      throw new ForbiddenException({
+        message: 'You can only delete your own transactions',
+        errorCode: ErrorCode.FORBIDDEN_RESOURCE,
+      });
     }
 
     // Revertir el efecto en el balance de la cuenta
@@ -239,7 +260,10 @@ export class TransactionsService {
     });
 
     if (!account) {
-      throw new NotFoundException(`Account with id ${accountId} not found`);
+      throw new NotFoundException({
+        message: `Account with id ${accountId} not found`,
+        errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+      });
     }
 
     let balanceChange = amount;
