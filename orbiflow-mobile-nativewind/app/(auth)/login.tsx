@@ -17,6 +17,7 @@ import {
   LoginFormValues,
 } from "@/src/core/schemas/auth/login.schema";
 import { ApiError } from "@/src/core/api/api-error";
+import { ERROR_CODES } from "@/src/core/constants/error-codes.constant";
 
 export default function LoginScreen() {
   const [apiError, setApiError] = useState<ApiError | null>(null);
@@ -37,7 +38,7 @@ export default function LoginScreen() {
       router.replace("/(tabs)/inicio");
     } catch (err: unknown) {
       if (err instanceof ApiError) {
-        if (err.errorCode === "EMAIL_NOT_VERIFIED") {
+        if (err.errorCode === ERROR_CODES.EMAIL_NOT_VERIFIED) {
           router.push(
             `/(auth)/verify-email?email=${encodeURIComponent(values.email)}&autoResend=true`,
           );
