@@ -22,6 +22,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Ha ocurrido un error inesperado en el servidor';
     let title = 'Error';
+    let errorCode: string | undefined;
 
     // Si es una HttpException, extraer su información
     if (exception instanceof HttpException) {
@@ -37,6 +38,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
         // Extraer title personalizado si existe
         if ('title' in exceptionResponse && exceptionResponse.title) {
           title = exceptionResponse.title as string;
+        }
+
+        // Extraer errorCode si existe
+        if ('errorCode' in exceptionResponse && exceptionResponse.errorCode) {
+          errorCode = exceptionResponse.errorCode as string;
         }
 
         // Extraer mensaje
@@ -68,6 +74,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       responseType: ResponseTypeEnum.Error,
       title,
       message,
+      ...(errorCode && { errorCode }),
       data: undefined,
     };
 
