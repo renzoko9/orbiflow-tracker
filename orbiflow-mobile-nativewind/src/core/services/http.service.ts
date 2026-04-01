@@ -150,6 +150,7 @@ export abstract class HttpService {
           message: response?.message || "Error en la petición",
           title: response?.title,
           responseType: response?.responseType,
+          errorCode: response?.errorCode,
         },
         error.response.status,
       );
