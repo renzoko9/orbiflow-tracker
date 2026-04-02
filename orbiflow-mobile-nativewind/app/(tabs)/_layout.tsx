@@ -42,6 +42,7 @@ export default function TabLayout() {
         options={{
           title: "",
           tabBarIcon: () => null,
+          tabBarStyle: { display: "none" },
           tabBarButton: () => (
             <View className="flex-1 items-center justify-center">
               <FloatingAddButton />
