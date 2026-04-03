@@ -22,6 +22,12 @@ export class Category {
   @Column({ type: 'enum', enum: CategoryType })
   type: CategoryType;
 
+  @Column({ default: 'tag' })
+  icon: string;
+
+  @Column({ default: '#a6a6a6' })
+  color: string;
+
   // null -> categoría global, no pertenece a ningún usuario
   @ManyToOne(() => User, (user) => user.categories, {
     nullable: true,

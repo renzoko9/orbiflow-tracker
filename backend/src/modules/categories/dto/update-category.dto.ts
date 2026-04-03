@@ -21,4 +21,22 @@ export class UpdateCategoryRequest {
   @IsEnum(CategoryType)
   @IsOptional()
   type?: CategoryType;
+
+  @ApiProperty({
+    description: 'Nombre del icono (lucide icon name)',
+    example: 'shopping-cart',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  icon?: string;
+
+  @ApiProperty({
+    description: 'Color en formato hexadecimal',
+    example: '#ef4444',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  color?: string;
 }

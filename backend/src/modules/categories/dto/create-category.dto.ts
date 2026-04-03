@@ -19,4 +19,20 @@ export class CreateCategoryRequest {
   @IsEnum(CategoryType)
   @IsNotEmpty()
   type: CategoryType;
+
+  @ApiProperty({
+    description: 'Nombre del icono (lucide icon name)',
+    example: 'shopping-cart',
+  })
+  @IsString()
+  @IsNotEmpty()
+  icon: string;
+
+  @ApiProperty({
+    description: 'Color en formato hexadecimal',
+    example: '#ef4444',
+  })
+  @IsString()
+  @IsNotEmpty()
+  color: string;
 }
