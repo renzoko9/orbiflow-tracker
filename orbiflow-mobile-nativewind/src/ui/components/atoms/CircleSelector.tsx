@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { Platform, View, Text, TouchableOpacity, ScrollView } from "react-native";
 
 export interface CircleSelectorItem {
   id: number;
@@ -37,22 +37,27 @@ export function CircleSelector({
       >
         <View
           className={`rounded-full items-center justify-center mb-1 ${
-            isSelected ? "border-2 border-primary-6" : ""
+            isSelected ? "border-2 border-primary-5" : ""
           }`}
           style={{
             width: circleSize,
             height: circleSize,
             backgroundColor: item.color,
-            opacity: isSelected ? 1 : 0.7,
+            opacity: isSelected ? 1 : 0.5,
+            ...(isSelected && {
+              shadowColor: item.color,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.4,
+              shadowRadius: 8,
+              elevation: 8,
+            }),
           }}
         >
           {item.icon}
         </View>
         <Text
           className={`text-xs text-center ${
-            isSelected
-              ? "text-primary-6 font-semibold"
-              : "text-text-light"
+            isSelected ? "text-primary-6 font-semibold" : "text-text-light"
           }`}
         >
           {item.label}
@@ -74,8 +79,6 @@ export function CircleSelector({
   }
 
   return (
-    <View className={`flex-row flex-wrap gap-4 ${className}`}>
-      {content}
-    </View>
+    <View className={`flex-row flex-wrap gap-4 ${className}`}>{content}</View>
   );
 }

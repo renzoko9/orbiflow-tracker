@@ -4,6 +4,8 @@ export interface Category {
   id: number;
   name: string;
   type: CategoryType;
+  icon: string;
+  color: string;
   userId: number | null; // null = categoría global
   createdAt: string;
 }
@@ -11,9 +13,13 @@ export interface Category {
 export interface CreateCategoryRequest {
   name: string;
   type: CategoryType;
+  icon: string;
+  color: string;
 }
 
 export interface UpdateCategoryRequest {
   name?: string;
   type?: CategoryType;
+  icon?: string;
+  color?: string;
 }

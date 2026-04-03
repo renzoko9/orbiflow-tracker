@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, CalendarDays } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import {
   Input,
@@ -30,26 +30,18 @@ import {
 import { CircleSelectorItem } from "@/src/ui/components/atoms/CircleSelector";
 import { Category } from "@/src/core/dto/category.interface";
 import TransactionService from "@/src/core/services/transaction.service";
-
-const CATEGORY_COLORS = [
-  colors.error.medium,
-  colors.warning.medium,
-  colors.brand,
-  colors.accent,
-  colors.secondary.second.medium,
-  colors.primary[5],
-  colors.success.medium,
-  colors.secondary.first.medium,
-  colors.secondary.third.medium,
-];
+import { getIconComponent } from "@/src/ui/utils/icon-map";
 
 function mapCategoriesToItems(categories: Category[]): CircleSelectorItem[] {
-  return categories.map((cat, index) => ({
-    id: cat.id,
-    label: cat.name,
-    icon: null,
-    color: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
-  }));
+  return categories.map((cat) => {
+    const IconComponent = getIconComponent(cat.icon);
+    return {
+      id: cat.id,
+      label: cat.name,
+      icon: <IconComponent size={22} color={colors.inverse} />,
+      color: cat.color,
+    };
+  });
 }
 
 export default function NuevoScreen() {
@@ -71,6 +63,7 @@ export default function NuevoScreen() {
       accountId: undefined,
       categoryId: undefined,
       description: "",
+      note: "",
     },
   });
 
@@ -199,6 +192,40 @@ export default function NuevoScreen() {
               control={control}
               name="description"
               placeholder="Ej: Almuerzo en restaurante"
+            />
+          </View>
+
+          {/* Fecha */}
+          <View className="flex-col gap-2">
+            <Text className="text-base text-text-light">Fecha</Text>
+            <Controller
+              control={control}
+              name="date"
+              render={({ field: { value } }) => (
+                <TouchableOpacity className="flex-row items-center border border-primary-2 rounded-lg px-3 py-3 bg-background-light">
+                  <CalendarDays size={20} color={colors.subordinary} />
+                  <Text className="text-base text-subordinary ml-2">
+                    {new Date(value).toLocaleDateString("es-PE", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+
+          {/* Nota adicional */}
+          <View className="flex-col gap-2">
+            <Text className="text-base text-text-light">Nota adicional</Text>
+            <FormField
+              control={control}
+              name="note"
+              placeholder="Agrega una nota (opcional)"
+              multiline
+              numberOfLines={3}
             />
           </View>
 

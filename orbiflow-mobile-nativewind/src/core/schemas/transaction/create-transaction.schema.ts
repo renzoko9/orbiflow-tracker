@@ -14,6 +14,7 @@ export const createTransactionSchema = z.object({
     .positive("Selecciona una cuenta"),
   categoryId: z.number().optional(),
   description: z.string().optional(),
+  note: z.string().optional(),
 });
 
 export type CreateTransactionFormValues = z.infer<
