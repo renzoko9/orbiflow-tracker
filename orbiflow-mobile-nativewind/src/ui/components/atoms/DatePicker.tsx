@@ -1,5 +1,11 @@
-import { Platform, View, Text, TouchableOpacity, Modal } from "react-native";
-import { useState } from "react";
+import { useRef, useCallback } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import {
+  BottomSheetModal,
+  BottomSheetView,
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+} from "@gorhom/bottom-sheet";
 import RNDateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -23,8 +29,7 @@ export function DatePicker({
   minimumDate,
   maximumDate,
 }: DatePickerProps) {
-  const [show, setShow] = useState(false);
-  const [tempDate, setTempDate] = useState(new Date(value));
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const selectedDate = new Date(value);
 
@@ -35,21 +40,23 @@ export function DatePicker({
     year: "numeric",
   });
 
-  const handleAndroidChange = (event: DateTimePickerEvent, date?: Date) => {
-    setShow(false);
-    if (event.type === "set" && date) {
-      onChange(date.toISOString());
-    }
+  const handleOpen = () => bottomSheetRef.current?.present();
+
+  const handleChange = (_: DateTimePickerEvent, date?: Date) => {
+    if (date) onChange(date.toISOString());
   };
 
-  const handleIOSChange = (_: DateTimePickerEvent, date?: Date) => {
-    if (date) setTempDate(date);
-  };
-
-  const handleIOSConfirm = () => {
-    onChange(tempDate.toISOString());
-    setShow(false);
-  };
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior="close"
+      />
+    ),
+    []
+  );
 
   return (
     <View className={`w-full ${className}`}>
@@ -57,10 +64,7 @@ export function DatePicker({
         className={`flex-row items-center border rounded-lg px-3 py-3 bg-background-light ${
           error ? "border-error-medium" : "border-primary-2"
         }`}
-        onPress={() => {
-          setTempDate(selectedDate);
-          setShow(true);
-        }}
+        onPress={handleOpen}
         activeOpacity={0.7}
       >
         <CalendarDays
@@ -80,48 +84,26 @@ export function DatePicker({
         <Text className="text-sm text-error-medium mt-1">{error}</Text>
       )}
 
-      {/* Android: diálogo nativo */}
-      {Platform.OS === "android" && show && (
-        <RNDateTimePicker
-          value={selectedDate}
-          mode="date"
-          display="default"
-          onChange={handleAndroidChange}
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
-        />
-      )}
-
-      {/* iOS: modal con spinner */}
-      {Platform.OS === "ios" && (
-        <Modal visible={show} transparent animationType="slide">
-          <View className="flex-1 justify-end bg-black/40">
-            <View className="bg-background-light rounded-t-2xl p-4">
-              <View className="flex-row justify-between items-center mb-2">
-                <TouchableOpacity onPress={() => setShow(false)}>
-                  <Text className="text-base text-error-medium font-medium">
-                    Cancelar
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleIOSConfirm}>
-                  <Text className="text-base text-primary-6 font-semibold">
-                    Confirmar
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <RNDateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                onChange={handleIOSChange}
-                minimumDate={minimumDate}
-                maximumDate={maximumDate}
-                locale="es-PE"
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
+      <BottomSheetModal
+        ref={bottomSheetRef}
+        enableDynamicSizing
+        backdropComponent={renderBackdrop}
+        handleIndicatorStyle={{ backgroundColor: colors.disabled }}
+        backgroundStyle={{ backgroundColor: colors.background.light }}
+      >
+        <BottomSheetView className="pb-8 px-4">
+          <RNDateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="spinner"
+            onChange={handleChange}
+            minimumDate={minimumDate}
+            maximumDate={maximumDate}
+            locale="es-PE"
+            style={{ width: "100%" }}
+          />
+        </BottomSheetView>
+      </BottomSheetModal>
     </View>
   );
 }
