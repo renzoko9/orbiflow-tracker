@@ -7,11 +7,12 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, CalendarDays } from "lucide-react-native";
+import { ArrowLeft } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import {
   Input,
@@ -19,6 +20,7 @@ import {
   SegmentedControl,
   CircleSelector,
   Alert,
+  DatePicker,
 } from "@/src/ui/components/atoms";
 import { FormField } from "@/src/ui/components/molecules";
 import { useCategories } from "@/src/ui/hooks";
@@ -201,18 +203,13 @@ export default function NuevoScreen() {
             <Controller
               control={control}
               name="date"
-              render={({ field: { value } }) => (
-                <TouchableOpacity className="flex-row items-center border border-primary-2 rounded-lg px-3 py-3 bg-background-light">
-                  <CalendarDays size={20} color={colors.subordinary} />
-                  <Text className="text-base text-subordinary ml-2">
-                    {new Date(value).toLocaleDateString("es-PE", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </Text>
-                </TouchableOpacity>
+              render={({ field: { value, onChange } }) => (
+                <DatePicker
+                  value={value}
+                  onChange={onChange}
+                  error={errors.date?.message}
+                  maximumDate={new Date()}
+                />
               )}
             />
           </View>
