@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Transaction } from 'src/database/entities/transaction.entity';
-import { CategoryType } from 'src/common/enum/category-type.enum';
+import { Transaction } from '@Entities';
+import { CategoryTypeEnum } from '@Enums';
 import {
   TransactionResponse,
   TransactionListResponse,
@@ -47,7 +47,8 @@ export class TransactionsMapper {
       amount: Number(transaction.amount),
       description: transaction.description,
       type: transaction.type,
-      typeName: transaction.type === CategoryType.INCOME ? 'Ingreso' : 'Gasto',
+      typeName:
+        transaction.type === CategoryTypeEnum.Income ? 'Ingreso' : 'Gasto',
       date: dateStr,
       categoryId: transaction.category?.id || null,
       categoryName: transaction.category?.name || null,

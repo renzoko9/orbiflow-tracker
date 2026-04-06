@@ -5,13 +5,13 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { CategoryType } from 'src/common/enum/category-type.enum';
+import { CategoryTypeEnum } from '@Enums';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateTransactionRequest {
   @ApiProperty({
     description: 'Monto de la transacción',
-    example: 200.00,
+    example: 200.0,
     required: false,
   })
   @IsNumber()
@@ -29,13 +29,13 @@ export class UpdateTransactionRequest {
 
   @ApiProperty({
     description: 'Tipo de transacción',
-    enum: CategoryType,
-    example: CategoryType.EXPENSE,
+    enum: CategoryTypeEnum,
+    example: CategoryTypeEnum.Expense,
     required: false,
   })
-  @IsEnum(CategoryType)
+  @IsEnum(CategoryTypeEnum)
   @IsOptional()
-  type?: CategoryType;
+  type?: CategoryTypeEnum;
 
   @ApiProperty({
     description: 'Fecha de la transacción (formato ISO 8601)',

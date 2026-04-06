@@ -1,9 +1,9 @@
-import { CategoryType } from 'src/common/enum/category-type.enum';
+import { CategoryTypeEnum } from '@Enums';
 
 export class CategoryResponse {
   id: number;
   name: string;
-  type: CategoryType;
+  type: CategoryTypeEnum;
 }
 
 export class AccountResponse {
@@ -16,7 +16,7 @@ export class TransactionResponse {
   id: number;
   amount: number;
   description: string;
-  type: CategoryType;
+  type: CategoryTypeEnum;
   date: string;
   category: CategoryResponse | null;
   account: AccountResponse;
@@ -27,7 +27,7 @@ export class TransactionListResponse {
   id: number;
   amount: number;
   description: string;
-  type: CategoryType;
+  type: CategoryTypeEnum;
   typeName: string;
   date: string;
   categoryId: number | null;

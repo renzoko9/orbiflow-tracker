@@ -1,4 +1,4 @@
-import { CategoryType } from 'src/common/enum/category-type.enum';
+import { CategoryTypeEnum } from '@Enums';
 import {
   Column,
   CreateDateColumn,
@@ -19,8 +19,8 @@ export class Category {
   @Column()
   name: string;
 
-  @Column({ type: 'enum', enum: CategoryType })
-  type: CategoryType;
+  @Column({ type: 'enum', enum: CategoryTypeEnum })
+  type: CategoryTypeEnum;
 
   @Column({ default: 'tag' })
   icon: string;

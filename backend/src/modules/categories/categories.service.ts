@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Category } from 'src/database/entities/category.entity';
-import { CategoryRepository } from 'src/database/repositories/category.repository';
+import { Category } from '@Entities';
+import { CategoryRepository } from '@Repositories';
 import { CreateCategoryRequest } from './dto/create-category.dto';
 import { UpdateCategoryRequest } from './dto/update-category.dto';
 import { IsNull } from 'typeorm';
-import { ErrorCode } from '@/common/enum/error-code.enum';
+import { ErrorCodeEnum } from '@Enums';
 
 @Injectable()
 export class CategoriesService {
@@ -62,7 +62,7 @@ export class CategoriesService {
     if (!category) {
       throw new NotFoundException({
         message: `Category with id ${id} not found`,
-        errorCode: ErrorCode.CATEGORY_NOT_FOUND,
+        errorCode: ErrorCodeEnum.CATEGORY_NOT_FOUND,
       });
     }
 
@@ -82,7 +82,7 @@ export class CategoriesService {
     if (!category) {
       throw new NotFoundException({
         message: `Category with id ${id} not found or you don't have permission to update it`,
-        errorCode: ErrorCode.CATEGORY_NOT_FOUND,
+        errorCode: ErrorCodeEnum.CATEGORY_NOT_FOUND,
       });
     }
 
@@ -99,7 +99,7 @@ export class CategoriesService {
     if (!category) {
       throw new NotFoundException({
         message: `Category with id ${id} not found or you don't have permission to delete it`,
-        errorCode: ErrorCode.CATEGORY_NOT_FOUND,
+        errorCode: ErrorCodeEnum.CATEGORY_NOT_FOUND,
       });
     }
 

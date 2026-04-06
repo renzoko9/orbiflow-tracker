@@ -3,11 +3,11 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { Account } from 'src/database/entities/account.entity';
-import { AccountRepository } from 'src/database/repositories/account.repository';
+import { Account } from '@Entities';
+import { AccountRepository } from '@Repositories';
 import { CreateAccountRequest } from './dto/create-account.dto';
 import { UpdateAccountRequest } from './dto/update-account.dto';
-import { ErrorCode } from '@/common/enum/error-code.enum';
+import { ErrorCodeEnum } from '@Enums';
 
 @Injectable()
 export class AccountsService {
@@ -41,7 +41,7 @@ export class AccountsService {
     if (!account) {
       throw new NotFoundException({
         message: `Account with id ${id} not found`,
-        errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+        errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
       });
     }
 
@@ -58,7 +58,7 @@ export class AccountsService {
     if (account.user.id !== userId) {
       throw new ForbiddenException({
         message: 'You can only update your own accounts',
-        errorCode: ErrorCode.FORBIDDEN_RESOURCE,
+        errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
       });
     }
 
@@ -72,7 +72,7 @@ export class AccountsService {
     if (account.user.id !== userId) {
       throw new ForbiddenException({
         message: 'You can only delete your own accounts',
-        errorCode: ErrorCode.FORBIDDEN_RESOURCE,
+        errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
       });
     }
 

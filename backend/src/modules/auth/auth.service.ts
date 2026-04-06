@@ -12,8 +12,7 @@ import { LoginResponse } from '@/modules/auth/models/login.model';
 import * as bcrypt from 'bcrypt';
 import { RegisterRequest } from './dto/register.dto';
 import { RegisterResponse } from './models/register.model';
-import { ResponseTypeEnum } from '@/common/enum/response-type.enum';
-import { ErrorCode } from '@/common/enum/error-code.enum';
+import { ResponseTypeEnum, ErrorCodeEnum } from '@Enums';
 import { JwtProvider } from '@/common/jwt/jwt.provider';
 import { JwtUtil } from '@/common/utils/jwt.utils';
 import { TokenPayload } from '@/common/interfaces/auth/payload.interface';
@@ -44,7 +43,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException({
         message: 'Este email no está registrado',
-        errorCode: ErrorCode.EMAIL_NOT_REGISTERED,
+        errorCode: ErrorCodeEnum.EMAIL_NOT_REGISTERED,
       });
     }
 
@@ -53,7 +52,7 @@ export class AuthService {
     if (!match) {
       throw new UnauthorizedException({
         message: 'Contraseña inválida',
-        errorCode: ErrorCode.INVALID_PASSWORD,
+        errorCode: ErrorCodeEnum.INVALID_PASSWORD,
       });
     }
 
@@ -62,7 +61,7 @@ export class AuthService {
         title: 'Cuenta no verificada',
         message:
           'Debes verificar tu correo electrónico antes de iniciar sesión',
-        errorCode: ErrorCode.EMAIL_NOT_VERIFIED,
+        errorCode: ErrorCodeEnum.EMAIL_NOT_VERIFIED,
       });
     }
 
@@ -98,7 +97,7 @@ export class AuthService {
     if (existingUser) {
       throw new BadRequestException({
         message: 'El email ya está en uso',
-        errorCode: ErrorCode.EMAIL_ALREADY_IN_USE,
+        errorCode: ErrorCodeEnum.EMAIL_ALREADY_IN_USE,
       });
     }
 
@@ -135,20 +134,23 @@ export class AuthService {
   }
 
   async verifyEmail(token: string): Promise<ResponseAPI> {
-    const verificationToken = await this.emailVerificationService.verifyToken(token);
+    const verificationToken =
+      await this.emailVerificationService.verifyToken(token);
 
     if (!verificationToken) {
       throw new BadRequestException({
         message: 'Token de verificación inválido',
-        errorCode: ErrorCode.INVALID_VERIFICATION_TOKEN,
+        errorCode: ErrorCodeEnum.INVALID_VERIFICATION_TOKEN,
       });
     }
 
     if (verificationToken.expiresAt < new Date()) {
-      await this.emailVerificationService.deleteTokensByUserId(verificationToken.user.id);
+      await this.emailVerificationService.deleteTokensByUserId(
+        verificationToken.user.id,
+      );
       throw new BadRequestException({
         message: 'El token de verificación ha expirado. Solicita uno nuevo.',
-        errorCode: ErrorCode.VERIFICATION_TOKEN_EXPIRED,
+        errorCode: ErrorCodeEnum.VERIFICATION_TOKEN_EXPIRED,
       });
     }
 
@@ -156,7 +158,9 @@ export class AuthService {
       isVerified: true,
     });
 
-    await this.emailVerificationService.deleteTokensByUserId(verificationToken.user.id);
+    await this.emailVerificationService.deleteTokensByUserId(
+      verificationToken.user.id,
+    );
 
     this.logger.log(
       `Usuario ${verificationToken.user.email} verificado exitosamente`,
@@ -226,7 +230,7 @@ export class AuthService {
     if (!resetToken) {
       throw new BadRequestException({
         message: 'Código de restablecimiento inválido',
-        errorCode: ErrorCode.INVALID_RESET_CODE,
+        errorCode: ErrorCodeEnum.INVALID_RESET_CODE,
       });
     }
 
@@ -234,7 +238,7 @@ export class AuthService {
       await this.passwordResetService.deleteTokensByUserId(resetToken.user.id);
       throw new BadRequestException({
         message: 'El código ha expirado. Solicita uno nuevo.',
-        errorCode: ErrorCode.RESET_CODE_EXPIRED,
+        errorCode: ErrorCodeEnum.RESET_CODE_EXPIRED,
       });
     }
 
@@ -244,13 +248,16 @@ export class AuthService {
     };
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<ResponseAPI> {
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<ResponseAPI> {
     const resetToken = await this.passwordResetService.verifyToken(token);
 
     if (!resetToken) {
       throw new BadRequestException({
         message: 'Código de restablecimiento inválido',
-        errorCode: ErrorCode.INVALID_RESET_CODE,
+        errorCode: ErrorCodeEnum.INVALID_RESET_CODE,
       });
     }
 
@@ -258,7 +265,7 @@ export class AuthService {
       await this.passwordResetService.deleteTokensByUserId(resetToken.user.id);
       throw new BadRequestException({
         message: 'El código ha expirado. Solicita uno nuevo.',
-        errorCode: ErrorCode.RESET_CODE_EXPIRED,
+        errorCode: ErrorCodeEnum.RESET_CODE_EXPIRED,
       });
     }
 
@@ -270,13 +277,12 @@ export class AuthService {
 
     await this.passwordResetService.deleteTokensByUserId(resetToken.user.id);
 
-    this.logger.log(
-      `Contraseña restablecida para ${resetToken.user.email}`,
-    );
+    this.logger.log(`Contraseña restablecida para ${resetToken.user.email}`);
 
     return {
       responseType: ResponseTypeEnum.Success,
-      message: 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión.',
+      message:
+        'Contraseña restablecida exitosamente. Ya puedes iniciar sesión.',
     };
   }
 
@@ -291,7 +297,7 @@ export class AuthService {
     if (!isMatch) {
       throw new UnauthorizedException({
         message: 'Token inválido',
-        errorCode: ErrorCode.INVALID_REFRESH_TOKEN,
+        errorCode: ErrorCodeEnum.INVALID_REFRESH_TOKEN,
       });
     }
 

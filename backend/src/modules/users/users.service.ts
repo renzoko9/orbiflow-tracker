@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { User } from 'src/database/entities/user.entity';
-import { UserRepository } from 'src/database/repositories/user.repository';
+import { User } from '@Entities';
+import { UserRepository } from '@Repositories';
 import { FindOptionsWhere } from 'typeorm';
-import { ErrorCode } from '@/common/enum/error-code.enum';
+import { ErrorCodeEnum } from '@Enums';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +18,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException({
         message: `User with id ${id} not found`,
-        errorCode: ErrorCode.USER_NOT_FOUND,
+        errorCode: ErrorCodeEnum.USER_NOT_FOUND,
       });
     }
 
@@ -31,7 +31,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException({
         message: `User with email ${email} not found`,
-        errorCode: ErrorCode.USER_NOT_FOUND,
+        errorCode: ErrorCodeEnum.USER_NOT_FOUND,
       });
     }
 

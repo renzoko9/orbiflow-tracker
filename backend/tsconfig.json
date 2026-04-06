@@ -13,7 +13,6 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -22,11 +21,11 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "strictPropertyInitialization": false,
-    "ignoreDeprecations": "6.0",
     "paths": {
-      "@/*": ["src/*"],
-      "@Entities": ["src/database/entities/index"],
-      "@Repositories": ["src/database/repositories/index"],
+      "@/*": ["./src/*"],
+      "@Entities": ["./src/database/entities/index"],
+      "@Repositories": ["./src/database/repositories/index"],
+      "@Enums": ["./src/common/enum/index"],
     }
   }
 }

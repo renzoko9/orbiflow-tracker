@@ -1,4 +1,4 @@
-export enum ErrorCode {
+export enum ErrorCodeEnum {
   // Auth
   EMAIL_NOT_REGISTERED = 'EMAIL_NOT_REGISTERED',
   INVALID_PASSWORD = 'INVALID_PASSWORD',

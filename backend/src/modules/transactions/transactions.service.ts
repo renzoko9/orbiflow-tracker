@@ -3,13 +3,11 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { Transaction } from 'src/database/entities/transaction.entity';
-import { TransactionRepository } from 'src/database/repositories/transaction.repository';
-import { AccountRepository } from 'src/database/repositories/account.repository';
+import { Transaction } from '@Entities';
+import { TransactionRepository, AccountRepository } from '@Repositories';
 import { CreateTransactionRequest } from './dto/create-transaction.dto';
 import { UpdateTransactionRequest } from './dto/update-transaction.dto';
-import { CategoryType } from 'src/common/enum/category-type.enum';
-import { ErrorCode } from '@/common/enum/error-code.enum';
+import { CategoryTypeEnum, ErrorCodeEnum } from '@Enums';
 import {
   TransactionResponse,
   TransactionListResponse,
@@ -36,7 +34,7 @@ export class TransactionsService {
     if (!account) {
       throw new NotFoundException({
         message: `Account with id ${createTransactionRequest.accountId} not found`,
-        errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+        errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
       });
     }
 
@@ -91,7 +89,7 @@ export class TransactionsService {
     if (!account) {
       throw new NotFoundException({
         message: `Account with id ${accountId} not found`,
-        errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+        errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
       });
     }
 
@@ -118,7 +116,7 @@ export class TransactionsService {
     if (!transaction) {
       throw new NotFoundException({
         message: `Transaction with id ${id} not found`,
-        errorCode: ErrorCode.TRANSACTION_NOT_FOUND,
+        errorCode: ErrorCodeEnum.TRANSACTION_NOT_FOUND,
       });
     }
 
@@ -138,14 +136,14 @@ export class TransactionsService {
     if (!transaction) {
       throw new NotFoundException({
         message: `Transaction with id ${id} not found`,
-        errorCode: ErrorCode.TRANSACTION_NOT_FOUND,
+        errorCode: ErrorCodeEnum.TRANSACTION_NOT_FOUND,
       });
     }
 
     if (transaction.user.id !== userId) {
       throw new ForbiddenException({
         message: 'You can only update your own transactions',
-        errorCode: ErrorCode.FORBIDDEN_RESOURCE,
+        errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
       });
     }
 
@@ -161,7 +159,7 @@ export class TransactionsService {
       if (!newAccount) {
         throw new NotFoundException({
           message: `Account with id ${updateTransactionDto.accountId} not found`,
-          errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+          errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
         });
       }
 
@@ -227,14 +225,14 @@ export class TransactionsService {
     if (!transaction) {
       throw new NotFoundException({
         message: `Transaction with id ${id} not found`,
-        errorCode: ErrorCode.TRANSACTION_NOT_FOUND,
+        errorCode: ErrorCodeEnum.TRANSACTION_NOT_FOUND,
       });
     }
 
     if (transaction.user.id !== userId) {
       throw new ForbiddenException({
         message: 'You can only delete your own transactions',
-        errorCode: ErrorCode.FORBIDDEN_RESOURCE,
+        errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
       });
     }
 
@@ -252,7 +250,7 @@ export class TransactionsService {
   private async updateAccountBalance(
     accountId: number,
     amount: number,
-    type: CategoryType,
+    type: CategoryTypeEnum,
     revert = false,
   ): Promise<void> {
     const account = await this.accountRepository.findOne({
@@ -262,14 +260,14 @@ export class TransactionsService {
     if (!account) {
       throw new NotFoundException({
         message: `Account with id ${accountId} not found`,
-        errorCode: ErrorCode.ACCOUNT_NOT_FOUND,
+        errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
       });
     }
 
     let balanceChange = amount;
 
     // Si es EXPENSE, restar del balance
-    if (type === CategoryType.EXPENSE) {
+    if (type === CategoryTypeEnum.Expense) {
       balanceChange = -amount;
     }
 

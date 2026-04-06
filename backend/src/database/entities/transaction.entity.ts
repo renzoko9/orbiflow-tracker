@@ -9,7 +9,7 @@ import {
 import { User } from './user.entity';
 import { Category } from './category.entity';
 import { Account } from './account.entity';
-import { CategoryType } from 'src/common/enum/category-type.enum';
+import { CategoryTypeEnum } from '@Enums';
 
 @Entity('transactions')
 export class Transaction {
@@ -22,8 +22,8 @@ export class Transaction {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ type: 'enum', enum: CategoryType })
-  type: CategoryType;
+  @Column({ type: 'enum', enum: CategoryTypeEnum })
+  type: CategoryTypeEnum;
 
   @Column({ type: 'date' })
   date: Date;

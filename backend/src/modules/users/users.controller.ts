@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { User } from 'src/database/entities/user.entity';
+import { User } from '@Entities';
 import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
 
 @Controller('users')
