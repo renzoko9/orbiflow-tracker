@@ -21,6 +21,8 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
+    "strictPropertyInitialization": false,
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["src/*"],
       "@Entities": ["src/database/entities/index"],
