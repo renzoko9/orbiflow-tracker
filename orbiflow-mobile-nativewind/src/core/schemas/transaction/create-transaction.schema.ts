@@ -12,9 +12,12 @@ export const createTransactionSchema = z.object({
   accountId: z
     .number({ error: "La cuenta es requerida" })
     .positive("Selecciona una cuenta"),
-  categoryId: z.number().optional(),
-  description: z.string().optional(),
-  note: z.string().optional(),
+  categoryId: z
+    .number({ error: "La categoría es requerida" })
+    .positive("Selecciona una categoría"),
+  description: z
+    .string({ error: "La descripción es requerida" })
+    .min(1, "La descripción es requerida"),
 });
 
 export type CreateTransactionFormValues = z.infer<

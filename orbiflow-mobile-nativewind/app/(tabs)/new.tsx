@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,12 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import {
-  Input,
   Button,
   SegmentedControl,
   CircleSelector,
@@ -63,14 +63,12 @@ export default function NuevoScreen() {
       date: new Date().toISOString(),
       amount: undefined,
       accountId: undefined,
-      categoryId: undefined,
-      description: "",
-      note: "",
+      categoryId: null as unknown as number,
+      description: undefined,
     },
   });
 
   const type = watch("type");
-  const isExpense = type === CategoryType.EXPENSE;
 
   const {
     categories,
@@ -81,8 +79,16 @@ export default function NuevoScreen() {
   const categoryItems = mapCategoriesToItems(categories);
 
   useEffect(() => {
-    setValue("categoryId", undefined);
+    setValue("categoryId", null as unknown as number);
   }, [type, setValue]);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        reset();
+      };
+    }, [reset]),
+  );
 
   const onSubmit = async (data: CreateTransactionFormValues) => {
     try {
@@ -185,6 +191,11 @@ export default function NuevoScreen() {
                 )}
               />
             )}
+            {errors.categoryId && (
+              <Text className="text-error-medium text-sm">
+                {errors.categoryId.message}
+              </Text>
+            )}
           </View>
 
           {/* Descripción */}
@@ -214,27 +225,14 @@ export default function NuevoScreen() {
             />
           </View>
 
-          {/* Nota adicional */}
-          <View className="flex-col gap-2">
-            <Text className="text-base text-text-light">Nota adicional</Text>
-            <FormField
-              control={control}
-              name="note"
-              placeholder="Agrega una nota (opcional)"
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
           {/* Botón Guardar */}
           <Button
             variant="primary"
             size="lg"
-            className={isExpense ? "bg-error-medium" : "bg-success-medium"}
             onPress={handleSubmit(onSubmit)}
             loading={isSubmitting}
           >
-            Guardar {isExpense ? "Gasto" : "Ingreso"}
+            Guardar transacción
           </Button>
         </View>
       </ScrollView>
