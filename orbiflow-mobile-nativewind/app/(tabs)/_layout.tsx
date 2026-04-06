@@ -22,14 +22,14 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="inicio"
+        name="home"
         options={{
           title: "Inicio",
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="movimientos"
+        name="transactions"
         options={{
           title: "Movimientos",
           tabBarIcon: ({ color, size }) => (
@@ -38,7 +38,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="nuevo"
+        name="new"
         options={{
           title: "",
           tabBarIcon: () => null,
@@ -51,14 +51,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="cuentas"
+        name="accounts"
         options={{
           title: "Cuentas",
           tabBarIcon: ({ color, size }) => <Wallet size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="ajustes"
+        name="settings"
         options={{
           title: "Ajustes",
           tabBarIcon: ({ color, size }) => (

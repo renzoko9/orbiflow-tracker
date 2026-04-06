@@ -7,7 +7,7 @@ export function FloatingAddButton() {
 
   return (
     <Pressable
-      onPress={() => router.push("/nuevo")}
+      onPress={() => router.push("/new")}
       className="absolute -top-6 items-center justify-center w-14 h-14 bg-primary-5 rounded-full shadow-lg"
       style={{
         shadowColor: "#476464",

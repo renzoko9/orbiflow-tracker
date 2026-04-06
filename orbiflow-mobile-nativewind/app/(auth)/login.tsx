@@ -35,7 +35,7 @@ export default function LoginScreen() {
     setApiError(null);
     try {
       await AuthService.login(values);
-      router.replace("/(tabs)/inicio");
+      router.replace("/(tabs)/home");
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         if (err.errorCode === ERROR_CODES.EMAIL_NOT_VERIFIED) {
