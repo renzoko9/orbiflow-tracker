@@ -1,7 +1,7 @@
 export interface Account {
   id: number;
   name: string;
-  balance: number;
+  balance: string;
   description: string | null;
   userId: number;
   createdAt: string;

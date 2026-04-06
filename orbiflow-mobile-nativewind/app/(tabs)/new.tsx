@@ -21,9 +21,10 @@ import {
   CircleSelector,
   Alert,
   DatePicker,
+  AccountPicker,
 } from "@/src/ui/components/atoms";
 import { FormField } from "@/src/ui/components/molecules";
-import { useCategories } from "@/src/ui/hooks";
+import { useCategories, useAccounts } from "@/src/ui/hooks";
 import { CategoryType } from "@/src/core/enums/category-type.enum";
 import {
   createTransactionSchema,
@@ -75,6 +76,12 @@ export default function NuevoScreen() {
     loading: categoriesLoading,
     error: categoriesError,
   } = useCategories({ type });
+
+  const {
+    accounts,
+    loading: accountsLoading,
+    error: accountsError,
+  } = useAccounts();
 
   const categoryItems = mapCategoriesToItems(categories);
 
@@ -167,6 +174,29 @@ export default function NuevoScreen() {
               <Text className="text-error-medium text-sm mt-1">
                 {errors.amount.message}
               </Text>
+            )}
+          </View>
+
+          {/* Cuenta */}
+          <View className="flex-col gap-3">
+            <Text className="text-base text-text-light">Cuenta</Text>
+            {accountsLoading ? (
+              <ActivityIndicator color={colors.primary[5]} />
+            ) : accountsError ? (
+              <Alert variant="error" message={accountsError} />
+            ) : (
+              <Controller
+                control={control}
+                name="accountId"
+                render={({ field: { value, onChange } }) => (
+                  <AccountPicker
+                    accounts={accounts}
+                    selectedId={value ?? null}
+                    onSelect={onChange}
+                    error={errors.accountId?.message}
+                  />
+                )}
+              />
             )}
           </View>
 
