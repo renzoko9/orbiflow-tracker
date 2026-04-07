@@ -1,13 +1,12 @@
-import { useRef, useCallback } from "react";
+import { useRef } from "react";
 import { View, Text, TouchableOpacity, Pressable } from "react-native";
-import {
-  BottomSheetModal,
-  BottomSheetBackdrop,
-  BottomSheetBackdropProps,
-  BottomSheetFlatList,
-} from "@gorhom/bottom-sheet";
 import { ChevronDown, Wallet } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
+import {
+  BottomSheet,
+  BottomSheetFlatList,
+} from "@/src/ui/components/atoms/BottomSheet";
+import type { BottomSheetModal } from "@/src/ui/components/atoms/BottomSheet";
 import { Account } from "@/src/core/dto/account.interface";
 
 interface AccountPickerProps {
@@ -29,18 +28,6 @@ export function AccountPicker({
 
   const handleOpen = () => bottomSheetRef.current?.present();
   const handleClose = () => bottomSheetRef.current?.dismiss();
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        pressBehavior="close"
-      />
-    ),
-    [],
-  );
 
   return (
     <View className="w-full">
@@ -79,13 +66,7 @@ export function AccountPicker({
 
       {error && <Text className="text-sm text-error-medium mt-1">{error}</Text>}
 
-      <BottomSheetModal
-        ref={bottomSheetRef}
-        enableDynamicSizing
-        backdropComponent={renderBackdrop}
-        handleIndicatorStyle={{ backgroundColor: colors.disabled }}
-        backgroundStyle={{ backgroundColor: colors.background.light }}
-      >
+      <BottomSheet ref={bottomSheetRef}>
         <BottomSheetFlatList
           data={accounts}
           keyExtractor={(item: Account) => String(item.id)}
@@ -139,7 +120,7 @@ export function AccountPicker({
             );
           }}
         />
-      </BottomSheetModal>
+      </BottomSheet>
     </View>
   );
 }

@@ -5,4 +5,5 @@ export { SegmentedControl } from "./SegmentedControl";
 export { CircleSelector } from "./CircleSelector";
 export type { CircleSelectorItem } from "./CircleSelector";
 export { DatePicker } from "./DatePicker";
-export { AccountPicker } from "./AccountPicker";
+export { BottomSheet, BottomSheetView, BottomSheetFlatList, BottomSheetScrollView } from "./BottomSheet";
+export type { BottomSheetModal } from "./BottomSheet";

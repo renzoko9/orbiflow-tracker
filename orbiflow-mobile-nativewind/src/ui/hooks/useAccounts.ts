@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Account } from "@/src/core/dto/account.interface";
 import AccountService from "@/src/core/services/account.service";
 
@@ -7,7 +7,7 @@ export function useAccounts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -20,11 +20,11 @@ export function useAccounts() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchAccounts();
-  }, []);
+  }, [fetchAccounts]);
 
   return { accounts, loading, error, refetch: fetchAccounts };
 }

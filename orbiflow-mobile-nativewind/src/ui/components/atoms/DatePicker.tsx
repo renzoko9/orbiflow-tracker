@@ -1,16 +1,12 @@
-import { useRef, useCallback } from "react";
+import { useRef } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import {
-  BottomSheetModal,
-  BottomSheetView,
-  BottomSheetBackdrop,
-  BottomSheetBackdropProps,
-} from "@gorhom/bottom-sheet";
 import RNDateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { CalendarDays } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
+import { BottomSheet, BottomSheetView } from "./BottomSheet";
+import type { BottomSheetModal } from "./BottomSheet";
 
 interface DatePickerProps {
   value: string;
@@ -46,18 +42,6 @@ export function DatePicker({
     if (date) onChange(date.toISOString());
   };
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        pressBehavior="close"
-      />
-    ),
-    []
-  );
-
   return (
     <View className={`w-full ${className}`}>
       <TouchableOpacity
@@ -84,13 +68,7 @@ export function DatePicker({
         <Text className="text-sm text-error-medium mt-1">{error}</Text>
       )}
 
-      <BottomSheetModal
-        ref={bottomSheetRef}
-        enableDynamicSizing
-        backdropComponent={renderBackdrop}
-        handleIndicatorStyle={{ backgroundColor: colors.disabled }}
-        backgroundStyle={{ backgroundColor: colors.background.light }}
-      >
+      <BottomSheet ref={bottomSheetRef}>
         <BottomSheetView className="pb-8 px-4">
           <RNDateTimePicker
             value={selectedDate}
@@ -103,7 +81,7 @@ export function DatePicker({
             style={{ width: "100%" }}
           />
         </BottomSheetView>
-      </BottomSheetModal>
+      </BottomSheet>
     </View>
   );
 }

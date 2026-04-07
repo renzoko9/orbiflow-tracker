@@ -5,6 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
 } from "react-native";
 
@@ -21,8 +23,8 @@ import {
   CircleSelector,
   Alert,
   DatePicker,
-  AccountPicker,
 } from "@/src/ui/components/atoms";
+import { AccountPicker } from "@/src/ui/features/accounts";
 import { FormField } from "@/src/ui/components/molecules";
 import { useCategories, useAccounts } from "@/src/ui/hooks";
 import { CategoryType } from "@/src/core/enums/category-type.enum";
@@ -81,6 +83,7 @@ export default function NuevoScreen() {
     accounts,
     loading: accountsLoading,
     error: accountsError,
+    refetch: refetchAccounts,
   } = useAccounts();
 
   const categoryItems = mapCategoriesToItems(categories);
@@ -91,10 +94,11 @@ export default function NuevoScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      refetchAccounts();
       return () => {
         reset();
       };
-    }, [reset]),
+    }, [reset, refetchAccounts]),
   );
 
   const onSubmit = async (data: CreateTransactionFormValues) => {
@@ -116,156 +120,162 @@ export default function NuevoScreen() {
 
   return (
     <SafeAreaView className="flex-1">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="flex-col gap-3 p-4">
-          {/* Header con nav */}
-          <View className="flex-row gap-2 items-center my-3">
-            <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-              <ArrowLeft size={24} color={colors.base} />
-            </TouchableOpacity>
-            <Text className="text-xl font-bold text-base-color flex-1 text-center">
-              Nuevo Movimiento
-            </Text>
-          </View>
-
-          {/* Switch Gasto / Ingreso */}
-          <Controller
-            control={control}
-            name="type"
-            render={({ field: { value, onChange } }) => (
-              <SegmentedControl
-                options={[
-                  { value: CategoryType.EXPENSE, label: "Gasto" },
-                  { value: CategoryType.INCOME, label: "Ingreso" },
-                ]}
-                value={value}
-                onChange={onChange}
-                className="border border-primary-2"
-              />
-            )}
-          />
-
-          {/* Monto */}
-          <View className="flex-col gap-1 items-center py-6">
-            <Text className="text-base">Monto</Text>
+      {/* Header con nav */}
+      <View className="flex-row gap-2 items-center my-3 p-4">
+        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+          <ArrowLeft size={24} color={colors.base} />
+        </TouchableOpacity>
+        <Text className="text-xl font-bold text-base-color flex-1 text-center">
+          Nuevo Movimiento
+        </Text>
+      </View>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="flex-col gap-3 p-4">
+            {/* Switch Gasto / Ingreso */}
             <Controller
               control={control}
-              name="amount"
-              render={({ field: { onChange, value } }) => (
-                <View className="flex-row gap-1 items-center">
-                  <Text className="text-5xl font-semibold text-base-color">
-                    S/
-                  </Text>
-                  <TextInput
-                    className="text-5xl font-bold text-base-color text-center w-40"
-                    placeholder="0.00"
-                    placeholderTextColor={colors.disabled}
-                    value={value !== undefined ? String(value) : ""}
-                    onChangeText={(text) => {
-                      const parsed = parseFloat(text);
-                      onChange(isNaN(parsed) ? undefined : parsed);
-                    }}
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-              )}
-            />
-            {errors.amount && (
-              <Text className="text-error-medium text-sm mt-1">
-                {errors.amount.message}
-              </Text>
-            )}
-          </View>
-
-          {/* Cuenta */}
-          <View className="flex-col gap-3">
-            <Text className="text-base text-text-light">Cuenta</Text>
-            {accountsLoading ? (
-              <ActivityIndicator color={colors.primary[5]} />
-            ) : accountsError ? (
-              <Alert variant="error" message={accountsError} />
-            ) : (
-              <Controller
-                control={control}
-                name="accountId"
-                render={({ field: { value, onChange } }) => (
-                  <AccountPicker
-                    accounts={accounts}
-                    selectedId={value ?? null}
-                    onSelect={onChange}
-                    error={errors.accountId?.message}
-                  />
-                )}
-              />
-            )}
-          </View>
-
-          {/* Categorías */}
-          <View className="flex-col gap-4 mb-4">
-            <Text className="text-base text-text-light">Categoría</Text>
-            {categoriesLoading ? (
-              <ActivityIndicator color={colors.primary[5]} />
-            ) : categoriesError ? (
-              <Alert variant="error" message={categoriesError} />
-            ) : (
-              <Controller
-                control={control}
-                name="categoryId"
-                render={({ field: { value, onChange } }) => (
-                  <CircleSelector
-                    items={categoryItems}
-                    selectedId={value ?? null}
-                    onSelect={onChange}
-                    layout="scroll"
-                  />
-                )}
-              />
-            )}
-            {errors.categoryId && (
-              <Text className="text-error-medium text-sm">
-                {errors.categoryId.message}
-              </Text>
-            )}
-          </View>
-
-          {/* Descripción */}
-          <View className="flex-col gap-2">
-            <Text className="text-base text-text-light">Descripción</Text>
-            <FormField
-              control={control}
-              name="description"
-              placeholder="Ej: Almuerzo en restaurante"
-            />
-          </View>
-
-          {/* Fecha */}
-          <View className="flex-col gap-2">
-            <Text className="text-base text-text-light">Fecha</Text>
-            <Controller
-              control={control}
-              name="date"
+              name="type"
               render={({ field: { value, onChange } }) => (
-                <DatePicker
+                <SegmentedControl
+                  options={[
+                    { value: CategoryType.EXPENSE, label: "Gasto" },
+                    { value: CategoryType.INCOME, label: "Ingreso" },
+                  ]}
                   value={value}
                   onChange={onChange}
-                  error={errors.date?.message}
-                  maximumDate={new Date()}
+                  className="border border-primary-2"
                 />
               )}
             />
-          </View>
 
-          {/* Botón Guardar */}
-          <Button
-            variant="primary"
-            size="lg"
-            onPress={handleSubmit(onSubmit)}
-            loading={isSubmitting}
-          >
-            Guardar transacción
-          </Button>
-        </View>
-      </ScrollView>
+            {/* Monto */}
+            <View className="flex-col gap-5 items-center py-6">
+              <Text className="text-base">Monto</Text>
+              <Controller
+                control={control}
+                name="amount"
+                render={({ field: { onChange, value } }) => (
+                  <View className="flex-row gap-1 items-center">
+                    <Text className="text-5xl font-semibold text-base-color">
+                      S/
+                    </Text>
+                    <TextInput
+                      className="text-5xl font-bold text-base-color text-center w-40"
+                      placeholder="0.00"
+                      placeholderTextColor={colors.disabled}
+                      value={value !== undefined ? String(value) : ""}
+                      onChangeText={(text) => {
+                        const parsed = parseFloat(text);
+                        onChange(isNaN(parsed) ? undefined : parsed);
+                      }}
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                )}
+              />
+              {errors.amount && (
+                <Text className="text-error-medium text-sm mt-1">
+                  {errors.amount.message}
+                </Text>
+              )}
+            </View>
+
+            {/* Cuenta */}
+            <View className="flex-col gap-3">
+              <Text className="text-base text-text-light">Cuenta</Text>
+              {accountsLoading ? (
+                <ActivityIndicator color={colors.primary[5]} />
+              ) : accountsError ? (
+                <Alert variant="error" message={accountsError} />
+              ) : (
+                <Controller
+                  control={control}
+                  name="accountId"
+                  render={({ field: { value, onChange } }) => (
+                    <AccountPicker
+                      accounts={accounts}
+                      selectedId={value ?? null}
+                      onSelect={onChange}
+                      error={errors.accountId?.message}
+                    />
+                  )}
+                />
+              )}
+            </View>
+
+            {/* Categorías */}
+            <View className="flex-col gap-4 mb-4">
+              <Text className="text-base text-text-light">Categoría</Text>
+              {categoriesLoading ? (
+                <ActivityIndicator color={colors.primary[5]} />
+              ) : categoriesError ? (
+                <Alert variant="error" message={categoriesError} />
+              ) : (
+                <Controller
+                  control={control}
+                  name="categoryId"
+                  render={({ field: { value, onChange } }) => (
+                    <CircleSelector
+                      items={categoryItems}
+                      selectedId={value ?? null}
+                      onSelect={onChange}
+                      layout="scroll"
+                    />
+                  )}
+                />
+              )}
+              {errors.categoryId && (
+                <Text className="text-error-medium text-sm">
+                  {errors.categoryId.message}
+                </Text>
+              )}
+            </View>
+
+            {/* Descripción */}
+            <View className="flex-col gap-2">
+              <Text className="text-base text-text-light">Descripción</Text>
+              <FormField
+                control={control}
+                name="description"
+                placeholder="Ej: Almuerzo en restaurante"
+              />
+            </View>
+
+            {/* Fecha */}
+            <View className="flex-col gap-2">
+              <Text className="text-base text-text-light">Fecha</Text>
+              <Controller
+                control={control}
+                name="date"
+                render={({ field: { value, onChange } }) => (
+                  <DatePicker
+                    value={value}
+                    onChange={onChange}
+                    error={errors.date?.message}
+                    maximumDate={new Date()}
+                  />
+                )}
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Botón Guardar */}
+      <View className="p-4">
+        <Button
+          variant="primary"
+          size="lg"
+          onPress={handleSubmit(onSubmit)}
+          loading={isSubmitting}
+        >
+          Guardar transacción
+        </Button>
+      </View>
     </SafeAreaView>
   );
 }
