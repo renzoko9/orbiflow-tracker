@@ -22,11 +22,13 @@ import {
   SegmentedControl,
   CircleSelector,
   Alert,
-  DatePicker,
   showToast,
 } from "@/src/ui/components/atoms";
-import { AccountPicker } from "@/src/ui/features/accounts";
-import { FormField } from "@/src/ui/components/molecules";
+import {
+  FormField,
+  DateSelectField,
+  AccountSelectField,
+} from "@/src/ui/components/molecules";
 import { useCategories, useAccounts } from "@/src/ui/hooks";
 import { CategoryType } from "@/src/core/enums/category-type.enum";
 import {
@@ -253,7 +255,7 @@ export default function NuevoScreen() {
                   control={control}
                   name="accountId"
                   render={({ field: { value, onChange } }) => (
-                    <AccountPicker
+                    <AccountSelectField
                       accounts={accounts}
                       selectedId={value ?? null}
                       onSelect={onChange}
@@ -281,7 +283,7 @@ export default function NuevoScreen() {
                 control={control}
                 name="date"
                 render={({ field: { value, onChange } }) => (
-                  <DatePicker
+                  <DateSelectField
                     value={value}
                     onChange={onChange}
                     error={errors.date?.message}

@@ -4,6 +4,7 @@ export { Alert } from "./Alert";
 export { SegmentedControl } from "./SegmentedControl";
 export { CircleSelector } from "./CircleSelector";
 export type { CircleSelectorItem } from "./CircleSelector";
+export { SelectField } from "./SelectField";
 export { DatePicker } from "./DatePicker";
 export { BottomSheet, BottomSheetView, BottomSheetFlatList, BottomSheetScrollView } from "./BottomSheet";
 export type { BottomSheetModal } from "./BottomSheet";
