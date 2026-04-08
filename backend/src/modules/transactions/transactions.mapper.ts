@@ -20,19 +20,8 @@ export class TransactionsMapper {
       description: transaction.description,
       type: transaction.type,
       date: dateStr,
-      category: transaction.category
-        ? {
-            id: transaction.category.id,
-            name: transaction.category.name,
-            type: transaction.category.type,
-          }
-        : null,
-      account: {
-        id: transaction.account.id,
-        name: transaction.account.name,
-        balance: Number(transaction.account.balance),
-      },
-      createdAt: transaction.createdAt,
+      categoryName: transaction.category?.name || null,
+      accountName: transaction.account.name,
     };
   }
 

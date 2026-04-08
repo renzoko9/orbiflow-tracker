@@ -1,26 +1,13 @@
 import { CategoryTypeEnum } from '@Enums';
 
-export class CategoryResponse {
-  id: number;
-  name: string;
-  type: CategoryTypeEnum;
-}
-
-export class AccountResponse {
-  id: number;
-  name: string;
-  balance: number;
-}
-
 export class TransactionResponse {
   id: number;
   amount: number;
   description: string;
   type: CategoryTypeEnum;
   date: string;
-  category: CategoryResponse | null;
-  account: AccountResponse;
-  createdAt: Date;
+  categoryName: string | null;
+  accountName: string;
 }
 
 export class TransactionListResponse {

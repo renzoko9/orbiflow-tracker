@@ -7,7 +7,8 @@ import { Transaction } from '@Entities';
 import { TransactionRepository, AccountRepository } from '@Repositories';
 import { CreateTransactionRequest } from './dto/create-transaction.dto';
 import { UpdateTransactionRequest } from './dto/update-transaction.dto';
-import { CategoryTypeEnum, ErrorCodeEnum } from '@Enums';
+import { CategoryTypeEnum, ErrorCodeEnum, ResponseTypeEnum } from '@Enums';
+import { ResponseAPI } from '@/common/interfaces/response.interface';
 import {
   TransactionResponse,
   TransactionListResponse,
@@ -25,7 +26,7 @@ export class TransactionsService {
   async create(
     userId: number,
     createTransactionRequest: CreateTransactionRequest,
-  ): Promise<TransactionResponse> {
+  ): Promise<ResponseAPI<TransactionResponse>> {
     // Verificar que la cuenta pertenezca al usuario
     const account = await this.accountRepository.findOne({
       where: { id: createTransactionRequest.accountId, user: { id: userId } },
@@ -59,7 +60,14 @@ export class TransactionsService {
       createTransactionRequest.type,
     );
 
-    return this.findOne(savedTransaction.id, userId);
+    const transaction = await this.findOne(savedTransaction.id, userId);
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      title: 'Transacción registrada',
+      message: 'El movimiento se guardó correctamente',
+      data: transaction,
+    };
   }
 
   async findAll(userId: number): Promise<TransactionListResponse[]> {

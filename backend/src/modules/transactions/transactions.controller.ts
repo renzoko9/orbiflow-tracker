@@ -15,6 +15,7 @@ import { CreateTransactionRequest } from './dto/create-transaction.dto';
 import { UpdateTransactionRequest } from './dto/update-transaction.dto';
 import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
 import { User } from '@/common/decorators/user.decorator';
+import { ResponseAPI } from '@/common/interfaces/response.interface';
 import {
   TransactionResponse,
   TransactionListResponse,
@@ -29,7 +30,7 @@ export class TransactionsController {
   create(
     @User('id') userId: number,
     @Body() createTransactionRequest: CreateTransactionRequest,
-  ): Promise<TransactionResponse> {
+  ): Promise<ResponseAPI<TransactionResponse>> {
     return this.transactionsService.create(userId, createTransactionRequest);
   }
 
