@@ -23,6 +23,7 @@ import {
   CircleSelector,
   Alert,
   DatePicker,
+  showToast,
 } from "@/src/ui/components/atoms";
 import { AccountPicker } from "@/src/ui/features/accounts";
 import { FormField } from "@/src/ui/components/molecules";
@@ -35,6 +36,7 @@ import {
 import { CircleSelectorItem } from "@/src/ui/components/atoms/CircleSelector";
 import { Category } from "@/src/core/dto/category.interface";
 import TransactionService from "@/src/core/services/transaction.service";
+import { ApiError } from "@/src/core/api/api-error";
 import { getIconComponent } from "@/src/ui/utils/icon-map";
 
 function mapCategoriesToItems(categories: Category[]): CircleSelectorItem[] {
@@ -103,7 +105,7 @@ export default function NuevoScreen() {
 
   const onSubmit = async (data: CreateTransactionFormValues) => {
     try {
-      await TransactionService.create({
+      const response = await TransactionService.create({
         amount: data.amount,
         type: data.type,
         date: data.date,
@@ -112,9 +114,23 @@ export default function NuevoScreen() {
         description: data.description,
       });
       reset();
+      showToast({
+        type: "success",
+        text1: response.title,
+        text2: response.message,
+      });
       router.back();
     } catch (error) {
-      console.error("Error al crear transacción:", error);
+      const title = error instanceof ApiError ? error.title : undefined;
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "Ocurrió un error inesperado";
+      showToast({
+        type: "error",
+        text1: title ?? "Error",
+        text2: message,
+      });
     }
   };
 
