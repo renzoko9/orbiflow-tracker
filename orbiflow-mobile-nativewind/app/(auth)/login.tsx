@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
 } from "react-native";
 import { Link, router } from "expo-router";
@@ -18,6 +19,7 @@ import {
 } from "@/src/core/schemas/auth/login.schema";
 import { ApiError } from "@/src/core/api/api-error";
 import { ERROR_CODES } from "@/src/core/constants/error-codes.constant";
+import { TextInput } from "react-native-gesture-handler";
 
 export default function LoginScreen() {
   const [apiError, setApiError] = useState<ApiError | null>(null);
@@ -56,7 +58,10 @@ export default function LoginScreen() {
       className="flex-1 bg-white"
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View className="flex-1 justify-center px-6">
+      <ScrollView
+        contentContainerClassName="flex-1 justify-center px-6"
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Header */}
         <View className="mb-10">
           <Text className="text-3xl font-bold text-gray-900">Bienvenido</Text>
@@ -122,7 +127,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </Link>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

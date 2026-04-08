@@ -159,21 +159,33 @@ export default function NuevoScreen() {
                 control={control}
                 name="amount"
                 render={({ field: { onChange, value } }) => (
-                  <View className="flex-row gap-1 items-center">
+                  <View className="flex-row gap-4 items-center justify-center">
                     <Text className="text-5xl font-semibold text-base-color">
                       S/
                     </Text>
-                    <TextInput
-                      className="text-5xl font-bold text-base-color text-center w-40"
-                      placeholder="0.00"
-                      placeholderTextColor={colors.disabled}
-                      value={value !== undefined ? String(value) : ""}
-                      onChangeText={(text) => {
-                        const parsed = parseFloat(text);
-                        onChange(isNaN(parsed) ? undefined : parsed);
-                      }}
-                      keyboardType="decimal-pad"
-                    />
+                    <View>
+                      <Text className="text-[48px] font-bold text-base-color opacity-0">
+                        {value !== undefined ? String(value) : "0.00"}
+                      </Text>
+                      <TextInput
+                        className="text-[48px] font-bold text-base-color absolute inset-0"
+                        placeholder="0.00"
+                        placeholderTextColor={colors.disabled}
+                        value={value !== undefined ? String(value) : ""}
+                        onChangeText={(text) => {
+                          if (text === "" || text === ".") {
+                            onChange(undefined);
+                            return;
+                          }
+                          if (/^\d*\.?\d*$/.test(text)) {
+                            onChange(
+                              text.endsWith(".") ? text : parseFloat(text),
+                            );
+                          }
+                        }}
+                        keyboardType="decimal-pad"
+                      />
+                    </View>
                   </View>
                 )}
               />
