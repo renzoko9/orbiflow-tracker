@@ -196,6 +196,35 @@ export default function NuevoScreen() {
               )}
             </View>
 
+            {/* Categorías */}
+            <View className="flex-col gap-2 mb-4">
+              <Text className="text-base text-text-light">Categoría</Text>
+              {categoriesLoading ? (
+                <ActivityIndicator color={colors.primary[5]} />
+              ) : categoriesError ? (
+                <Alert variant="error" message={categoriesError} />
+              ) : (
+                <Controller
+                  control={control}
+                  name="categoryId"
+                  render={({ field: { value, onChange } }) => (
+                    <CircleSelector
+                      items={categoryItems}
+                      selectedId={value ?? null}
+                      onSelect={onChange}
+                      layout="scroll"
+                      className="py-2"
+                    />
+                  )}
+                />
+              )}
+              {errors.categoryId && (
+                <Text className="text-error-medium text-sm">
+                  {errors.categoryId.message}
+                </Text>
+              )}
+            </View>
+
             {/* Cuenta */}
             <View className="flex-col gap-3">
               <Text className="text-base text-text-light">Cuenta</Text>
@@ -216,34 +245,6 @@ export default function NuevoScreen() {
                     />
                   )}
                 />
-              )}
-            </View>
-
-            {/* Categorías */}
-            <View className="flex-col gap-4 mb-4">
-              <Text className="text-base text-text-light">Categoría</Text>
-              {categoriesLoading ? (
-                <ActivityIndicator color={colors.primary[5]} />
-              ) : categoriesError ? (
-                <Alert variant="error" message={categoriesError} />
-              ) : (
-                <Controller
-                  control={control}
-                  name="categoryId"
-                  render={({ field: { value, onChange } }) => (
-                    <CircleSelector
-                      items={categoryItems}
-                      selectedId={value ?? null}
-                      onSelect={onChange}
-                      layout="scroll"
-                    />
-                  )}
-                />
-              )}
-              {errors.categoryId && (
-                <Text className="text-error-medium text-sm">
-                  {errors.categoryId.message}
-                </Text>
               )}
             </View>
 
