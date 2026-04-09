@@ -36,13 +36,25 @@ export interface TransactionListResponse {
   amount: number;
   description: string;
   type: CategoryType;
-  typeName: string;
   date: string;
-  categoryId: number | null;
-  categoryName: string | null;
+  category: {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    type: CategoryType;
+  } | null;
   accountId: number;
   accountName: string;
-  createdAt: string;
+}
+
+export interface FilterTransactionsParams {
+  type?: CategoryType;
+  categoryId?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+  limit?: number;
 }
 
 export interface CreateTransactionRequest {
