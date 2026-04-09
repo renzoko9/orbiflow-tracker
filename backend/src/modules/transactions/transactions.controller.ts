@@ -8,11 +8,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionRequest } from './dto/create-transaction.dto';
 import { UpdateTransactionRequest } from './dto/update-transaction.dto';
+import { FilterTransactionsQuery } from './dto/filter-transactions.dto';
 import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
 import { User } from '@/common/decorators/user.decorator';
 import { ResponseAPI } from '@/common/interfaces/response.interface';
@@ -35,8 +38,12 @@ export class TransactionsController {
   }
 
   @Get()
-  findAll(@User('id') userId: number): Promise<TransactionListResponse[]> {
-    return this.transactionsService.findAll(userId);
+  @Throttle({ default: { ttl: 60000, limit: 60 } })
+  findAll(
+    @User('id') userId: number,
+    @Query() filters: FilterTransactionsQuery,
+  ): Promise<TransactionListResponse[]> {
+    return this.transactionsService.findAll(userId, filters);
   }
 
   @Get('account/:accountId')

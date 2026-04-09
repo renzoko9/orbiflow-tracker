@@ -1,12 +1,20 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import {
+  FindOptionsWhere,
+  ILike,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+} from 'typeorm';
 import { Transaction } from '@Entities';
 import { TransactionRepository, AccountRepository } from '@Repositories';
 import { CreateTransactionRequest } from './dto/create-transaction.dto';
 import { UpdateTransactionRequest } from './dto/update-transaction.dto';
+import { FilterTransactionsQuery } from './dto/filter-transactions.dto';
 import { CategoryTypeEnum, ErrorCodeEnum, ResponseTypeEnum } from '@Enums';
 import { ResponseAPI } from '@/common/interfaces/response.interface';
 import {
@@ -17,6 +25,8 @@ import { TransactionsMapper } from './transactions.mapper';
 
 @Injectable()
 export class TransactionsService {
+  private readonly logger = new Logger(TransactionsService.name);
+
   constructor(
     private readonly transactionRepository: TransactionRepository,
     private readonly accountRepository: AccountRepository,
@@ -27,6 +37,8 @@ export class TransactionsService {
     userId: number,
     createTransactionRequest: CreateTransactionRequest,
   ): Promise<ResponseAPI<TransactionResponse>> {
+    this.logger.log(`Creando transacción para usuario ${userId}`);
+
     // Verificar que la cuenta pertenezca al usuario
     const account = await this.accountRepository.findOne({
       where: { id: createTransactionRequest.accountId, user: { id: userId } },
@@ -62,6 +74,8 @@ export class TransactionsService {
 
     const transaction = await this.findOne(savedTransaction.id, userId);
 
+    this.logger.log(`Transacción ${savedTransaction.id} creada exitosamente`);
+
     return {
       responseType: ResponseTypeEnum.Success,
       title: 'Transacción registrada',
@@ -70,17 +84,76 @@ export class TransactionsService {
     };
   }
 
-  async findAll(userId: number): Promise<TransactionListResponse[]> {
+  async findAll(
+    userId: number,
+    filters: FilterTransactionsQuery = {},
+  ): Promise<TransactionListResponse[]> {
+    this.logger.log(
+      `Listando transacciones para usuario ${userId} | Filtros: ${JSON.stringify(filters)}`,
+    );
+
+    const where: FindOptionsWhere<Transaction>[] = [];
+
+    const baseWhere: FindOptionsWhere<Transaction> = {
+      user: { id: userId },
+      ...(filters.type && { type: filters.type }),
+      ...(filters.categoryId && { category: { id: filters.categoryId } }),
+      ...(filters.dateFrom && {
+        date: MoreThanOrEqual(new Date(filters.dateFrom)),
+      }),
+      ...(filters.dateTo && {
+        date: LessThanOrEqual(new Date(filters.dateTo)),
+      }),
+    };
+
+    // Si hay dateFrom Y dateTo, combinar ambas condiciones
+    if (filters.dateFrom && filters.dateTo) {
+      baseWhere.date = MoreThanOrEqual(new Date(filters.dateFrom));
+      // TypeORM no permite 2 operadores en el mismo campo con FindOptions,
+      // así que filtramos dateTo en memoria cuando hay rango
+    }
+
+    if (filters.search) {
+      // Buscar en descripción O nombre de categoría
+      where.push(
+        { ...baseWhere, description: ILike(`%${filters.search}%`) },
+        {
+          ...baseWhere,
+          category: {
+            ...((baseWhere.category as object) || {}),
+            name: ILike(`%${filters.search}%`),
+          },
+        },
+      );
+    } else {
+      where.push(baseWhere);
+    }
+
     const transactions = await this.transactionRepository.find({
-      where: { user: { id: userId } },
+      where,
       relations: ['category', 'account'],
       order: {
         date: 'DESC',
         createdAt: 'DESC',
       },
+      take: filters.limit,
     });
 
-    return transactions.map((transaction) =>
+    // Filtrar dateTo en memoria cuando hay rango completo
+    const filtered =
+      filters.dateFrom && filters.dateTo
+        ? transactions.filter((tx) => {
+            const txDate =
+              tx.date instanceof Date
+                ? tx.date.toISOString().split('T')[0]
+                : String(tx.date);
+            return txDate <= filters.dateTo!;
+          })
+        : transactions;
+
+    this.logger.log(`Se encontraron ${filtered.length} transacciones`);
+
+    return filtered.map((transaction) =>
       this.transactionsMapper.toListResponse(transaction),
     );
   }
@@ -89,6 +162,10 @@ export class TransactionsService {
     accountId: number,
     userId: number,
   ): Promise<TransactionListResponse[]> {
+    this.logger.log(
+      `Listando transacciones de cuenta ${accountId} para usuario ${userId}`,
+    );
+
     // Verificar que la cuenta pertenezca al usuario
     const account = await this.accountRepository.findOne({
       where: { id: accountId, user: { id: userId } },
@@ -116,6 +193,8 @@ export class TransactionsService {
   }
 
   async findOne(id: number, userId: number): Promise<TransactionResponse> {
+    this.logger.log(`Buscando transacción ${id} para usuario ${userId}`);
+
     const transaction = await this.transactionRepository.findOne({
       where: { id, user: { id: userId } },
       relations: ['category', 'account'],
@@ -136,6 +215,8 @@ export class TransactionsService {
     userId: number,
     updateTransactionDto: UpdateTransactionRequest,
   ): Promise<TransactionResponse> {
+    this.logger.log(`Actualizando transacción ${id} para usuario ${userId}`);
+
     const transaction = await this.transactionRepository.findOne({
       where: { id, user: { id: userId } },
       relations: ['category', 'account', 'user'],
@@ -221,10 +302,15 @@ export class TransactionsService {
     });
 
     await this.transactionRepository.save(transaction);
+
+    this.logger.log(`Transacción ${id} actualizada exitosamente`);
+
     return this.findOne(id, userId);
   }
 
   async delete(id: number, userId: number): Promise<void> {
+    this.logger.log(`Eliminando transacción ${id} para usuario ${userId}`);
+
     const transaction = await this.transactionRepository.findOne({
       where: { id, user: { id: userId } },
       relations: ['category', 'account', 'user'],
@@ -253,6 +339,8 @@ export class TransactionsService {
     );
 
     await this.transactionRepository.remove(transaction);
+
+    this.logger.log(`Transacción ${id} eliminada exitosamente`);
   }
 
   private async updateAccountBalance(

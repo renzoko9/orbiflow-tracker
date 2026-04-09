@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { Transaction } from '@Entities';
-import { CategoryTypeEnum } from '@Enums';
 import {
   TransactionResponse,
   TransactionListResponse,
@@ -9,41 +8,41 @@ import {
 @Injectable()
 export class TransactionsMapper {
   toResponse(transaction: Transaction): TransactionResponse {
-    const dateStr =
-      transaction.date instanceof Date
-        ? transaction.date.toISOString().split('T')[0]
-        : String(transaction.date);
-
     return {
       id: transaction.id,
       amount: Number(transaction.amount),
       description: transaction.description,
       type: transaction.type,
-      date: dateStr,
+      date: this.formatDate(transaction.date),
       categoryName: transaction.category?.name || null,
       accountName: transaction.account.name,
     };
   }
 
   toListResponse(transaction: Transaction): TransactionListResponse {
-    const dateStr =
-      transaction.date instanceof Date
-        ? transaction.date.toISOString().split('T')[0]
-        : String(transaction.date);
-
     return {
       id: transaction.id,
       amount: Number(transaction.amount),
       description: transaction.description,
       type: transaction.type,
-      typeName:
-        transaction.type === CategoryTypeEnum.Income ? 'Ingreso' : 'Gasto',
-      date: dateStr,
-      categoryId: transaction.category?.id || null,
-      categoryName: transaction.category?.name || null,
+      date: this.formatDate(transaction.date),
+      category: transaction.category
+        ? {
+            id: transaction.category.id,
+            name: transaction.category.name,
+            icon: transaction.category.icon,
+            color: transaction.category.color,
+            type: transaction.category.type,
+          }
+        : null,
       accountId: transaction.account.id,
       accountName: transaction.account.name,
-      createdAt: transaction.createdAt,
     };
+  }
+
+  private formatDate(date: Date | string): string {
+    return date instanceof Date
+      ? date.toISOString().split('T')[0]
+      : String(date);
   }
 }

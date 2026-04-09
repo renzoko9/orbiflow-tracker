@@ -15,11 +15,14 @@ export class TransactionListResponse {
   amount: number;
   description: string;
   type: CategoryTypeEnum;
-  typeName: string;
   date: string;
-  categoryId: number | null;
-  categoryName: string | null;
+  category: {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    type: CategoryTypeEnum;
+  } | null;
   accountId: number;
   accountName: string;
-  createdAt: Date;
 }
