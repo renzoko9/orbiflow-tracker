@@ -38,11 +38,11 @@ export function TransactionItem({
           className="text-base font-medium text-text-light"
           numberOfLines={1}
         >
-          {categoryName}
+          {description}
         </Text>
         {description ? (
           <Text className="text-sm text-subordinary mt-0.5" numberOfLines={1}>
-            {description}
+            {categoryName}
           </Text>
         ) : null}
       </View>

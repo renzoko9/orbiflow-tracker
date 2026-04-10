@@ -24,6 +24,12 @@ export class Account {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Column({ default: 'wallet' })
+  icon: string;
+
+  @Column({ default: '#77a8a8' })
+  color: string;
+
   @ManyToOne(() => User, (user) => user.accounts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;

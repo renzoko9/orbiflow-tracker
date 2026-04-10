@@ -28,4 +28,22 @@ export class UpdateAccountRequest {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiProperty({
+    description: 'Icono de la cuenta (nombre de lucide icon)',
+    example: 'wallet',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  icon?: string;
+
+  @ApiProperty({
+    description: 'Color de la cuenta en formato hexadecimal',
+    example: '#77a8a8',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  color?: string;
 }
