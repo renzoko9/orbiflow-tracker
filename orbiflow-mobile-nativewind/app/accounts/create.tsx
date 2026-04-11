@@ -1,13 +1,18 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import { Button, showToast, CircleSelector } from "@/src/ui/components/atoms";
 import type { CircleSelectorItem } from "@/src/ui/components/atoms";
-import { FormField } from "@/src/ui/components/molecules";
+import { FormField, ScreenHeader } from "@/src/ui/components/molecules";
 import {
   createAccountSchema,
   CreateAccountFormValues,
@@ -33,6 +38,13 @@ function buildIconItems(selectedColor: string): CircleSelectorItem[] {
     };
   });
 }
+
+const colorItems: CircleSelectorItem[] = ACCOUNT_COLORS.map((c, index) => ({
+  id: index,
+  label: "",
+  icon: null,
+  color: c,
+}));
 
 export default function CreateAccountScreen() {
   const router = useRouter();
@@ -86,22 +98,17 @@ export default function CreateAccountScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-inverse">
-      {/* Header */}
-      <View className="flex-row items-center gap-2 px-4 pt-4 pb-2">
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <ArrowLeft size={24} color={colors.base} />
-        </TouchableOpacity>
-        <Text className="text-xl font-bold text-base-color flex-1 text-center">
-          Nueva Cuenta
-        </Text>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader title="Nueva Cuenta" />
 
-      <ScrollView
+      <KeyboardAvoidingView
         className="flex-1"
-        contentContainerStyle={{ padding: 16, gap: 20 }}
-        showsVerticalScrollIndicator={false}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ padding: 16, gap: 20 }}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Icono */}
         <View className="gap-2">
           <Text className="text-base text-text-light">Icono</Text>
@@ -117,8 +124,8 @@ export default function CreateAccountScreen() {
                 )}
                 onSelect={(id) => onChange(ACCOUNT_ICONS[id])}
                 layout="scroll"
-                circleSize={48}
-                itemWidth={48}
+                circleSize={56}
+                itemWidth={56}
               />
             )}
           />
@@ -131,21 +138,17 @@ export default function CreateAccountScreen() {
             control={control}
             name="color"
             render={({ field: { value, onChange } }) => (
-              <View className="flex-row gap-3 flex-wrap">
-                {ACCOUNT_COLORS.map((c) => (
-                  <TouchableOpacity
-                    key={c}
-                    onPress={() => onChange(c)}
-                    className={`w-10 h-10 rounded-full items-center justify-center ${
-                      value === c ? "border-2 border-primary-5" : ""
-                    }`}
-                    style={{
-                      backgroundColor: c,
-                      opacity: value === c ? 1 : 0.5,
-                    }}
-                  />
-                ))}
-              </View>
+              <CircleSelector
+                items={colorItems}
+                selectedId={ACCOUNT_COLORS.indexOf(
+                  (value ??
+                    DEFAULT_ACCOUNT_COLOR) as (typeof ACCOUNT_COLORS)[number],
+                )}
+                onSelect={(id) => onChange(ACCOUNT_COLORS[id])}
+                layout="scroll"
+                circleSize={56}
+                itemWidth={56}
+              />
             )}
           />
         </View>
@@ -180,7 +183,8 @@ export default function CreateAccountScreen() {
             placeholder="Ej: Cuenta para gastos diarios"
           />
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Botón Crear */}
       <View className="p-4">

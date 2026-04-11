@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -15,7 +14,6 @@ import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import {
   Button,
@@ -28,6 +26,7 @@ import {
   FormField,
   DateSelectField,
   AccountSelectField,
+  ScreenHeader,
 } from "@/src/ui/components/molecules";
 import { useCategories, useAccounts } from "@/src/ui/hooks";
 import { CategoryType } from "@/src/core/enums/category-type.enum";
@@ -138,15 +137,7 @@ export default function NuevoScreen() {
 
   return (
     <SafeAreaView className="flex-1">
-      {/* Header con nav */}
-      <View className="flex-row gap-2 items-center my-3 p-4">
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <ArrowLeft size={24} color={colors.base} />
-        </TouchableOpacity>
-        <Text className="text-xl font-bold text-base-color flex-1 text-center">
-          Nuevo Movimiento
-        </Text>
-      </View>
+      <ScreenHeader title="Nuevo Movimiento" />
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -171,7 +162,7 @@ export default function NuevoScreen() {
             />
 
             {/* Monto */}
-            <View className="flex-col gap-5 items-center py-6">
+            <View className="flex-col gap-3 items-center py-6">
               <Text className="text-base">Monto</Text>
               <Controller
                 control={control}
@@ -244,7 +235,7 @@ export default function NuevoScreen() {
             </View>
 
             {/* Cuenta */}
-            <View className="flex-col gap-3">
+            <View className="flex-col gap-2">
               <Text className="text-base text-text-light">Cuenta</Text>
               {accountsLoading ? (
                 <ActivityIndicator color={colors.primary[5]} />

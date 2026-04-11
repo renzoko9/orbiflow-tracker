@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { ArrowLeft, Search } from "lucide-react-native";
+import { Search } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import { Input, Alert } from "@/src/ui/components/atoms";
+import { ScreenHeader } from "@/src/ui/components/molecules";
 import {
   TransactionList,
   TransactionFilters,
@@ -43,8 +43,6 @@ function getDateRange(range: string): { dateFrom?: string; dateTo?: string } {
 }
 
 export default function AllTransactionsScreen() {
-  const router = useRouter();
-
   const [searchText, setSearchText] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL");
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
@@ -71,16 +69,7 @@ export default function AllTransactionsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-inverse">
-      {/* Header */}
-      <View className="flex-row items-center gap-2 px-4 pt-4 pb-2">
-        <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <ArrowLeft size={24} color={colors.base} />
-        </TouchableOpacity>
-        <Text className="text-xl font-bold text-base-color flex-1 text-center">
-          Movimientos
-        </Text>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader title="Movimientos" />
 
       {/* Search + Filters */}
       <View className="px-4 pb-2 gap-3">
