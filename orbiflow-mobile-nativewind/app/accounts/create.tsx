@@ -17,7 +17,7 @@ import {
   createAccountSchema,
   CreateAccountFormValues,
 } from "@/src/core/schemas/account/create-account.schema";
-import AccountService from "@/src/core/services/account.service";
+import { useCreateAccount } from "@/src/ui/hooks";
 import { ApiError } from "@/src/core/api/api-error";
 import { getIconComponent } from "@/src/ui/utils/icon-map";
 import {
@@ -48,12 +48,13 @@ const colorItems: CircleSelectorItem[] = ACCOUNT_COLORS.map((c, index) => ({
 
 export default function CreateAccountScreen() {
   const router = useRouter();
+  const createAccount = useCreateAccount();
 
   const {
     control,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CreateAccountFormValues>({
     resolver: zodResolver(createAccountSchema),
     defaultValues: {
@@ -68,32 +69,37 @@ export default function CreateAccountScreen() {
   const selectedColor = watch("color") ?? DEFAULT_ACCOUNT_COLOR;
   const iconItems = buildIconItems(selectedColor);
 
-  const onSubmit = async (data: CreateAccountFormValues) => {
-    try {
-      await AccountService.create({
+  const onSubmit = (data: CreateAccountFormValues) => {
+    createAccount.mutate(
+      {
         name: data.name,
         balance: data.balance,
         description: data.description,
         icon: data.icon,
         color: data.color,
-      });
-      showToast({
-        type: "success",
-        text1: "Cuenta creada",
-        text2: "La cuenta se registró correctamente",
-      });
-      router.back();
-    } catch (error) {
-      const message =
-        error instanceof ApiError
-          ? error.message
-          : "Ocurrió un error inesperado";
-      showToast({
-        type: "error",
-        text1: "Error",
-        text2: message,
-      });
-    }
+      },
+      {
+        onSuccess: () => {
+          showToast({
+            type: "success",
+            text1: "Cuenta creada",
+            text2: "La cuenta se registró correctamente",
+          });
+          router.back();
+        },
+        onError: (error) => {
+          const message =
+            error instanceof ApiError
+              ? error.message
+              : "Ocurrió un error inesperado";
+          showToast({
+            type: "error",
+            text1: "Error",
+            text2: message,
+          });
+        },
+      },
+    );
   };
 
   return (
@@ -192,7 +198,7 @@ export default function CreateAccountScreen() {
           variant="primary"
           size="lg"
           onPress={handleSubmit(onSubmit)}
-          loading={isSubmitting}
+          loading={createAccount.isPending}
         >
           Crear cuenta
         </Button>

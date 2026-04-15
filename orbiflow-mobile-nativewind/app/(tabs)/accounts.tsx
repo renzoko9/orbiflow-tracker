@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from "react";
+import { useMemo } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
 import { Plus } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import { Alert } from "@/src/ui/components/atoms";
@@ -18,13 +17,7 @@ import { Account } from "@/src/core/dto/account.interface";
 
 export default function CuentasScreen() {
   const router = useRouter();
-  const { accounts, loading, error, refetch } = useAccounts();
-
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch]),
-  );
+  const { data: accounts = [], isLoading, error } = useAccounts();
 
   const totalBalance = useMemo(
     () => accounts.reduce((sum, acc) => sum + Number(acc.balance), 0),
@@ -47,13 +40,13 @@ export default function CuentasScreen() {
         <Text className="text-xl font-bold text-base-color">Cuentas</Text>
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={colors.primary[5]} />
         </View>
       ) : error ? (
         <View className="px-4">
-          <Alert variant="error" message={error} />
+          <Alert variant="error" message={error.message} />
         </View>
       ) : (
         <FlatList

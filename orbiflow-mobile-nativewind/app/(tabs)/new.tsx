@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { colors } from "@/src/ui/theme/colors";
@@ -28,7 +27,7 @@ import {
   AccountSelectField,
   ScreenHeader,
 } from "@/src/ui/components/molecules";
-import { useCategories, useAccounts } from "@/src/ui/hooks";
+import { useCategories, useAccounts, useCreateTransaction } from "@/src/ui/hooks";
 import { CategoryType } from "@/src/core/enums/category-type.enum";
 import {
   createTransactionSchema,
@@ -36,7 +35,6 @@ import {
 } from "@/src/core/schemas/transaction/create-transaction.schema";
 import { CircleSelectorItem } from "@/src/ui/components/atoms/CircleSelector";
 import { Category } from "@/src/core/dto/category.interface";
-import TransactionService from "@/src/core/services/transaction.service";
 import { ApiError } from "@/src/core/api/api-error";
 import { getIconComponent } from "@/src/ui/utils/icon-map";
 
@@ -54,6 +52,7 @@ function mapCategoriesToItems(categories: Category[]): CircleSelectorItem[] {
 
 export default function NuevoScreen() {
   const router = useRouter();
+  const createTransaction = useCreateTransaction();
 
   const {
     control,
@@ -61,7 +60,7 @@ export default function NuevoScreen() {
     watch,
     setValue,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CreateTransactionFormValues>({
     resolver: zodResolver(createTransactionSchema),
     defaultValues: {
@@ -77,16 +76,15 @@ export default function NuevoScreen() {
   const type = watch("type");
 
   const {
-    categories,
-    loading: categoriesLoading,
+    data: categories = [],
+    isLoading: categoriesLoading,
     error: categoriesError,
   } = useCategories({ type });
 
   const {
-    accounts,
-    loading: accountsLoading,
+    data: accounts = [],
+    isLoading: accountsLoading,
     error: accountsError,
-    refetch: refetchAccounts,
   } = useAccounts();
 
   const categoryItems = mapCategoriesToItems(categories);
@@ -95,44 +93,40 @@ export default function NuevoScreen() {
     setValue("categoryId", null as unknown as number);
   }, [type, setValue]);
 
-  useFocusEffect(
-    useCallback(() => {
-      refetchAccounts();
-      return () => {
-        reset();
-      };
-    }, [reset, refetchAccounts]),
-  );
-
   const onSubmit = async (data: CreateTransactionFormValues) => {
-    try {
-      const response = await TransactionService.create({
+    createTransaction.mutate(
+      {
         amount: data.amount,
         type: data.type,
         date: data.date,
         accountId: data.accountId,
         categoryId: data.categoryId,
         description: data.description,
-      });
-      reset();
-      showToast({
-        type: "success",
-        text1: response.title,
-        text2: response.message,
-      });
-      router.back();
-    } catch (error) {
-      const title = error instanceof ApiError ? error.title : undefined;
-      const message =
-        error instanceof ApiError
-          ? error.message
-          : "Ocurrió un error inesperado";
-      showToast({
-        type: "error",
-        text1: title ?? "Error",
-        text2: message,
-      });
-    }
+      },
+      {
+        onSuccess: (response) => {
+          reset();
+          showToast({
+            type: "success",
+            text1: response.title,
+            text2: response.message,
+          });
+          router.back();
+        },
+        onError: (error) => {
+          const title = error instanceof ApiError ? error.title : undefined;
+          const message =
+            error instanceof ApiError
+              ? error.message
+              : "Ocurrió un error inesperado";
+          showToast({
+            type: "error",
+            text1: title ?? "Error",
+            text2: message,
+          });
+        },
+      },
+    );
   };
 
   return (
@@ -211,7 +205,7 @@ export default function NuevoScreen() {
               {categoriesLoading ? (
                 <ActivityIndicator color={colors.primary[5]} />
               ) : categoriesError ? (
-                <Alert variant="error" message={categoriesError} />
+                <Alert variant="error" message={categoriesError.message} />
               ) : (
                 <Controller
                   control={control}
@@ -240,7 +234,7 @@ export default function NuevoScreen() {
               {accountsLoading ? (
                 <ActivityIndicator color={colors.primary[5]} />
               ) : accountsError ? (
-                <Alert variant="error" message={accountsError} />
+                <Alert variant="error" message={accountsError.message} />
               ) : (
                 <Controller
                   control={control}
@@ -293,7 +287,7 @@ export default function NuevoScreen() {
           variant="primary"
           size="lg"
           onPress={handleSubmit(onSubmit)}
-          loading={isSubmitting}
+          loading={createTransaction.isPending}
         >
           Guardar transacción
         </Button>

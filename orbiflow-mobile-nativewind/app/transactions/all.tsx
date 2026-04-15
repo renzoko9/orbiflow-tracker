@@ -61,9 +61,9 @@ export default function AllTransactionsScreen() {
     };
   }, [typeFilter, selectedCategoryId, dateRange, searchText]);
 
-  const { transactions, loading, error } = useTransactions(filters);
+  const { data: transactions = [], isLoading, error } = useTransactions(filters);
 
-  const { categories } = useCategories({
+  const { data: categories = [] } = useCategories({
     type: typeFilter === "ALL" ? undefined : typeFilter,
   });
 
@@ -91,13 +91,13 @@ export default function AllTransactionsScreen() {
       </View>
 
       {/* Transaction List */}
-      {loading ? (
+      {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={colors.primary[5]} />
         </View>
       ) : error ? (
         <View className="px-4">
-          <Alert variant="error" message={error} />
+          <Alert variant="error" message={error.message} />
         </View>
       ) : (
         <TransactionList transactions={transactions} />

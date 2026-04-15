@@ -1,8 +1,6 @@
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
 import { colors } from "@/src/ui/theme/colors";
 import { Alert } from "@/src/ui/components/atoms";
 import { TransactionList } from "@/src/ui/features/transactions";
@@ -12,15 +10,9 @@ const PREVIEW_LIMIT = 10;
 
 export default function MovimientosScreen() {
   const router = useRouter();
-  const { transactions, loading, error, refetch } = useTransactions({
+  const { data: transactions = [], isLoading, error } = useTransactions({
     limit: PREVIEW_LIMIT,
   });
-
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch]),
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-inverse">
@@ -34,13 +26,13 @@ export default function MovimientosScreen() {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={colors.primary[5]} />
         </View>
       ) : error ? (
         <View className="px-4">
-          <Alert variant="error" message={error} />
+          <Alert variant="error" message={error.message} />
         </View>
       ) : (
         <TransactionList transactions={transactions} />
