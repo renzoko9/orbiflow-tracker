@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { CategoryType } from "@/src/core/enums/category-type.enum";
 import { getIconComponent } from "@/src/ui/utils/icon-map";
 
@@ -9,6 +9,7 @@ interface TransactionItemProps {
   description: string;
   amount: number;
   type: CategoryType;
+  onPress?: () => void;
 }
 
 export function TransactionItem({
@@ -18,6 +19,7 @@ export function TransactionItem({
   description,
   amount,
   type,
+  onPress,
 }: TransactionItemProps) {
   const Icon = getIconComponent(categoryIcon);
   const isExpense = type === CategoryType.EXPENSE;
@@ -25,7 +27,11 @@ export function TransactionItem({
   const amountColor = isExpense ? "text-error-medium" : "text-success-medium";
 
   return (
-    <View className="flex-row items-center py-3 px-4">
+    <TouchableOpacity
+      className="flex-row items-center py-3 px-4"
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View
         className="w-12 h-12 rounded-full items-center justify-center mr-3"
         style={{ backgroundColor: categoryColor + "40" }} // Adding transparency to the color
@@ -50,6 +56,6 @@ export function TransactionItem({
       <Text className={`text-base font-semibold ${amountColor}`}>
         {sign}S/ {amount.toFixed(2)}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 }

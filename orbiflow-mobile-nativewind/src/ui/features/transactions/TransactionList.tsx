@@ -1,4 +1,5 @@
 import { SectionList, View, Text } from "react-native";
+import { useRouter } from "expo-router";
 import { TransactionItem } from "./TransactionItem";
 import { TransactionSectionHeader } from "./TransactionSectionHeader";
 import { groupTransactionsByDate } from "./group-transactions";
@@ -9,6 +10,7 @@ interface TransactionListProps {
 }
 
 export function TransactionList({ transactions }: TransactionListProps) {
+  const router = useRouter();
   const sections = groupTransactionsByDate(transactions);
 
   if (sections.length === 0) {
@@ -36,6 +38,12 @@ export function TransactionList({ transactions }: TransactionListProps) {
           description={item.description}
           amount={item.amount}
           type={item.type}
+          onPress={() =>
+            router.push({
+              pathname: "/transactions/[id]",
+              params: { id: String(item.id) },
+            })
+          }
         />
       )}
       showsVerticalScrollIndicator={false}

@@ -31,6 +31,27 @@ export interface TransactionResponse {
   createdAt: string;
 }
 
+export interface TransactionDetailResponse {
+  id: number;
+  amount: number;
+  description: string;
+  type: CategoryType;
+  date: string;
+  category: {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    type: CategoryType;
+  } | null;
+  account: {
+    id: number;
+    name: string;
+    balance: number;
+  };
+  createdAt: string;
+}
+
 export interface TransactionListResponse {
   id: number;
   amount: number;

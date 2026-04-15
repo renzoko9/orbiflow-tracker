@@ -3,7 +3,9 @@ import { ENDPOINTS } from "../constants/endpoints.constant";
 import { ResponseAPI } from "../api/dto/api-response.interface";
 import {
   CreateTransactionRequest,
+  UpdateTransactionRequest,
   TransactionResponse,
+  TransactionDetailResponse,
   TransactionListResponse,
   FilterTransactionsParams,
 } from "../dto/transaction.interface";
@@ -16,6 +18,22 @@ class TransactionService extends HttpService {
       ResponseAPI<TransactionResponse>,
       CreateTransactionRequest
     >(ENDPOINTS.transactions.base, data);
+  }
+
+  async findOne(id: number): Promise<TransactionDetailResponse> {
+    return this.get<TransactionDetailResponse>(
+      ENDPOINTS.transactions.BY_ID(id),
+    );
+  }
+
+  async update(
+    id: number,
+    data: UpdateTransactionRequest,
+  ): Promise<ResponseAPI<TransactionResponse>> {
+    return this.put<
+      ResponseAPI<TransactionResponse>,
+      UpdateTransactionRequest
+    >(ENDPOINTS.transactions.BY_ID(id), data);
   }
 
   async findAll(
