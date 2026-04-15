@@ -2,16 +2,33 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { Redirect } from "expo-router";
 import AuthService from "@/src/core/services/auth.service";
+import StorageService from "@/src/core/storage/storage.service";
+import { STORAGE_KEYS } from "@/src/core/config/environment.config";
+import { UserResponse } from "@/src/core/dto/auth.interface";
+import { useAuthStore } from "@/src/core/store";
 
 export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    AuthService.isAuthenticated().then((auth) => {
+    async function init() {
+      const auth = await AuthService.isAuthenticated();
+
+      if (auth) {
+        const userData = await StorageService.getObject<UserResponse>(
+          STORAGE_KEYS.userData,
+        );
+        if (userData) {
+          useAuthStore.getState().setUser(userData);
+        }
+      }
+
       setIsAuthenticated(auth);
       setIsLoading(false);
-    });
+    }
+
+    init();
   }, []);
 
   if (isLoading) {

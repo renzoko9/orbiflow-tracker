@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Alert, Button } from "@/src/ui/components/atoms";
 import { FormField } from "@/src/ui/components/molecules";
 import AuthService from "@/src/core/services/auth.service";
+import { useAuthStore } from "@/src/core/store";
 import {
   loginSchema,
   LoginFormValues,
@@ -36,7 +37,10 @@ export default function LoginScreen() {
   async function onSubmit(values: LoginFormValues) {
     setApiError(null);
     try {
-      await AuthService.login(values);
+      const response = await AuthService.login(values);
+      if (response.data?.usuario) {
+        useAuthStore.getState().setUser(response.data.usuario);
+      }
       router.replace("/(tabs)/home");
     } catch (err: unknown) {
       if (err instanceof ApiError) {

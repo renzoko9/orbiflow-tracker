@@ -11,6 +11,8 @@ import { ENDPOINTS } from "../constants/endpoints.constant";
 import StorageService from "../storage/storage.service";
 import { ResponseAPI } from "../api/dto/api-response.interface";
 import { ApiError } from "../api/api-error";
+import { useAuthStore } from "../store/auth.store";
+import { LoginTokens } from "../dto/auth.interface";
 
 const PUBLIC_ENDPOINTS: string[] = [
   ENDPOINTS.auth.login,
@@ -20,26 +22,31 @@ const PUBLIC_ENDPOINTS: string[] = [
   ENDPOINTS.auth.forgotPassword,
   ENDPOINTS.auth.verifyResetCode,
   ENDPOINTS.auth.resetPassword,
+  ENDPOINTS.auth.refresh,
 ];
+
+// Mutex para evitar múltiples refresh concurrentes
+let isRefreshing = false;
+let refreshSubscribers: Array<(token: string) => void> = [];
+
+function onTokenRefreshed(newToken: string) {
+  refreshSubscribers.forEach((callback) => callback(newToken));
+  refreshSubscribers = [];
+}
+
+function addRefreshSubscriber(callback: (token: string) => void) {
+  refreshSubscribers.push(callback);
+}
 
 /**
  * Servicio HTTP abstracto base
  * Proporciona métodos genéricos para peticiones HTTP usando axios
  * Incluye interceptors para JWT y manejo centralizado de errores
- *
- * @abstract
- * @example
- * class AuthService extends HttpService {
- *   async login(data: LoginRequest) {
- *     return this.post<ResponseAPI<LoginResponse>>('/auth/login', data);
- *   }
- * }
  */
 export abstract class HttpService {
   protected api: AxiosInstance;
 
   constructor(baseURL: string = API_CONFIG.api.url) {
-    // Crear instancia de axios
     this.api = axios.create({
       baseURL,
       timeout: GENERAL_CONSTANTS.API_TIMEOUT,
@@ -48,18 +55,16 @@ export abstract class HttpService {
       },
     });
 
-    // Configurar interceptors
     this.setupInterceptors();
   }
 
-  /**
-   * Configura los interceptors de request y response
-   */
   private setupInterceptors(): void {
     // Request interceptor - Agrega el token JWT solo a rutas protegidas
     this.api.interceptors.request.use(
       async (config: InternalAxiosRequestConfig) => {
-        const isPublic = PUBLIC_ENDPOINTS.some((ep) => config.url?.includes(ep));
+        const isPublic = PUBLIC_ENDPOINTS.some((ep) =>
+          config.url?.includes(ep),
+        );
 
         if (!isPublic) {
           const token = await StorageService.getItem(STORAGE_KEYS.accessToken);
@@ -82,7 +87,6 @@ export abstract class HttpService {
         return response;
       },
       async (error: AxiosError) => {
-        // Si el token expiró (401), intentar refrescar
         if (error.response?.status === 401) {
           return this.handleUnauthorized(error);
         }
@@ -93,7 +97,9 @@ export abstract class HttpService {
   }
 
   /**
-   * Maneja errores 401 (Unauthorized) intentando refrescar el token
+   * Maneja errores 401 intentando refrescar el token.
+   * Usa un mutex para que solo una request refresque a la vez;
+   * las demás esperan y se reintentan con el nuevo token.
    */
   private async handleUnauthorized(error: AxiosError): Promise<any> {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
@@ -108,6 +114,20 @@ export abstract class HttpService {
 
     originalRequest._retry = true;
 
+    // Si ya hay un refresh en curso, encolar esta request
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        addRefreshSubscriber((newToken: string) => {
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          }
+          resolve(this.api(originalRequest));
+        });
+      });
+    }
+
+    isRefreshing = true;
+
     try {
       const refreshToken = await StorageService.getItem(
         STORAGE_KEYS.refreshToken,
@@ -118,14 +138,35 @@ export abstract class HttpService {
         return Promise.reject(this.handleError(error));
       }
 
-      // Aquí deberías llamar al endpoint de refresh
-      // Por ahora solo limpiamos la autenticación
-      // TODO: Implementar refresh token logic
-      await this.clearAuth();
-      return Promise.reject(this.handleError(error));
+      // Llamar al endpoint de refresh directamente con axios (sin pasar por interceptors)
+      const response = await axios.post<LoginTokens>(
+        `${API_CONFIG.api.url}${ENDPOINTS.auth.refresh}`,
+        { refreshToken },
+      );
+
+      const { access, refresh } = response.data;
+
+      // Guardar nuevos tokens
+      await StorageService.setItem(STORAGE_KEYS.accessToken, access);
+      if (refresh) {
+        await StorageService.setItem(STORAGE_KEYS.refreshToken, refresh);
+      }
+
+      // Notificar a las requests encoladas
+      onTokenRefreshed(access);
+
+      // Reintentar la request original con el nuevo token
+      if (originalRequest.headers) {
+        originalRequest.headers.Authorization = `Bearer ${access}`;
+      }
+      return this.api(originalRequest);
     } catch (refreshError) {
+      // Refresh falló — sesión inválida
+      refreshSubscribers = [];
       await this.clearAuth();
       return Promise.reject(this.handleError(error));
+    } finally {
+      isRefreshing = false;
     }
   }
 
@@ -136,6 +177,7 @@ export abstract class HttpService {
     await StorageService.removeItem(STORAGE_KEYS.accessToken);
     await StorageService.removeItem(STORAGE_KEYS.refreshToken);
     await StorageService.removeItem(STORAGE_KEYS.userData);
+    useAuthStore.getState().logout();
   }
 
   /**
@@ -143,7 +185,6 @@ export abstract class HttpService {
    */
   private handleError(error: AxiosError): ApiError {
     if (error.response) {
-      console.log("Error response data:", error.response.data);
       const response = error.response.data as ResponseAPI;
       return new ApiError(
         {
@@ -155,7 +196,10 @@ export abstract class HttpService {
         error.response.status,
       );
     } else if (error.request) {
-      return new ApiError({ message: "No se pudo conectar con el servidor" }, 0);
+      return new ApiError(
+        { message: "No se pudo conectar con el servidor" },
+        0,
+      );
     } else {
       return new ApiError({ message: error.message || "Error desconocido" });
     }
