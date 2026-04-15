@@ -4,7 +4,8 @@ import { CategoryRepository } from '@Repositories';
 import { CreateCategoryRequest } from './dto/create-category.dto';
 import { UpdateCategoryRequest } from './dto/update-category.dto';
 import { IsNull } from 'typeorm';
-import { ErrorCodeEnum } from '@Enums';
+import { ErrorCodeEnum, ResponseTypeEnum } from '@Enums';
+import { ResponseAPI } from '@/common/interfaces/response.interface';
 
 @Injectable()
 export class CategoriesService {
@@ -13,13 +14,19 @@ export class CategoriesService {
   async create(
     userId: number,
     createCategoryRequest: CreateCategoryRequest,
-  ): Promise<Category> {
+  ): Promise<ResponseAPI<Category>> {
     const newCategory = this.categoryRepository.create({
       ...createCategoryRequest,
       user: { id: userId },
     });
 
-    return this.categoryRepository.save(newCategory);
+    const saved = await this.categoryRepository.save(newCategory);
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      message: 'Categoría creada exitosamente',
+      data: saved,
+    };
   }
 
   async findAll(userId: number): Promise<Category[]> {

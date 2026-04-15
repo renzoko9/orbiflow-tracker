@@ -16,6 +16,7 @@ import { CreateCategoryRequest } from './dto/create-category.dto';
 import { Category } from '@/database/entities';
 import { UpdateCategoryRequest } from './dto/update-category.dto';
 import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
+import { ResponseAPI } from '@/common/interfaces/response.interface';
 
 @Controller('categories')
 @UseGuards(JwtAccessGuard)
@@ -26,7 +27,7 @@ export class CategoriesController {
   create(
     @User('id') userId: number,
     @Body() createCategoryRequest: CreateCategoryRequest,
-  ): Promise<Category> {
+  ): Promise<ResponseAPI<Category>> {
     return this.categoriesService.create(userId, createCategoryRequest);
   }
 
