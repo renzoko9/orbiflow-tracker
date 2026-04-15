@@ -21,6 +21,7 @@ import { User } from '@/common/decorators/user.decorator';
 import { ResponseAPI } from '@/common/interfaces/response.interface';
 import {
   TransactionResponse,
+  TransactionDetailResponse,
   TransactionListResponse,
 } from './models/transaction-response.model';
 
@@ -58,7 +59,7 @@ export class TransactionsController {
   findOne(
     @Param('id') id: number,
     @User('id') userId: number,
-  ): Promise<TransactionResponse> {
+  ): Promise<TransactionDetailResponse> {
     return this.transactionsService.findOne(id, userId);
   }
 
@@ -67,7 +68,7 @@ export class TransactionsController {
     @Param('id') id: number,
     @User('id') userId: number,
     @Body() updateTransactionRequest: UpdateTransactionRequest,
-  ): Promise<TransactionResponse> {
+  ): Promise<ResponseAPI<TransactionResponse>> {
     return this.transactionsService.update(
       id,
       userId,

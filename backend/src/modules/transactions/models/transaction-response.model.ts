@@ -10,6 +10,27 @@ export class TransactionResponse {
   accountName: string;
 }
 
+export class TransactionDetailResponse {
+  id: number;
+  amount: number;
+  description: string;
+  type: CategoryTypeEnum;
+  date: string;
+  category: {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    type: CategoryTypeEnum;
+  } | null;
+  account: {
+    id: number;
+    name: string;
+    balance: number;
+  };
+  createdAt: string;
+}
+
 export class TransactionListResponse {
   id: number;
   amount: number;

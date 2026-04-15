@@ -20,6 +20,7 @@ import { ResponseAPI } from '@/common/interfaces/response.interface';
 import {
   TransactionResponse,
   TransactionListResponse,
+  TransactionDetailResponse,
 } from './models/transaction-response.model';
 import { TransactionsMapper } from './transactions.mapper';
 
@@ -72,7 +73,10 @@ export class TransactionsService {
       createTransactionRequest.type,
     );
 
-    const transaction = await this.findOne(savedTransaction.id, userId);
+    const full = await this.transactionRepository.findOne({
+      where: { id: savedTransaction.id },
+      relations: ['category', 'account'],
+    });
 
     this.logger.log(`Transacción ${savedTransaction.id} creada exitosamente`);
 
@@ -80,7 +84,7 @@ export class TransactionsService {
       responseType: ResponseTypeEnum.Success,
       title: 'Transacción registrada',
       message: 'El movimiento se guardó correctamente',
-      data: transaction,
+      data: this.transactionsMapper.toResponse(full!),
     };
   }
 
@@ -192,7 +196,7 @@ export class TransactionsService {
     );
   }
 
-  async findOne(id: number, userId: number): Promise<TransactionResponse> {
+  async findOne(id: number, userId: number): Promise<TransactionDetailResponse> {
     this.logger.log(`Buscando transacción ${id} para usuario ${userId}`);
 
     const transaction = await this.transactionRepository.findOne({
@@ -207,14 +211,14 @@ export class TransactionsService {
       });
     }
 
-    return this.transactionsMapper.toResponse(transaction);
+    return this.transactionsMapper.toDetailResponse(transaction);
   }
 
   async update(
     id: number,
     userId: number,
     updateTransactionDto: UpdateTransactionRequest,
-  ): Promise<TransactionResponse> {
+  ): Promise<ResponseAPI<TransactionResponse>> {
     this.logger.log(`Actualizando transacción ${id} para usuario ${userId}`);
 
     const transaction = await this.transactionRepository.findOne({
@@ -305,7 +309,17 @@ export class TransactionsService {
 
     this.logger.log(`Transacción ${id} actualizada exitosamente`);
 
-    return this.findOne(id, userId);
+    const updated = await this.transactionRepository.findOne({
+      where: { id, user: { id: userId } },
+      relations: ['category', 'account'],
+    });
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      title: 'Transacción actualizada',
+      message: 'El movimiento se actualizó correctamente',
+      data: this.transactionsMapper.toResponse(updated!),
+    };
   }
 
   async delete(id: number, userId: number): Promise<void> {
