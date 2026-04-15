@@ -7,11 +7,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
+import { Plus } from "lucide-react-native";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { colors } from "@/src/ui/theme/colors";
 import {
@@ -27,7 +29,11 @@ import {
   AccountSelectField,
   ScreenHeader,
 } from "@/src/ui/components/molecules";
-import { useCategories, useAccounts, useCreateTransaction } from "@/src/ui/hooks";
+import {
+  useCategories,
+  useAccounts,
+  useCreateTransaction,
+} from "@/src/ui/hooks";
 import { CategoryType } from "@/src/core/enums/category-type.enum";
 import {
   createTransactionSchema,
@@ -217,6 +223,28 @@ export default function NuevoScreen() {
                       onSelect={onChange}
                       layout="scroll"
                       className="py-2"
+                      trailingAction={
+                        <TouchableOpacity
+                          onPress={() =>
+                            router.push({
+                              pathname: "/categories/create",
+                              params: { type: String(type) },
+                            })
+                          }
+                          className="items-center"
+                          style={{ width: 72 }}
+                        >
+                          <View
+                            className="rounded-full items-center justify-center border-2 border-dashed border-primary-3 bg-primary-1"
+                            style={{ width: 56, height: 56 }}
+                          >
+                            <Plus size={24} color={colors.primary[5]} />
+                          </View>
+                          <Text className="text-xs text-center text-text-light mt-1">
+                            Nueva
+                          </Text>
+                        </TouchableOpacity>
+                      }
                     />
                   )}
                 />

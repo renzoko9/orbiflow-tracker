@@ -21,6 +21,7 @@ interface CircleSelectorProps {
   circleSize?: number;
   itemWidth?: number;
   className?: string;
+  trailingAction?: React.ReactNode;
 }
 
 export function CircleSelector({
@@ -31,6 +32,7 @@ export function CircleSelector({
   circleSize = 56,
   itemWidth = 72,
   className = "",
+  trailingAction,
 }: CircleSelectorProps) {
   const content = items.map((item) => {
     const isSelected = selectedId === item.id;
@@ -75,11 +77,15 @@ export function CircleSelector({
         contentContainerClassName={`flex-row gap-4 ${className}`}
       >
         {content}
+        {trailingAction}
       </ScrollView>
     );
   }
 
   return (
-    <View className={`flex-row flex-wrap gap-4 ${className}`}>{content}</View>
+    <View className={`flex-row flex-wrap gap-4 ${className}`}>
+      {content}
+      {trailingAction}
+    </View>
   );
 }
