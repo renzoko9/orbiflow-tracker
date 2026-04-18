@@ -35,7 +35,7 @@ export default function CuentasScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-inverse">
+    <SafeAreaView edges={["top", "left", "right"]} className="flex-1 bg-inverse">
       <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
         <Text className="text-xl font-bold text-base-color">Cuentas</Text>
       </View>

@@ -1,4 +1,4 @@
-import { Pressable } from "react-native";
+import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
 
@@ -7,17 +7,26 @@ export function FloatingAddButton() {
 
   return (
     <Pressable
-      onPress={() => router.push("/new")}
-      className="absolute -top-6 items-center justify-center w-14 h-14 bg-primary-5 rounded-full shadow-lg"
-      style={{
-        shadowColor: "#476464",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 8,
-      }}
+      onPress={() => router.push("/transactions/create")}
+      className="items-center justify-center"
+      style={({ pressed }) => ({
+        transform: [{ scale: pressed ? 0.94 : 1 }],
+      })}
     >
-      <Plus size={28} color="#fff" strokeWidth={2.5} />
+      <View
+        className="items-center justify-center rounded-full bg-primary-5"
+        style={{
+          width: 64,
+          height: 64,
+          shadowColor: "#476464",
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.35,
+          shadowRadius: 10,
+          elevation: 10,
+        }}
+      >
+        <Plus size={30} color="#fff" strokeWidth={2.6} />
+      </View>
     </Pressable>
   );
 }

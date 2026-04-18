@@ -19,7 +19,7 @@ export default function AjustesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-inverse">
+    <SafeAreaView edges={["top", "left", "right"]} className="flex-1 bg-inverse">
       <View className="px-4 pt-4 pb-2">
         <Text className="text-xl font-bold text-base-color">Ajustes</Text>
       </View>
