@@ -1,11 +1,33 @@
-import { Platform, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { Tabs, useSegments } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BlurView } from "expo-blur";
 import { Home, ArrowLeftRight, Wallet, Settings } from "lucide-react-native";
 import { FloatingAddButton } from "@/src/ui/components/molecules";
 
 const TAB_BAR_HEIGHT = 80;
 const FAB_ALLOWED_TABS = ["home", "transactions"];
+
+function TabBarBlurBackground() {
+  return (
+    <BlurView
+      tint="light"
+      intensity={Platform.OS === "ios" ? 50 : 70}
+      style={[
+        StyleSheet.absoluteFillObject,
+        {
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          overflow: "hidden",
+          backgroundColor:
+            Platform.OS === "android"
+              ? "rgba(241, 246, 246, 0.8)"
+              : "rgba(241, 246, 246, 0.55)",
+        },
+      ]}
+    />
+  );
+}
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -25,12 +47,15 @@ export default function TabLayout() {
           tabBarActiveTintColor: "#77a8a8",
           tabBarInactiveTintColor: "#a6a6a6",
           tabBarHideOnKeyboard: true,
+          tabBarBackground: () => <TabBarBlurBackground />,
           tabBarStyle: {
-            backgroundColor: "#f1f6f6",
+            position: "absolute",
+            backgroundColor: "transparent",
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             height: TAB_BAR_HEIGHT,
-            borderTopWidth: 1,
+            borderTopWidth: 0,
+            elevation: 0,
           },
           tabBarIconStyle: {
             marginTop: 4,

@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Plus } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import { Alert } from "@/src/ui/components/atoms";
@@ -17,6 +18,7 @@ import { Account } from "@/src/core/dto/account.interface";
 
 export default function CuentasScreen() {
   const router = useRouter();
+  const tabBarHeight = useBottomTabBarHeight();
   const { data: accounts = [], isLoading, error } = useAccounts();
 
   const totalBalance = useMemo(
@@ -53,7 +55,7 @@ export default function CuentasScreen() {
           data={accounts}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
+          contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingBottom: tabBarHeight + 16 }}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <>

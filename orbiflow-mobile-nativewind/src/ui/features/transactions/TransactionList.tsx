@@ -7,9 +7,10 @@ import { TransactionListResponse } from "@/src/core/dto/transaction.interface";
 
 interface TransactionListProps {
   transactions: TransactionListResponse[];
+  bottomInset?: number;
 }
 
-export function TransactionList({ transactions }: TransactionListProps) {
+export function TransactionList({ transactions, bottomInset = 0 }: TransactionListProps) {
   const router = useRouter();
   const sections = groupTransactionsByDate(transactions);
 
@@ -48,6 +49,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
       )}
       showsVerticalScrollIndicator={false}
       stickySectionHeadersEnabled
+      contentContainerStyle={{ paddingBottom: bottomInset }}
     />
   );
 }

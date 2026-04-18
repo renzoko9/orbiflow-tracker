@@ -1,6 +1,7 @@
 import { View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/src/ui/components/atoms";
 import { useAuthStore } from "@/src/core/store";
@@ -8,6 +9,7 @@ import AuthService from "@/src/core/services/auth.service";
 
 export default function AjustesScreen() {
   const router = useRouter();
+  const tabBarHeight = useBottomTabBarHeight();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
 
@@ -36,7 +38,7 @@ export default function AjustesScreen() {
         )}
 
         {/* Logout */}
-        <View className="mt-auto pb-4">
+        <View className="mt-auto" style={{ paddingBottom: tabBarHeight + 16 }}>
           <Button variant="outline" size="lg" onPress={handleLogout}>
             Cerrar sesión
           </Button>

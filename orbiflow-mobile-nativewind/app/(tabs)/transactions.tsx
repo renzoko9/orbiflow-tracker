@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { colors } from "@/src/ui/theme/colors";
 import { Alert } from "@/src/ui/components/atoms";
 import { TransactionList } from "@/src/ui/features/transactions";
@@ -10,6 +11,7 @@ const PREVIEW_LIMIT = 10;
 
 export default function MovimientosScreen() {
   const router = useRouter();
+  const tabBarHeight = useBottomTabBarHeight();
   const { data: transactions = [], isLoading, error } = useTransactions({
     limit: PREVIEW_LIMIT,
   });
@@ -35,7 +37,7 @@ export default function MovimientosScreen() {
           <Alert variant="error" message={error.message} />
         </View>
       ) : (
-        <TransactionList transactions={transactions} />
+        <TransactionList transactions={transactions} bottomInset={tabBarHeight + 16} />
       )}
     </SafeAreaView>
   );
