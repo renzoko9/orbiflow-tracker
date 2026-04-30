@@ -114,6 +114,7 @@ export default function TransactionDetailScreen() {
   }, [transaction, reset]);
 
   const onSubmit = (data: UpdateTransactionFormValues) => {
+    console.log(data)
     updateTransaction.mutate(
       {
         amount: data.amount,

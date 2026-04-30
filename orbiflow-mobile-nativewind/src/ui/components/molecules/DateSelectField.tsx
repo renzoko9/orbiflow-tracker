@@ -4,7 +4,7 @@ import { BottomSheetView } from "@/src/ui/components/atoms/BottomSheet";
 import { SelectBottomSheet } from "./SelectBottomSheet";
 
 interface DateSelectFieldProps {
-  value: string;
+  value: string | Date;
   onChange: (isoDate: string) => void;
   error?: string;
   className?: string;
@@ -20,7 +20,13 @@ export function DateSelectField({
   minimumDate,
   maximumDate,
 }: DateSelectFieldProps) {
-  const selectedDate = new Date(value);
+  const selectedDate =
+    value instanceof Date
+      ? value
+      : (() => {
+        const [y, m, d] = value.split("T")[0].split("-").map(Number);
+        return new Date(y, m - 1, d);  // medianoche local, no UTC
+      })();
 
   const formattedDate = selectedDate.toLocaleDateString("es-PE", {
     weekday: "long",

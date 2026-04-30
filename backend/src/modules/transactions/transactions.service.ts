@@ -57,7 +57,7 @@ export class TransactionsService {
       amount: createTransactionRequest.amount,
       description: createTransactionRequest.description,
       type: createTransactionRequest.type,
-      date: new Date(createTransactionRequest.date),
+      date: createTransactionRequest.date.split('T')[0] as unknown as Date,
       user: { id: userId },
       account: { id: createTransactionRequest.accountId },
       category: { id: createTransactionRequest.categoryId },
@@ -295,7 +295,7 @@ export class TransactionsService {
     Object.assign(transaction, {
       ...updateTransactionDto,
       date: updateTransactionDto.date
-        ? new Date(updateTransactionDto.date)
+        ? (updateTransactionDto.date.split('T')[0] as unknown as Date)
         : transaction.date,
       category: updateTransactionDto.categoryId
         ? { id: updateTransactionDto.categoryId }
