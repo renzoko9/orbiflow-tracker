@@ -13,9 +13,9 @@ export function useUpdateTransaction(id: number) {
   return useMutation<ResponseAPI<TransactionResponse>, Error, UpdateTransactionRequest>({
     mutationFn: (data) => TransactionService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.detail(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
+      queryClient.refetchQueries({ queryKey: queryKeys.transactions.all });
+      queryClient.refetchQueries({ queryKey: queryKeys.transactions.detail(id) });
+      queryClient.refetchQueries({ queryKey: queryKeys.accounts.all });
     },
   });
 }

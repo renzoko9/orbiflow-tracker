@@ -36,6 +36,10 @@ class TransactionService extends HttpService {
     >(ENDPOINTS.transactions.BY_ID(id), data);
   }
 
+  async remove(id: number): Promise<void> {
+    return this.delete<void>(ENDPOINTS.transactions.BY_ID(id));
+  }
+
   async findAll(
     filters?: FilterTransactionsParams,
   ): Promise<TransactionListResponse[]> {
