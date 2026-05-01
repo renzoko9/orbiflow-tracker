@@ -7,3 +7,4 @@ export { ScreenHeader } from "./ScreenHeader";
 export { ProfileHeader } from "./ProfileHeader";
 export { SettingsSection } from "./SettingsSection";
 export { SettingsItem } from "./SettingsItem";
+export { AIInsightsCard } from "./AIInsightsCard";

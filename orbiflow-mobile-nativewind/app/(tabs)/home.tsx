@@ -5,11 +5,11 @@ import { useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { colors } from "@/src/ui/theme/colors";
 import { Alert } from "@/src/ui/components/atoms";
+import { AIInsightsCard } from "@/src/ui/components/molecules";
 import {
   HomeHeader,
   MonthlySummaryCard,
   TopCategoriesCard,
-  AIInsightsCard,
   RecentTransactionsCard,
   getCurrentMonthRange,
   getPreviousMonthRange,
@@ -100,7 +100,10 @@ export default function InicioScreen() {
               totalExpenses={currentSummary.expenses}
             />
 
-            <AIInsightsCard />
+            <AIInsightsCard
+              title="Análisis inteligente"
+              description="Próximamente: recomendaciones personalizadas según tus hábitos de gasto e ingreso."
+            />
 
             <RecentTransactionsCard
               transactions={recentTransactions}

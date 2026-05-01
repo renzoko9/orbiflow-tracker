@@ -1,7 +1,6 @@
 export { HomeHeader } from "./HomeHeader";
 export { MonthlySummaryCard } from "./MonthlySummaryCard";
 export { TopCategoriesCard } from "./TopCategoriesCard";
-export { AIInsightsCard } from "./AIInsightsCard";
 export { RecentTransactionsCard } from "./RecentTransactionsCard";
 export {
   getCurrentMonthRange,
