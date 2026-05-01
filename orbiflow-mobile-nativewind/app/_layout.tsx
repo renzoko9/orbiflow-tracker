@@ -30,7 +30,6 @@ export default function RootLayout() {
           >
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="transactions/all" />
             <Stack.Screen name="transactions/create" />
             <Stack.Screen name="transactions/[id]" />
             <Stack.Screen name="accounts/create" />
