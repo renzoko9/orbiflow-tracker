@@ -3,10 +3,12 @@ import {
   Logger,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   FindOptionsWhere,
   ILike,
+  IsNull,
   LessThanOrEqual,
   MoreThanOrEqual,
 } from 'typeorm';
@@ -49,6 +51,13 @@ export class TransactionsService {
       throw new NotFoundException({
         message: `Account with id ${createTransactionRequest.accountId} not found`,
         errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
+      });
+    }
+
+    if (account.archivedAt !== null) {
+      throw new BadRequestException({
+        message: 'No se pueden registrar movimientos en una cuenta archivada',
+        errorCode: ErrorCodeEnum.ACCOUNT_ARCHIVED,
       });
     }
 
@@ -100,6 +109,7 @@ export class TransactionsService {
 
     const baseWhere: FindOptionsWhere<Transaction> = {
       user: { id: userId },
+      account: { archivedAt: IsNull() },
       ...(filters.type && { type: filters.type }),
       ...(filters.categoryId && { category: { id: filters.categoryId } }),
       ...(filters.dateFrom && {
@@ -253,6 +263,13 @@ export class TransactionsService {
         throw new NotFoundException({
           message: `Account with id ${updateTransactionDto.accountId} not found`,
           errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
+        });
+      }
+
+      if (newAccount.archivedAt !== null) {
+        throw new BadRequestException({
+          message: 'No se puede mover el movimiento a una cuenta archivada',
+          errorCode: ErrorCodeEnum.ACCOUNT_ARCHIVED,
         });
       }
 

@@ -33,6 +33,11 @@ export class AccountsController {
     return this.accountsService.findAll(userId);
   }
 
+  @Get('archived')
+  findArchived(@User('id') userId: number): Promise<Account[]> {
+    return this.accountsService.findArchived(userId);
+  }
+
   @Get(':id')
   findOne(
     @Param('id') id: string,
@@ -50,8 +55,19 @@ export class AccountsController {
     return this.accountsService.update(+id, userId, updateAccountRequest);
   }
 
+  @Patch(':id/restore')
+  restore(
+    @Param('id') id: string,
+    @User('id') userId: number,
+  ): Promise<Account> {
+    return this.accountsService.restore(+id, userId);
+  }
+
   @Delete(':id')
-  remove(@Param('id') id: string, @User('id') userId: number): Promise<void> {
-    return this.accountsService.delete(+id, userId);
+  remove(
+    @Param('id') id: string,
+    @User('id') userId: number,
+  ): Promise<Account> {
+    return this.accountsService.archive(+id, userId);
   }
 }

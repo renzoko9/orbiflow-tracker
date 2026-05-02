@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { IsNull, Not } from 'typeorm';
 import { Account } from '@Entities';
 import { AccountRepository } from '@Repositories';
 import { CreateAccountRequest } from './dto/create-account.dto';
@@ -27,15 +28,19 @@ export class AccountsService {
 
   async findAll(userId: number): Promise<Account[]> {
     return this.accountRepository.find({
-      where: { user: { id: userId } },
-      // relations: ['user'],
+      where: { user: { id: userId }, archivedAt: IsNull() },
+    });
+  }
+
+  async findArchived(userId: number): Promise<Account[]> {
+    return this.accountRepository.find({
+      where: { user: { id: userId }, archivedAt: Not(IsNull()) },
     });
   }
 
   async findOne(id: number, userId: number): Promise<Account> {
     const account = await this.accountRepository.findOne({
       where: { id, user: { id: userId } },
-      // relations: ['user'],
     });
 
     if (!account) {
@@ -66,16 +71,39 @@ export class AccountsService {
     return this.accountRepository.save(account);
   }
 
-  async delete(id: number, userId: number): Promise<void> {
+  async archive(id: number, userId: number): Promise<Account> {
     const account = await this.findOne(id, userId);
 
     if (account.user.id !== userId) {
       throw new ForbiddenException({
-        message: 'You can only delete your own accounts',
+        message: 'You can only archive your own accounts',
         errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
       });
     }
 
-    await this.accountRepository.remove(account);
+    if (account.archivedAt !== null) {
+      return account;
+    }
+
+    account.archivedAt = new Date();
+    return this.accountRepository.save(account);
+  }
+
+  async restore(id: number, userId: number): Promise<Account> {
+    const account = await this.findOne(id, userId);
+
+    if (account.user.id !== userId) {
+      throw new ForbiddenException({
+        message: 'You can only restore your own accounts',
+        errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
+      });
+    }
+
+    if (account.archivedAt === null) {
+      return account;
+    }
+
+    account.archivedAt = null;
+    return this.accountRepository.save(account);
   }
 }

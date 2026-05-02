@@ -39,4 +39,7 @@ export class Account {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @Column({ name: 'archived_at', type: 'timestamp', nullable: true })
+  archivedAt: Date | null;
 }
