@@ -7,6 +7,7 @@ export interface Account {
   color: string;
   userId: number;
   createdAt: string;
+  archivedAt: string | null;
 }
 
 export interface CreateAccountRequest {

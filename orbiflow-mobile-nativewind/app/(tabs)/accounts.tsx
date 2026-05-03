@@ -94,6 +94,12 @@ export default function CuentasScreen() {
                     description={account.description}
                     icon={account.icon}
                     color={account.color}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/accounts/[id]",
+                        params: { id: String(account.id) },
+                      })
+                    }
                   />
                 ))}
               </View>

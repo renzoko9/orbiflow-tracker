@@ -53,6 +53,12 @@ class TransactionService extends HttpService {
       params,
     });
   }
+
+  async findByAccount(accountId: number): Promise<TransactionListResponse[]> {
+    return this.get<TransactionListResponse[]>(
+      ENDPOINTS.transactions.BY_ACCOUNT(accountId),
+    );
+  }
 }
 
 export default new TransactionService();

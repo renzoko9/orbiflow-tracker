@@ -8,3 +8,5 @@ export { ProfileHeader } from "./ProfileHeader";
 export { SettingsSection } from "./SettingsSection";
 export { SettingsItem } from "./SettingsItem";
 export { AIInsightsCard } from "./AIInsightsCard";
+export { KebabMenu } from "./KebabMenu";
+export type { KebabMenuItem } from "./KebabMenu";

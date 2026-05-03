@@ -12,6 +12,8 @@ export const ENDPOINTS = Object.freeze({
   accounts: {
     base: "/accounts",
     BY_ID: (id: number) => `/accounts/${id}`,
+    ARCHIVED: "/accounts/archived",
+    RESTORE: (id: number) => `/accounts/${id}/restore`,
   },
   transactions: {
     base: "/transactions",

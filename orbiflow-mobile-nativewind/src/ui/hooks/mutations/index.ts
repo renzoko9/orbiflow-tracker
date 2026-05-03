@@ -2,4 +2,7 @@ export { useCreateTransaction } from "./useCreateTransaction";
 export { useUpdateTransaction } from "./useUpdateTransaction";
 export { useDeleteTransaction } from "./useDeleteTransaction";
 export { useCreateAccount } from "./useCreateAccount";
+export { useUpdateAccount } from "./useUpdateAccount";
+export { useArchiveAccount } from "./useArchiveAccount";
+export { useRestoreAccount } from "./useRestoreAccount";
 export { useCreateCategory } from "./useCreateCategory";

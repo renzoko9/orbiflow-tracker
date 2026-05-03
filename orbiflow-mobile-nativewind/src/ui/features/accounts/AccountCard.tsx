@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { getIconComponent } from "@/src/ui/utils/icon-map";
 
 interface AccountCardProps {
@@ -7,7 +7,16 @@ interface AccountCardProps {
   description: string | null;
   icon: string;
   color: string;
+  onPress?: () => void;
 }
+
+const cardShadow = {
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.06,
+  shadowRadius: 4,
+  elevation: 2,
+};
 
 export function AccountCard({
   name,
@@ -15,20 +24,21 @@ export function AccountCard({
   description,
   icon,
   color,
+  onPress,
 }: AccountCardProps) {
   const Icon = getIconComponent(icon);
   const numericBalance = Number(balance);
 
+  const Container: any = onPress ? TouchableOpacity : View;
+  const containerProps = onPress
+    ? { onPress, activeOpacity: 0.7 }
+    : {};
+
   return (
-    <View
+    <Container
       className="rounded-2xl px-4 py-4 bg-background-light"
-      style={{
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-        elevation: 2,
-      }}
+      style={cardShadow}
+      {...containerProps}
     >
       <View className="flex-row items-center">
         <View
@@ -58,6 +68,6 @@ export function AccountCard({
           </Text>
         </View>
       </View>
-    </View>
+    </Container>
   );
 }
