@@ -24,6 +24,8 @@ export const ENDPOINTS = Object.freeze({
     base: "/categories",
     BY_ID: (id: number) => `/categories/${id}`,
     global: "/categories/global",
+    ARCHIVED: "/categories/archived",
+    RESTORE: (id: number) => `/categories/${id}/restore`,
   },
   users: {
     base: "/users",

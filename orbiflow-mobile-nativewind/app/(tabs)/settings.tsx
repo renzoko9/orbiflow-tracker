@@ -108,7 +108,7 @@ export default function AjustesScreen() {
             icon={<Tag size={ICON_SIZE} color={colors.primary[6]} />}
             title="Categorías"
             subtitle="Gestiona tus categorías de gasto e ingreso"
-            onPress={comingSoon}
+            onPress={() => router.push("/categories" as never)}
           />
           <SettingsItem
             icon={<Wallet size={ICON_SIZE} color={colors.primary[6]} />}

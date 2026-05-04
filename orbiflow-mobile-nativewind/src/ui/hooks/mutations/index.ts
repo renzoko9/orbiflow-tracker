@@ -6,3 +6,6 @@ export { useUpdateAccount } from "./useUpdateAccount";
 export { useArchiveAccount } from "./useArchiveAccount";
 export { useRestoreAccount } from "./useRestoreAccount";
 export { useCreateCategory } from "./useCreateCategory";
+export { useUpdateCategory } from "./useUpdateCategory";
+export { useArchiveCategory } from "./useArchiveCategory";
+export { useRestoreCategory } from "./useRestoreCategory";

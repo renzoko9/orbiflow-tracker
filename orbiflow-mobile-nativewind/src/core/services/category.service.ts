@@ -1,7 +1,11 @@
 import { HttpService } from "./http.service";
 import { ENDPOINTS } from "../constants/endpoints.constant";
 import { ResponseAPI } from "../api/dto/api-response.interface";
-import { Category, CreateCategoryRequest } from "../dto/category.interface";
+import {
+  Category,
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
+} from "../dto/category.interface";
 
 class CategoryService extends HttpService {
   async findAll(): Promise<Category[]> {
@@ -10,6 +14,10 @@ class CategoryService extends HttpService {
 
   async findGlobal(): Promise<Category[]> {
     return this.get<Category[]>(ENDPOINTS.categories.global);
+  }
+
+  async findArchived(): Promise<Category[]> {
+    return this.get<Category[]>(ENDPOINTS.categories.ARCHIVED);
   }
 
   async findOne(id: number): Promise<Category> {
@@ -21,6 +29,21 @@ class CategoryService extends HttpService {
       ENDPOINTS.categories.base,
       data,
     );
+  }
+
+  async update(id: number, data: UpdateCategoryRequest): Promise<Category> {
+    return this.put<Category, UpdateCategoryRequest>(
+      ENDPOINTS.categories.BY_ID(id),
+      data,
+    );
+  }
+
+  async archive(id: number): Promise<Category> {
+    return this.delete<Category>(ENDPOINTS.categories.BY_ID(id));
+  }
+
+  async restore(id: number): Promise<Category> {
+    return this.patch<Category, undefined>(ENDPOINTS.categories.RESTORE(id));
   }
 }
 

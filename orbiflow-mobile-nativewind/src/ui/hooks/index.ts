@@ -1,4 +1,5 @@
 export { useCategories } from "./useCategories";
+export { useCategory } from "./useCategory";
 export { useAccounts } from "./useAccounts";
 export { useAccount } from "./useAccount";
 export { useTransactions } from "./useTransactions";
@@ -13,4 +14,7 @@ export {
   useArchiveAccount,
   useRestoreAccount,
   useCreateCategory,
+  useUpdateCategory,
+  useArchiveCategory,
+  useRestoreCategory,
 } from "./mutations";

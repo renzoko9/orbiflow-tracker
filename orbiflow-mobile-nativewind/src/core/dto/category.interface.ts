@@ -8,6 +8,7 @@ export interface Category {
   color: string;
   userId: number | null; // null = categoría global
   createdAt: string;
+  archivedAt: string | null;
 }
 
 export interface CreateCategoryRequest {
