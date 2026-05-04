@@ -3,7 +3,7 @@ import { Category } from '@Entities';
 import { CategoryRepository } from '@Repositories';
 import { CreateCategoryRequest } from './dto/create-category.dto';
 import { UpdateCategoryRequest } from './dto/update-category.dto';
-import { IsNull } from 'typeorm';
+import { IsNull, Not } from 'typeorm';
 import { ErrorCodeEnum, ResponseTypeEnum } from '@Enums';
 import { ResponseAPI } from '@/common/interfaces/response.interface';
 
@@ -30,9 +30,12 @@ export class CategoriesService {
   }
 
   async findAll(userId: number): Promise<Category[]> {
-    // Retorna categorias globales (user null) + categorias del usuario
+    // Globales (user null) + categorías del usuario que NO esten archivadas
     const categories = await this.categoryRepository.find({
-      where: [{ user: IsNull() }, { user: { id: userId } }],
+      where: [
+        { user: IsNull() },
+        { user: { id: userId }, archivedAt: IsNull() },
+      ],
       order: {
         name: 'ASC',
       },
@@ -43,6 +46,15 @@ export class CategoriesService {
   async findGlobal(): Promise<Category[]> {
     return this.categoryRepository.find({
       where: { user: IsNull() },
+      order: {
+        name: 'ASC',
+      },
+    });
+  }
+
+  async findArchived(userId: number): Promise<Category[]> {
+    return this.categoryRepository.find({
+      where: { user: { id: userId }, archivedAt: Not(IsNull()) },
       order: {
         name: 'ASC',
       },
@@ -97,19 +109,44 @@ export class CategoriesService {
     return this.categoryRepository.save(category);
   }
 
-  async delete(id: number, userId: number): Promise<void> {
-    // Solo se pueden eliminar categorias del usuario, no las globales
+  async archive(id: number, userId: number): Promise<Category> {
+    // Solo se pueden archivar categorias del usuario, no las globales
     const category = await this.categoryRepository.findOne({
       where: { id, user: { id: userId } },
     });
 
     if (!category) {
       throw new NotFoundException({
-        message: `Category with id ${id} not found or you don't have permission to delete it`,
+        message: `Category with id ${id} not found or you don't have permission to archive it`,
         errorCode: ErrorCodeEnum.CATEGORY_NOT_FOUND,
       });
     }
 
-    await this.categoryRepository.remove(category);
+    if (category.archivedAt !== null) {
+      return category;
+    }
+
+    category.archivedAt = new Date();
+    return this.categoryRepository.save(category);
+  }
+
+  async restore(id: number, userId: number): Promise<Category> {
+    const category = await this.categoryRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!category) {
+      throw new NotFoundException({
+        message: `Category with id ${id} not found or you don't have permission to restore it`,
+        errorCode: ErrorCodeEnum.CATEGORY_NOT_FOUND,
+      });
+    }
+
+    if (category.archivedAt === null) {
+      return category;
+    }
+
+    category.archivedAt = null;
+    return this.categoryRepository.save(category);
   }
 }

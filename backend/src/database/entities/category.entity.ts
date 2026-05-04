@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  RelationId,
 } from 'typeorm';
 import { Transaction } from './transaction.entity';
 import { User } from './user.entity';
@@ -36,9 +37,15 @@ export class Category {
   @JoinColumn({ name: 'user_id' })
   user: User | null;
 
+  @RelationId((category: Category) => category.user)
+  userId: number | null;
+
   @OneToMany(() => Transaction, (transaction) => transaction.category)
   transactions: Transaction[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @Column({ name: 'archived_at', type: 'timestamp', nullable: true })
+  archivedAt: Date | null;
 }

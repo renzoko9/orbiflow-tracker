@@ -3,9 +3,8 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   UseGuards,
@@ -41,6 +40,11 @@ export class CategoriesController {
     return this.categoriesService.findGlobal();
   }
 
+  @Get('archived')
+  findArchived(@User('id') userId: number): Promise<Category[]> {
+    return this.categoriesService.findArchived(userId);
+  }
+
   @Get(':id')
   findOne(
     @Param('id') id: number,
@@ -58,9 +62,19 @@ export class CategoriesController {
     return this.categoriesService.update(id, userId, updateCategoryRequest);
   }
 
+  @Patch(':id/restore')
+  restore(
+    @Param('id') id: number,
+    @User('id') userId: number,
+  ): Promise<Category> {
+    return this.categoriesService.restore(id, userId);
+  }
+
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  delete(@Param('id') id: number, @User('id') userId: number): Promise<void> {
-    return this.categoriesService.delete(id, userId);
+  remove(
+    @Param('id') id: number,
+    @User('id') userId: number,
+  ): Promise<Category> {
+    return this.categoriesService.archive(id, userId);
   }
 }
