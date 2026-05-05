@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pencil, Trash2 } from "lucide-react-native";
+import { Pencil, Trash2, RotateCcw } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import { Alert as AlertBox, showToast } from "@/src/ui/components/atoms";
 import {
@@ -17,7 +17,11 @@ import {
   type KebabMenuItem,
 } from "@/src/ui/components/molecules";
 import { CategoryHero } from "@/src/ui/features/categories";
-import { useCategory, useArchiveCategory } from "@/src/ui/hooks";
+import {
+  useCategory,
+  useArchiveCategory,
+  useRestoreCategory,
+} from "@/src/ui/hooks";
 import { ApiError } from "@/src/core/api/api-error";
 
 export default function CategoryDetailScreen() {
@@ -27,8 +31,11 @@ export default function CategoryDetailScreen() {
 
   const { data: category, isLoading, error } = useCategory(categoryId);
   const archiveCategory = useArchiveCategory();
+  const restoreCategory = useRestoreCategory();
 
   const isGlobal = category?.userId === null;
+  const isArchived =
+    category?.archivedAt !== null && category?.archivedAt !== undefined;
 
   const handleArchive = () => {
     if (!category) return;
@@ -68,23 +75,68 @@ export default function CategoryDetailScreen() {
     );
   };
 
-  const menuItems: KebabMenuItem[] = [
-    {
-      label: "Editar",
-      icon: <Pencil size={18} color={colors.text.light} />,
-      onPress: () =>
-        router.push({
-          pathname: "/categories/edit/[id]",
-          params: { id: String(categoryId) },
-        }),
-    },
-    {
-      label: "Eliminar",
-      icon: <Trash2 size={18} color={colors.error.medium} />,
-      onPress: handleArchive,
-      variant: "danger",
-    },
-  ];
+  const handleRestore = () => {
+    if (!category) return;
+    Alert.alert(
+      `¿Restaurar "${category.name}"?`,
+      "La categoría volverá a estar activa y aparecerá al registrar nuevos movimientos.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Restaurar",
+          onPress: () => {
+            restoreCategory.mutate(categoryId, {
+              onSuccess: () => {
+                showToast({
+                  type: "success",
+                  text1: "Categoría restaurada",
+                  text2: `"${category.name}" vuelve a estar activa`,
+                });
+                router.back();
+              },
+              onError: (err) => {
+                const message =
+                  err instanceof ApiError
+                    ? err.message
+                    : "Ocurrió un error inesperado";
+                showToast({
+                  type: "error",
+                  text1: "Error",
+                  text2: message,
+                });
+              },
+            });
+          },
+        },
+      ],
+    );
+  };
+
+  const menuItems: KebabMenuItem[] = isArchived
+    ? [
+        {
+          label: "Restaurar",
+          icon: <RotateCcw size={18} color={colors.text.light} />,
+          onPress: handleRestore,
+        },
+      ]
+    : [
+        {
+          label: "Editar",
+          icon: <Pencil size={18} color={colors.text.light} />,
+          onPress: () =>
+            router.push({
+              pathname: "/categories/edit/[id]",
+              params: { id: String(categoryId) },
+            }),
+        },
+        {
+          label: "Eliminar",
+          icon: <Trash2 size={18} color={colors.error.medium} />,
+          onPress: handleArchive,
+          variant: "danger",
+        },
+      ];
 
   return (
     <SafeAreaView className="flex-1 bg-inverse">
@@ -129,10 +181,21 @@ export default function CategoryDetailScreen() {
               </View>
             )}
 
-            <AIInsightsCard
-              title="Análisis inteligente"
-              description={`Próximamente: insights específicos sobre tus movimientos en "${category.name}".`}
-            />
+            {isArchived && !isGlobal && (
+              <View className="rounded-2xl bg-primary-1 px-4 py-3 mb-4">
+                <Text className="text-sm text-primary-7">
+                  Esta categoría está archivada. Los movimientos históricos la
+                  conservan, pero no aparece al registrar nuevos.
+                </Text>
+              </View>
+            )}
+
+            {!isArchived && (
+              <AIInsightsCard
+                title="Análisis inteligente"
+                description={`Próximamente: insights específicos sobre tus movimientos en "${category.name}".`}
+              />
+            )}
           </View>
         </ScrollView>
       )}

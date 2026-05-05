@@ -8,12 +8,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Plus } from "lucide-react-native";
+import { Plus, Archive, ChevronRight } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import { Alert as AlertBox, SegmentedControl } from "@/src/ui/components/atoms";
 import { ScreenHeader } from "@/src/ui/components/molecules";
 import { CategoryListItem } from "@/src/ui/features/categories";
-import { useCategories } from "@/src/ui/hooks";
+import { useCategories, useArchivedCategories } from "@/src/ui/hooks";
 import { CategoryType } from "@/src/core/enums/category-type.enum";
 
 const cardShadow = {
@@ -36,6 +36,7 @@ export default function CategoriesScreen() {
   const { data: categories = [], isLoading, error } = useCategories({
     type: selectedType,
   });
+  const { data: archived = [] } = useArchivedCategories();
 
   const { mine, globals } = useMemo(() => {
     const mine = categories.filter((c) => c.userId !== null);
@@ -162,6 +163,23 @@ export default function CategoriesScreen() {
                 </View>
               )}
             </>
+          )}
+
+          {archived.length > 0 && (
+            <TouchableOpacity
+              onPress={() => router.push("/categories/archived")}
+              activeOpacity={0.7}
+              className="flex-row items-center justify-between rounded-2xl bg-background-light px-4 py-3 mt-2"
+              style={cardShadow}
+            >
+              <View className="flex-row items-center gap-3">
+                <Archive size={18} color={colors.subordinary} />
+                <Text className="text-sm font-medium text-text-light">
+                  Categorías archivadas ({archived.length})
+                </Text>
+              </View>
+              <ChevronRight size={16} color={colors.subordinary} />
+            </TouchableOpacity>
           )}
         </ScrollView>
       )}

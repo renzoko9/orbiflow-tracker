@@ -1,5 +1,6 @@
 export { useCategories } from "./useCategories";
 export { useCategory } from "./useCategory";
+export { useArchivedCategories } from "./useArchivedCategories";
 export { useAccounts } from "./useAccounts";
 export { useAccount } from "./useAccount";
 export { useArchivedAccounts } from "./useArchivedAccounts";

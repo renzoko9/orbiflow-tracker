@@ -39,6 +39,7 @@ export default function RootLayout() {
             <Stack.Screen name="categories/create" />
             <Stack.Screen name="categories/[id]" />
             <Stack.Screen name="categories/edit/[id]" />
+            <Stack.Screen name="categories/archived" />
           </Stack>
           <StatusBar style="dark" />
           <Toast topOffset={insets.top + 8} />
