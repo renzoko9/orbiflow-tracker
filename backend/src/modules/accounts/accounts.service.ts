@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, Not } from 'typeorm';
 import { Account } from '@Entities';
 import { AccountRepository } from '@Repositories';
@@ -59,27 +55,12 @@ export class AccountsService {
     updateAccountDto: UpdateAccountRequest,
   ): Promise<Account> {
     const account = await this.findOne(id, userId);
-
-    if (account.user.id !== userId) {
-      throw new ForbiddenException({
-        message: 'You can only update your own accounts',
-        errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
-      });
-    }
-
     Object.assign(account, updateAccountDto);
     return this.accountRepository.save(account);
   }
 
   async archive(id: number, userId: number): Promise<Account> {
     const account = await this.findOne(id, userId);
-
-    if (account.user.id !== userId) {
-      throw new ForbiddenException({
-        message: 'You can only archive your own accounts',
-        errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
-      });
-    }
 
     if (account.archivedAt !== null) {
       return account;
@@ -91,13 +72,6 @@ export class AccountsService {
 
   async restore(id: number, userId: number): Promise<Account> {
     const account = await this.findOne(id, userId);
-
-    if (account.user.id !== userId) {
-      throw new ForbiddenException({
-        message: 'You can only restore your own accounts',
-        errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
-      });
-    }
 
     if (account.archivedAt === null) {
       return account;

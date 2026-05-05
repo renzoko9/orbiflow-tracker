@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  RelationId,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Transaction } from './transaction.entity';
@@ -33,6 +34,9 @@ export class Account {
   @ManyToOne(() => User, (user) => user.accounts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @RelationId((account: Account) => account.user)
+  userId: number;
 
   @OneToMany(() => Transaction, (transaction) => transaction.account)
   transactions: Transaction[];

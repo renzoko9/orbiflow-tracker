@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pencil, Trash2, ArrowRight } from "lucide-react-native";
+import { Pencil, Trash2, ArrowRight, RotateCcw } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import { Alert as AlertBox, showToast } from "@/src/ui/components/atoms";
 import {
@@ -27,6 +27,7 @@ import {
   useAccount,
   useTransactionsByAccount,
   useArchiveAccount,
+  useRestoreAccount,
 } from "@/src/ui/hooks";
 import {
   aggregateMonth,
@@ -43,6 +44,9 @@ export default function AccountDetailScreen() {
   const { data: account, isLoading, error } = useAccount(accountId);
   const { data: transactions = [] } = useTransactionsByAccount(accountId);
   const archiveAccount = useArchiveAccount();
+  const restoreAccount = useRestoreAccount();
+
+  const isArchived = account?.archivedAt !== null && account?.archivedAt !== undefined;
 
   const monthSummary = useMemo(() => {
     const { dateFrom, dateTo } = getCurrentMonthRange();
@@ -97,23 +101,68 @@ export default function AccountDetailScreen() {
     );
   };
 
-  const menuItems: KebabMenuItem[] = [
-    {
-      label: "Editar",
-      icon: <Pencil size={18} color={colors.text.light} />,
-      onPress: () =>
-        router.push({
-          pathname: "/accounts/edit/[id]",
-          params: { id: String(accountId) },
-        }),
-    },
-    {
-      label: "Eliminar",
-      icon: <Trash2 size={18} color={colors.error.medium} />,
-      onPress: handleArchive,
-      variant: "danger",
-    },
-  ];
+  const handleRestore = () => {
+    if (!account) return;
+    Alert.alert(
+      `¿Restaurar "${account.name}"?`,
+      "La cuenta volverá a estar activa. Podrás registrar nuevos movimientos en ella y volverá a contar en tus totales.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Restaurar",
+          onPress: () => {
+            restoreAccount.mutate(accountId, {
+              onSuccess: () => {
+                showToast({
+                  type: "success",
+                  text1: "Cuenta restaurada",
+                  text2: `"${account.name}" vuelve a estar activa`,
+                });
+                router.back();
+              },
+              onError: (err) => {
+                const message =
+                  err instanceof ApiError
+                    ? err.message
+                    : "Ocurrió un error inesperado";
+                showToast({
+                  type: "error",
+                  text1: "Error",
+                  text2: message,
+                });
+              },
+            });
+          },
+        },
+      ],
+    );
+  };
+
+  const menuItems: KebabMenuItem[] = isArchived
+    ? [
+        {
+          label: "Restaurar",
+          icon: <RotateCcw size={18} color={colors.text.light} />,
+          onPress: handleRestore,
+        },
+      ]
+    : [
+        {
+          label: "Editar",
+          icon: <Pencil size={18} color={colors.text.light} />,
+          onPress: () =>
+            router.push({
+              pathname: "/accounts/edit/[id]",
+              params: { id: String(accountId) },
+            }),
+        },
+        {
+          label: "Eliminar",
+          icon: <Trash2 size={18} color={colors.error.medium} />,
+          onPress: handleArchive,
+          variant: "danger",
+        },
+      ];
 
   return (
     <SafeAreaView className="flex-1 bg-inverse">
@@ -147,17 +196,28 @@ export default function AccountDetailScreen() {
           />
 
           <View className="px-4">
-            <AccountMonthStats
-              monthName={getCurrentMonthName()}
-              income={monthSummary.income}
-              expenses={monthSummary.expenses}
-            />
+            {isArchived && (
+              <View className="rounded-2xl bg-primary-1 px-4 py-3 mb-4">
+                <Text className="text-sm text-primary-7">
+                  Esta cuenta está archivada. El historial se conserva, pero no
+                  cuenta en tus totales ni admite nuevos movimientos.
+                </Text>
+              </View>
+            )}
+
+            {!isArchived && (
+              <AccountMonthStats
+                monthName={getCurrentMonthName()}
+                income={monthSummary.income}
+                expenses={monthSummary.expenses}
+              />
+            )}
 
             <View className="flex-row items-center justify-between mb-2">
               <Text className="text-base font-semibold text-text-light">
                 Movimientos recientes
               </Text>
-              {transactions.length > 0 && (
+              {!isArchived && transactions.length > 0 && (
                 <TouchableOpacity
                   onPress={() => router.push("/(tabs)/transactions")}
                   hitSlop={8}
@@ -209,10 +269,12 @@ export default function AccountDetailScreen() {
               </View>
             )}
 
-            <AIInsightsCard
-              title="Análisis inteligente"
-              description={`Próximamente: insights específicos sobre tus movimientos en "${account.name}".`}
-            />
+            {!isArchived && (
+              <AIInsightsCard
+                title="Análisis inteligente"
+                description={`Próximamente: insights específicos sobre tus movimientos en "${account.name}".`}
+              />
+            )}
           </View>
         </ScrollView>
       )}

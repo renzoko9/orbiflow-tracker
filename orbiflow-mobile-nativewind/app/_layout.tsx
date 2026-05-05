@@ -35,6 +35,7 @@ export default function RootLayout() {
             <Stack.Screen name="accounts/create" />
             <Stack.Screen name="accounts/[id]" />
             <Stack.Screen name="accounts/edit/[id]" />
+            <Stack.Screen name="accounts/archived" />
             <Stack.Screen name="categories/create" />
             <Stack.Screen name="categories/[id]" />
             <Stack.Screen name="categories/edit/[id]" />

@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { Plus } from "lucide-react-native";
+import { Plus, Archive, ChevronRight } from "lucide-react-native";
 import { colors } from "@/src/ui/theme/colors";
 import { Alert } from "@/src/ui/components/atoms";
 import { AIInsightsCard } from "@/src/ui/components/molecules";
@@ -18,12 +18,13 @@ import {
   AccountsHeader,
   AccountsDistributionCard,
 } from "@/src/ui/features/accounts";
-import { useAccounts } from "@/src/ui/hooks";
+import { useAccounts, useArchivedAccounts } from "@/src/ui/hooks";
 
 export default function CuentasScreen() {
   const router = useRouter();
   const tabBarHeight = useBottomTabBarHeight();
   const { data: accounts = [], isLoading, error } = useAccounts();
+  const { data: archived = [] } = useArchivedAccounts();
 
   const totalBalance = useMemo(
     () => accounts.reduce((sum, acc) => sum + Number(acc.balance), 0),
@@ -103,6 +104,29 @@ export default function CuentasScreen() {
                   />
                 ))}
               </View>
+            )}
+
+            {archived.length > 0 && (
+              <TouchableOpacity
+                onPress={() => router.push("/accounts/archived")}
+                activeOpacity={0.7}
+                className="flex-row items-center justify-between rounded-2xl bg-background-light px-4 py-3 mt-4"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.06,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <Archive size={18} color={colors.subordinary} />
+                  <Text className="text-sm font-medium text-text-light">
+                    Cuentas archivadas ({archived.length})
+                  </Text>
+                </View>
+                <ChevronRight size={16} color={colors.subordinary} />
+              </TouchableOpacity>
             )}
           </View>
         </ScrollView>

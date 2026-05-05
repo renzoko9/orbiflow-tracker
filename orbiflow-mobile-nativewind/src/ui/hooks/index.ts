@@ -2,6 +2,7 @@ export { useCategories } from "./useCategories";
 export { useCategory } from "./useCategory";
 export { useAccounts } from "./useAccounts";
 export { useAccount } from "./useAccount";
+export { useArchivedAccounts } from "./useArchivedAccounts";
 export { useTransactions } from "./useTransactions";
 export { useTransaction } from "./useTransaction";
 export { useTransactionsByAccount } from "./useTransactionsByAccount";
