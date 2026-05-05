@@ -24,7 +24,7 @@ export function CategoryListItem({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      className="flex-row items-center px-4 py-3"
+      className="flex-row items-center gap-1 px-4 py-3"
     >
       <View
         className="w-10 h-10 rounded-full items-center justify-center mr-3"
@@ -33,7 +33,7 @@ export function CategoryListItem({
         <Icon size={20} color={color} />
       </View>
 
-      <View className="flex-1 flex-row items-center gap-2">
+      <View className="flex-1 flex-row justify-between items-center gap-2">
         <Text
           className="text-base font-medium text-text-light"
           numberOfLines={1}
@@ -41,7 +41,7 @@ export function CategoryListItem({
           {name}
         </Text>
         {isGlobal && (
-          <View className="bg-primary-1 rounded-full px-2 py-0.5">
+          <View className="bg-primary-1 rounded-md px-2 py-0.5 mr-3">
             <Text className="text-[10px] text-primary-7 font-medium">
               Predeterminada
             </Text>
