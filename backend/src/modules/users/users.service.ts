@@ -3,6 +3,7 @@ import { User } from '@Entities';
 import { UserRepository } from '@Repositories';
 import { FindOptionsWhere } from 'typeorm';
 import { ErrorCodeEnum } from '@Enums';
+import { UpdateProfileRequest } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -51,6 +52,24 @@ export class UsersService {
     const user = await this.findOne(id);
     Object.assign(user, data);
     return this.userRepository.save(user);
+  }
+
+  async updateProfile(id: number, data: UpdateProfileRequest): Promise<User> {
+    const user = await this.findOne(id);
+    if (data.name !== undefined) user.name = data.name;
+    if (data.lastname !== undefined) user.lastname = data.lastname;
+    return this.userRepository.save(user);
+  }
+
+  async updateAvatarUrl(
+    id: number,
+    avatarUrl: string | null,
+  ): Promise<{ user: User; previousAvatarUrl: string | null }> {
+    const user = await this.findOne(id);
+    const previousAvatarUrl = user.avatarUrl;
+    user.avatarUrl = avatarUrl;
+    const saved = await this.userRepository.save(user);
+    return { user: saved, previousAvatarUrl };
   }
 
   async delete(id: number): Promise<void> {

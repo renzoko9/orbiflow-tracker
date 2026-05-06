@@ -62,9 +62,10 @@ export class TransactionsMapper {
         name: transaction.account.name,
         balance: Number(transaction.account.balance),
       },
-      createdAt: transaction.createdAt instanceof Date
-        ? transaction.createdAt.toISOString()
-        : String(transaction.createdAt),
+      createdAt:
+        transaction.createdAt instanceof Date
+          ? transaction.createdAt.toISOString()
+          : String(transaction.createdAt),
     };
   }
 

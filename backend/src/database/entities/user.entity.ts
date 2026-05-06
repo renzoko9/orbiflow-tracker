@@ -27,6 +27,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ name: 'avatar_url', type: 'text', nullable: true })
+  avatarUrl: string | null;
+
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
 

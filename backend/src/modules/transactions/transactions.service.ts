@@ -206,7 +206,10 @@ export class TransactionsService {
     );
   }
 
-  async findOne(id: number, userId: number): Promise<TransactionDetailResponse> {
+  async findOne(
+    id: number,
+    userId: number,
+  ): Promise<TransactionDetailResponse> {
     this.logger.log(`Buscando transacción ${id} para usuario ${userId}`);
 
     const transaction = await this.transactionRepository.findOne({

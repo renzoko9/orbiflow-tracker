@@ -15,7 +15,10 @@ export class CustomHttpException extends HttpException {
       super({ title: 'Error', message: response }, status);
     } else {
       // Si no tiene title, agregar "Error" por defecto
-      super({ title: response.title || 'Error', message: response.message }, status);
+      super(
+        { title: response.title || 'Error', message: response.message },
+        status,
+      );
     }
   }
 }
