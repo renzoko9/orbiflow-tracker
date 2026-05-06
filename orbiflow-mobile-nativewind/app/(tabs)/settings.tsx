@@ -107,7 +107,7 @@ export default function AjustesScreen() {
           <SettingsItem
             icon={<Lock size={ICON_SIZE} color={colors.primary[6]} />}
             title="Cambiar contraseña"
-            onPress={comingSoon}
+            onPress={() => router.push("/profile/change-password")}
           />
         </SettingsSection>
 

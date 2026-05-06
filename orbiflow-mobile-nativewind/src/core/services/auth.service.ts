@@ -116,6 +116,12 @@ class AuthService extends HttpService {
     );
   }
 
+  async requestChangePasswordCode(): Promise<ResponseAPI> {
+    return this.post<ResponseAPI>(
+      ENDPOINTS.auth.changePasswordRequestCode,
+    );
+  }
+
   async logout(): Promise<void> {
     await StorageService.removeItem(STORAGE_KEYS.accessToken);
     await StorageService.removeItem(STORAGE_KEYS.refreshToken);

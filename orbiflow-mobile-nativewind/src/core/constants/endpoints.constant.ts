@@ -8,6 +8,7 @@ export const ENDPOINTS = Object.freeze({
     forgotPassword: "/auth/forgot-password",
     verifyResetCode: "/auth/verify-reset-code",
     resetPassword: "/auth/reset-password",
+    changePasswordRequestCode: "/auth/change-password/request-code",
   },
   accounts: {
     base: "/accounts",
