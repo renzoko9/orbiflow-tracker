@@ -11,9 +11,16 @@ export interface RegisterRequest {
 }
 
 export interface UserResponse {
+  id: number;
   name: string;
   lastname: string;
   email: string;
+  avatarUrl: string | null;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  lastname?: string;
 }
 
 export interface LoginTokens {

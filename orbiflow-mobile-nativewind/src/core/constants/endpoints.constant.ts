@@ -28,7 +28,7 @@ export const ENDPOINTS = Object.freeze({
     RESTORE: (id: number) => `/categories/${id}/restore`,
   },
   users: {
-    base: "/users",
-    BY_ID: (id: number) => `/users/${id}`,
+    me: "/users/me",
+    avatar: "/users/me/avatar",
   },
 });

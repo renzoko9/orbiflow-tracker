@@ -41,7 +41,14 @@
         }
       ],
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permite a OrbiFlow acceder a tu galería para elegir tu foto de perfil.",
+          "cameraPermission": "Permite a OrbiFlow usar la cámara para tomar tu foto de perfil."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

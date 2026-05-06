@@ -19,4 +19,7 @@ export const queryKeys = {
     archived: ["categories", "archived"] as const,
     detail: (id: number) => ["categories", id] as const,
   },
+  users: {
+    me: ["users", "me"] as const,
+  },
 } as const;

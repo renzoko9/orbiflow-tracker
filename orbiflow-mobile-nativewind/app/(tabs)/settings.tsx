@@ -40,6 +40,9 @@ export default function AjustesScreen() {
 
   const fullName = user ? `${user.name} ${user.lastname}`.trim() : "Usuario";
   const email = user?.email ?? "";
+  const avatarUrl = user?.avatarUrl ?? null;
+
+  const goToEditProfile = () => router.push("/profile/edit");
 
   const comingSoon = () =>
     showToast({
@@ -87,14 +90,19 @@ export default function AjustesScreen() {
           gap: 20,
         }}
       >
-        <ProfileHeader name={fullName} email={email} onPress={comingSoon} />
+        <ProfileHeader
+          name={fullName}
+          email={email}
+          avatarUrl={avatarUrl}
+          onPress={goToEditProfile}
+        />
 
         <SettingsSection title="Cuenta">
           <SettingsItem
             icon={<User size={ICON_SIZE} color={colors.primary[6]} />}
             title="Editar perfil"
-            subtitle="Nombre, correo electrónico"
-            onPress={comingSoon}
+            subtitle="Nombre, apellido y foto"
+            onPress={goToEditProfile}
           />
           <SettingsItem
             icon={<Lock size={ICON_SIZE} color={colors.primary[6]} />}

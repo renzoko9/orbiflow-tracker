@@ -9,3 +9,6 @@ export { useCreateCategory } from "./useCreateCategory";
 export { useUpdateCategory } from "./useUpdateCategory";
 export { useArchiveCategory } from "./useArchiveCategory";
 export { useRestoreCategory } from "./useRestoreCategory";
+export { useUpdateProfile } from "./useUpdateProfile";
+export { useUploadAvatar } from "./useUploadAvatar";
+export { useDeleteAvatar } from "./useDeleteAvatar";

@@ -7,6 +7,7 @@ export { useArchivedAccounts } from "./useArchivedAccounts";
 export { useTransactions } from "./useTransactions";
 export { useTransaction } from "./useTransaction";
 export { useTransactionsByAccount } from "./useTransactionsByAccount";
+export { useCurrentUser } from "./useCurrentUser";
 export {
   useCreateTransaction,
   useUpdateTransaction,
@@ -19,4 +20,7 @@ export {
   useUpdateCategory,
   useArchiveCategory,
   useRestoreCategory,
+  useUpdateProfile,
+  useUploadAvatar,
+  useDeleteAvatar,
 } from "./mutations";
