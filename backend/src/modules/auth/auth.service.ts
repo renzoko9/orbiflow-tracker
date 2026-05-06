@@ -224,6 +224,21 @@ export class AuthService {
     };
   }
 
+  async requestChangePasswordCode(userId: number): Promise<ResponseAPI> {
+    const user = await this.usersService.findOne(userId);
+
+    await this.passwordResetService.createAndSendResetToken(
+      user.id,
+      user.email,
+      user.name,
+    );
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      message: 'Te enviamos un código de 6 dígitos a tu correo.',
+    };
+  }
+
   async verifyResetCode(token: string): Promise<ResponseAPI> {
     const resetToken = await this.passwordResetService.verifyToken(token);
 

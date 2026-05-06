@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginRequest } from './dto/login.dto';
 import { ResponseAPI } from '@/common/interfaces/response.interface';
@@ -11,6 +11,8 @@ import { ForgotPasswordRequest } from './dto/forgot-password.dto';
 import { ResetPasswordRequest } from './dto/reset-password.dto';
 import { VerifyResetCodeRequest } from './dto/verify-reset-code.dto';
 import { Throttle } from '@nestjs/throttler';
+import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
+import { User } from '@/common/decorators/user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -66,5 +68,14 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Body('refreshToken') token: string) {
     return this.authService.refreshTokens(token);
+  }
+
+  @UseGuards(JwtAccessGuard)
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
+  @Post('change-password/request-code')
+  async requestChangePasswordCode(
+    @User('id') userId: number,
+  ): Promise<ResponseAPI> {
+    return this.authService.requestChangePasswordCode(userId);
   }
 }
