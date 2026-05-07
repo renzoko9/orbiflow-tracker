@@ -8,6 +8,8 @@ export { useTransactions } from "./useTransactions";
 export { useTransaction } from "./useTransaction";
 export { useTransactionsByAccount } from "./useTransactionsByAccount";
 export { useCurrentUser } from "./useCurrentUser";
+export { useMonthlyInsight } from "./useMonthlyInsight";
+export { useAccountsInsight } from "./useAccountsInsight";
 export {
   useCreateTransaction,
   useUpdateTransaction,

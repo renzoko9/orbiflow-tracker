@@ -22,4 +22,8 @@ export const queryKeys = {
   users: {
     me: ["users", "me"] as const,
   },
+  insights: {
+    monthly: ["insights", "monthly"] as const,
+    accounts: ["insights", "accounts"] as const,
+  },
 } as const;

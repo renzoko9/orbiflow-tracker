@@ -32,4 +32,8 @@ export const ENDPOINTS = Object.freeze({
     me: "/users/me",
     avatar: "/users/me/avatar",
   },
+  insights: {
+    monthly: "/insights/monthly",
+    accounts: "/insights/accounts",
+  },
 });

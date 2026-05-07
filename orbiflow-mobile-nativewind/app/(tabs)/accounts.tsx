@@ -18,13 +18,18 @@ import {
   AccountsHeader,
   AccountsDistributionCard,
 } from "@/src/ui/features/accounts";
-import { useAccounts, useArchivedAccounts } from "@/src/ui/hooks";
+import {
+  useAccounts,
+  useArchivedAccounts,
+  useAccountsInsight,
+} from "@/src/ui/hooks";
 
 export default function CuentasScreen() {
   const router = useRouter();
   const tabBarHeight = useBottomTabBarHeight();
   const { data: accounts = [], isLoading, error } = useAccounts();
   const { data: archived = [] } = useArchivedAccounts();
+  const { data: insight, isLoading: insightLoading } = useAccountsInsight();
 
   const totalBalance = useMemo(
     () => accounts.reduce((sum, acc) => sum + Number(acc.balance), 0),
@@ -58,10 +63,14 @@ export default function CuentasScreen() {
           <View className="px-4">
             <AccountsDistributionCard accounts={accounts} />
 
-            <AIInsightsCard
-              title="Optimiza tus cuentas"
-              description="Próximamente: sugerencias para mover y distribuir tu dinero entre cuentas según tus hábitos."
-            />
+            {(insightLoading || insight?.available) && (
+              <AIInsightsCard
+                isLoading={insightLoading}
+                title={insight?.title ?? ""}
+                description={insight?.description ?? ""}
+                bullets={insight?.bullets}
+              />
+            )}
 
             <View className="flex-row items-center justify-between mb-2">
               <Text className="text-base font-semibold text-text-light">

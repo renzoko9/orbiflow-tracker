@@ -17,7 +17,11 @@ import {
   aggregateMonth,
   topExpenseCategories,
 } from "@/src/ui/features/home";
-import { useAccounts, useTransactions } from "@/src/ui/hooks";
+import {
+  useAccounts,
+  useTransactions,
+  useMonthlyInsight,
+} from "@/src/ui/hooks";
 import { useAuthStore } from "@/src/core/store/auth.store";
 
 export default function InicioScreen() {
@@ -35,6 +39,8 @@ export default function InicioScreen() {
     dateFrom: previousMonthRange.dateFrom,
     dateTo: currentMonthRange.dateTo,
   });
+
+  const { data: insight, isLoading: insightLoading } = useMonthlyInsight();
 
   const totalBalance = useMemo(
     () => accounts.reduce((sum, acc) => sum + Number(acc.balance), 0),
@@ -100,10 +106,14 @@ export default function InicioScreen() {
               totalExpenses={currentSummary.expenses}
             />
 
-            <AIInsightsCard
-              title="Análisis inteligente"
-              description="Próximamente: recomendaciones personalizadas según tus hábitos de gasto e ingreso."
-            />
+            {(insightLoading || insight?.available) && (
+              <AIInsightsCard
+                isLoading={insightLoading}
+                title={insight?.title ?? ""}
+                description={insight?.description ?? ""}
+                bullets={insight?.bullets}
+              />
+            )}
 
             <RecentTransactionsCard
               transactions={recentTransactions}
