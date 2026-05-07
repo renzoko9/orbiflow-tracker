@@ -1,4 +1,4 @@
-export interface MonthlyInsightResponse {
+export interface InsightResponse {
   available: boolean;
   title: string;
   description: string;

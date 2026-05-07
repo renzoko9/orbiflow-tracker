@@ -12,7 +12,6 @@ import { colors } from "@/src/ui/theme/colors";
 import { Alert as AlertBox, showToast } from "@/src/ui/components/atoms";
 import {
   ScreenHeader,
-  AIInsightsCard,
   KebabMenu,
   type KebabMenuItem,
 } from "@/src/ui/components/molecules";
@@ -114,29 +113,29 @@ export default function CategoryDetailScreen() {
 
   const menuItems: KebabMenuItem[] = isArchived
     ? [
-        {
-          label: "Restaurar",
-          icon: <RotateCcw size={18} color={colors.text.light} />,
-          onPress: handleRestore,
-        },
-      ]
+      {
+        label: "Restaurar",
+        icon: <RotateCcw size={18} color={colors.text.light} />,
+        onPress: handleRestore,
+      },
+    ]
     : [
-        {
-          label: "Editar",
-          icon: <Pencil size={18} color={colors.text.light} />,
-          onPress: () =>
-            router.push({
-              pathname: "/categories/edit/[id]",
-              params: { id: String(categoryId) },
-            }),
-        },
-        {
-          label: "Eliminar",
-          icon: <Trash2 size={18} color={colors.error.medium} />,
-          onPress: handleArchive,
-          variant: "danger",
-        },
-      ];
+      {
+        label: "Editar",
+        icon: <Pencil size={18} color={colors.text.light} />,
+        onPress: () =>
+          router.push({
+            pathname: "/categories/edit/[id]",
+            params: { id: String(categoryId) },
+          }),
+      },
+      {
+        label: "Eliminar",
+        icon: <Trash2 size={18} color={colors.error.medium} />,
+        onPress: handleArchive,
+        variant: "danger",
+      },
+    ];
 
   return (
     <SafeAreaView className="flex-1 bg-inverse">
@@ -188,13 +187,6 @@ export default function CategoryDetailScreen() {
                   conservan, pero no aparece al registrar nuevos.
                 </Text>
               </View>
-            )}
-
-            {!isArchived && (
-              <AIInsightsCard
-                title="Análisis inteligente"
-                description={`Próximamente: insights específicos sobre tus movimientos en "${category.name}".`}
-              />
             )}
           </View>
         </ScrollView>

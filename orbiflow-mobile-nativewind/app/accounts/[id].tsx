@@ -14,7 +14,6 @@ import { colors } from "@/src/ui/theme/colors";
 import { Alert as AlertBox, showToast } from "@/src/ui/components/atoms";
 import {
   ScreenHeader,
-  AIInsightsCard,
   KebabMenu,
   type KebabMenuItem,
 } from "@/src/ui/components/molecules";
@@ -140,29 +139,29 @@ export default function AccountDetailScreen() {
 
   const menuItems: KebabMenuItem[] = isArchived
     ? [
-        {
-          label: "Restaurar",
-          icon: <RotateCcw size={18} color={colors.text.light} />,
-          onPress: handleRestore,
-        },
-      ]
+      {
+        label: "Restaurar",
+        icon: <RotateCcw size={18} color={colors.text.light} />,
+        onPress: handleRestore,
+      },
+    ]
     : [
-        {
-          label: "Editar",
-          icon: <Pencil size={18} color={colors.text.light} />,
-          onPress: () =>
-            router.push({
-              pathname: "/accounts/edit/[id]",
-              params: { id: String(accountId) },
-            }),
-        },
-        {
-          label: "Eliminar",
-          icon: <Trash2 size={18} color={colors.error.medium} />,
-          onPress: handleArchive,
-          variant: "danger",
-        },
-      ];
+      {
+        label: "Editar",
+        icon: <Pencil size={18} color={colors.text.light} />,
+        onPress: () =>
+          router.push({
+            pathname: "/accounts/edit/[id]",
+            params: { id: String(accountId) },
+          }),
+      },
+      {
+        label: "Eliminar",
+        icon: <Trash2 size={18} color={colors.error.medium} />,
+        onPress: handleArchive,
+        variant: "danger",
+      },
+    ];
 
   return (
     <SafeAreaView className="flex-1 bg-inverse">
@@ -267,13 +266,6 @@ export default function AccountDetailScreen() {
                   );
                 })}
               </View>
-            )}
-
-            {!isArchived && (
-              <AIInsightsCard
-                title="Análisis inteligente"
-                description={`Próximamente: insights específicos sobre tus movimientos en "${account.name}".`}
-              />
             )}
           </View>
         </ScrollView>
