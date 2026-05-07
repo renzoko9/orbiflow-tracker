@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Between, IsNull } from 'typeorm';
+import { createHash } from 'crypto';
 import { AIInsight, InsightContent } from '@Entities';
 import {
   AIInsightRepository,
@@ -74,20 +75,13 @@ const INSIGHT_TOOL = {
       description: {
         type: 'string',
         description:
-          'Descripcion narrativa de 1 a 2 oraciones. Tono cercano y motivador.',
-      },
-      bullets: {
-        type: 'array',
-        items: { type: 'string' },
-        description:
-          'De 2 a 4 puntos clave concretos basados en los datos. Cada uno max 80 caracteres.',
+          'Descripcion narrativa de 2 a 3 oraciones. Incluye los numeros concretos relevantes (montos, porcentajes) directamente en el texto. Tono cercano y motivador.',
       },
     },
-    required: ['title', 'description', 'bullets'],
+    required: ['title', 'description'],
   },
 };
 
-const CACHE_TTL_HOURS = 6;
 const ACTIVE_DAYS_THRESHOLD = 30;
 
 @Injectable()
@@ -103,53 +97,45 @@ export class InsightsService {
 
   async getMonthlyInsight(userId: number): Promise<InsightResponse> {
     const period = this.currentPeriod();
+    const data = await this.aggregateMonthly(userId, period);
+
+    if (data.transactionCount === 0) {
+      return this.emptyResponse(period, {
+        title: 'Sin movimientos este mes',
+        description:
+          'Aun no registras ingresos ni gastos. Empieza agregando tus primeras transacciones para ver analisis personalizados.',
+      });
+    }
+
     return this.getOrGenerate({
       userId,
       type: 'monthly_summary',
       period,
-      buildPrompts: async () => {
-        const data = await this.aggregateMonthly(userId, period);
-        if (data.transactionCount === 0) {
-          return {
-            empty: {
-              title: 'Sin movimientos este mes',
-              description:
-                'Aun no registras ingresos ni gastos. Empieza agregando tus primeras transacciones para ver analisis personalizados.',
-              bullets: [],
-            },
-          };
-        }
-        return {
-          systemPrompt: this.buildMonthlySystemPrompt(),
-          userPrompt: this.buildMonthlyUserPrompt(data),
-        };
-      },
+      fingerprint: this.computeMonthlyFingerprint(data),
+      systemPrompt: this.buildMonthlySystemPrompt(),
+      userPrompt: this.buildMonthlyUserPrompt(data),
     });
   }
 
   async getAccountsInsight(userId: number): Promise<InsightResponse> {
     const period = this.currentPeriod();
+    const data = await this.aggregateAccounts(userId);
+
+    if (data.accounts.length === 0) {
+      return this.emptyResponse(period, {
+        title: 'Sin cuentas registradas',
+        description:
+          'Aun no creaste cuentas. Agrega al menos una para ver analisis sobre tu distribucion de dinero.',
+      });
+    }
+
     return this.getOrGenerate({
       userId,
       type: 'accounts_distribution',
       period,
-      buildPrompts: async () => {
-        const data = await this.aggregateAccounts(userId);
-        if (data.accounts.length === 0) {
-          return {
-            empty: {
-              title: 'Sin cuentas registradas',
-              description:
-                'Aun no creaste cuentas. Agrega al menos una para ver analisis sobre tu distribucion de dinero.',
-              bullets: [],
-            },
-          };
-        }
-        return {
-          systemPrompt: this.buildAccountsSystemPrompt(),
-          userPrompt: this.buildAccountsUserPrompt(data),
-        };
-      },
+      fingerprint: this.computeAccountsFingerprint(data),
+      systemPrompt: this.buildAccountsSystemPrompt(),
+      userPrompt: this.buildAccountsUserPrompt(data),
     });
   }
 
@@ -157,40 +143,25 @@ export class InsightsService {
     userId: number;
     type: string;
     period: string;
-    buildPrompts: () => Promise<
-      | { empty: InsightContent }
-      | { systemPrompt: string; userPrompt: string }
-    >;
+    fingerprint: string;
+    systemPrompt: string;
+    userPrompt: string;
   }): Promise<InsightResponse> {
-    const { userId, type, period, buildPrompts } = params;
+    const { userId, type, period, fingerprint, systemPrompt, userPrompt } =
+      params;
 
     const cached = await this.aiInsightRepo.findOne({
-      where: { userId, type, period },
-      order: { generatedAt: 'DESC' },
+      where: { userId, type, period, dataFingerprint: fingerprint },
     });
 
-    if (cached && this.isFresh(cached.generatedAt)) {
+    if (cached) {
       return this.toResponse(cached, period, true);
-    }
-
-    const prompts = await buildPrompts();
-
-    if ('empty' in prompts) {
-      return {
-        available: true,
-        title: prompts.empty.title,
-        description: prompts.empty.description,
-        bullets: prompts.empty.bullets,
-        period,
-        generatedAt: new Date(),
-        cached: false,
-      };
     }
 
     try {
       const llmResponse = await this.llm.generate({
-        systemPrompt: prompts.systemPrompt,
-        userPrompt: prompts.userPrompt,
+        systemPrompt,
+        userPrompt,
         tools: [INSIGHT_TOOL],
         toolChoice: { type: 'tool', name: 'emit_insight' },
         maxTokens: 800,
@@ -206,6 +177,7 @@ export class InsightsService {
         userId,
         type,
         period,
+        dataFingerprint: fingerprint,
         content,
         inputTokens: llmResponse.usage.inputTokens,
         outputTokens: llmResponse.usage.outputTokens,
@@ -221,20 +193,37 @@ export class InsightsService {
         `Error generando insight ${type} para usuario ${userId}: ${(error as Error).message}`,
       );
 
-      if (cached) {
-        return this.toResponse(cached, period, true);
+      const latest = await this.aiInsightRepo.findOne({
+        where: { userId, type, period },
+        order: { generatedAt: 'DESC' },
+      });
+      if (latest) {
+        return this.toResponse(latest, period, true);
       }
 
       return {
         available: false,
         title: '',
         description: '',
-        bullets: [],
         period,
         generatedAt: new Date(),
         cached: false,
       };
     }
+  }
+
+  private emptyResponse(
+    period: string,
+    content: { title: string; description: string },
+  ): InsightResponse {
+    return {
+      available: true,
+      title: content.title,
+      description: content.description,
+      period,
+      generatedAt: new Date(),
+      cached: false,
+    };
   }
 
   private toResponse(
@@ -246,16 +235,46 @@ export class InsightsService {
       available: true,
       title: insight.content.title,
       description: insight.content.description,
-      bullets: insight.content.bullets,
       period,
       generatedAt: insight.generatedAt,
       cached,
     };
   }
 
-  private isFresh(generatedAt: Date): boolean {
-    const ageMs = Date.now() - new Date(generatedAt).getTime();
-    return ageMs < CACHE_TTL_HOURS * 60 * 60 * 1000;
+  private computeMonthlyFingerprint(data: MonthlyData): string {
+    const cats = [...data.topCategories]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((c) => `${c.name}:${c.amount.toFixed(2)}`)
+      .join(',');
+    const prev = data.previousMonth
+      ? `${data.previousMonth.totalIncome.toFixed(2)}|${data.previousMonth.totalExpense.toFixed(2)}`
+      : 'none';
+    const parts = [
+      `period=${data.period}`,
+      `dayMTD=${data.daysElapsed}`,
+      `txCount=${data.transactionCount}`,
+      `inc=${data.totalIncome.toFixed(2)}`,
+      `exp=${data.totalExpense.toFixed(2)}`,
+      `prev=${prev}`,
+      `cats=${cats}`,
+      `wd=${data.weekdayExpense.toFixed(2)}|${data.weekdayTransactionCount}`,
+      `we=${data.weekendExpense.toFixed(2)}|${data.weekendTransactionCount}`,
+    ];
+    return createHash('sha256').update(parts.join('||')).digest('hex');
+  }
+
+  private computeAccountsFingerprint(data: AccountsData): string {
+    const accountsPart = [...data.accounts]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((a) => `${a.name}:${a.balance.toFixed(2)}:${a.isActive ? '1' : '0'}`)
+      .join(',');
+    const parts = [
+      `total=${data.totalWealth.toFixed(2)}`,
+      `prev=${data.previousMonthTotalWealth.toFixed(2)}`,
+      `active=${data.activeCount}|${data.inactiveCount}`,
+      `accounts=${accountsPart}`,
+    ];
+    return createHash('sha256').update(parts.join('||')).digest('hex');
   }
 
   private currentPeriod(): string {
@@ -289,7 +308,8 @@ export class InsightsService {
     const now = new Date();
     const daysInMonth = end.getDate();
     const daysElapsed = Math.min(
-      now.getMonth() === start.getMonth() && now.getFullYear() === start.getFullYear()
+      now.getMonth() === start.getMonth() &&
+        now.getFullYear() === start.getFullYear()
         ? now.getDate()
         : daysInMonth,
       daysInMonth,
@@ -440,7 +460,11 @@ export class InsightsService {
       const type = cur?.type ?? prev?.type ?? CategoryTypeEnum.Expense;
       const deltaAmount = curAmount - prevAmount;
       const deltaPercent =
-        prevAmount > 0 ? (deltaAmount / prevAmount) * 100 : curAmount > 0 ? 100 : 0;
+        prevAmount > 0
+          ? (deltaAmount / prevAmount) * 100
+          : curAmount > 0
+            ? 100
+            : 0;
 
       deltas.push({
         name,
@@ -520,7 +544,9 @@ export class InsightsService {
           totalWealth !== 0 ? (balance / totalWealth) * 100 : 0;
         const lastTx = lastTxByAccount.get(a.id);
         const daysSinceLastTransaction = lastTx
-          ? Math.floor((now.getTime() - lastTx.getTime()) / (1000 * 60 * 60 * 24))
+          ? Math.floor(
+              (now.getTime() - lastTx.getTime()) / (1000 * 60 * 60 * 24),
+            )
           : null;
         const isActive =
           daysSinceLastTransaction !== null &&
@@ -568,7 +594,7 @@ export class InsightsService {
       '2) CATEGORIA QUE CRECE: si una categoria tuvo una variacion fuerte (>= 20% absoluta) vs el mes anterior, destacala con numeros concretos.',
       '3) HABITO DE GASTO: si hay diferencia clara entre gasto promedio de fin de semana vs dias de semana, mencionala (calcula promedios por cantidad de transacciones, no por dia).',
       'Si los datos no soportan ningun angulo (mes muy chico, sin mes previo), haz un resumen cualitativo simple sin forecast ni comparativas.',
-      'Devuelve siempre el resultado via la tool emit_insight con title, description y 2 a 4 bullets concretos.',
+      'Devuelve siempre el resultado via la tool emit_insight con un title corto (max 60 caracteres) y una description de 1 a 2 oraciones que incluya los numeros concretos clave directamente en el texto. No uses listas ni bullets.',
     ].join(' ');
   }
 
@@ -643,7 +669,7 @@ export class InsightsService {
       '2) BALANCE ENTRE CUENTAS ACTIVAS: si la distribucion entre cuentas activas se ve saludable o desequilibrada, mencionalo con porcentajes concretos.',
       '3) TENDENCIA PATRIMONIAL: si el patrimonio total crecio o decrecio respecto al mes anterior, destacalo con monto y porcentaje.',
       'Si solo hay una cuenta, no hables de concentracion como problema: enfocate en tendencia o en sugerir diversificacion futura.',
-      'Devuelve siempre el resultado via la tool emit_insight con title, description y 2 a 4 bullets concretos.',
+      'Devuelve siempre el resultado via la tool emit_insight con un title corto (max 60 caracteres) y una description de 2 a 3 oraciones que incluya los numeros concretos clave directamente en el texto. No uses listas ni bullets.',
     ].join(' ');
   }
 

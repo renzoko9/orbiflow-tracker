@@ -12,11 +12,10 @@ import { User } from './user.entity';
 export interface InsightContent {
   title: string;
   description: string;
-  bullets: string[];
 }
 
 @Entity('ai_insights')
-@Index(['userId', 'type', 'period'])
+@Index(['userId', 'type', 'period', 'dataFingerprint'])
 export class AIInsight {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,6 +32,9 @@ export class AIInsight {
 
   @Column({ length: 7 })
   period: string;
+
+  @Column({ name: 'data_fingerprint', type: 'varchar', length: 64, nullable: true })
+  dataFingerprint: string | null;
 
   @Column({ type: 'jsonb' })
   content: InsightContent;
