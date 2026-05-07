@@ -7,6 +7,7 @@ import { TransactionsModule } from '../transactions/transactions.module';
 import { InsightsController } from './controllers/insights.controller';
 import { InsightsService } from './services/insights.service';
 import { AnthropicProvider } from './providers/anthropic.provider';
+import { OpenAIProvider } from './providers/openai.provider';
 import { LLM_PROVIDER } from './providers/llm.provider';
 
 @Module({
@@ -20,10 +21,10 @@ import { LLM_PROVIDER } from './providers/llm.provider';
     InsightsService,
     AIInsightRepository,
     AnthropicProvider,
-    {
-      provide: LLM_PROVIDER,
-      useExisting: AnthropicProvider,
-    },
+    OpenAIProvider,
+    // Switch manual de proveedor: cambia el useExisting de abajo
+    // { provide: LLM_PROVIDER, useExisting: AnthropicProvider },
+    { provide: LLM_PROVIDER, useExisting: OpenAIProvider },
   ],
 })
 export class AIModule {}
