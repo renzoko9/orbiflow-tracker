@@ -68,7 +68,6 @@ export default function CuentasScreen() {
                 isLoading={insightLoading}
                 title={insight?.title ?? ""}
                 description={insight?.description ?? ""}
-                bullets={insight?.bullets}
               />
             )}
 

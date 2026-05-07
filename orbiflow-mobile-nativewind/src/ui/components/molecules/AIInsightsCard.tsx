@@ -5,14 +5,12 @@ import { colors } from "@/src/ui/theme/colors";
 interface AIInsightsCardProps {
   title: string;
   description: string;
-  bullets?: string[];
   isLoading?: boolean;
 }
 
 export function AIInsightsCard({
   title,
   description,
-  bullets,
   isLoading = false,
 }: AIInsightsCardProps) {
   return (
@@ -32,21 +30,7 @@ export function AIInsightsCard({
           <ActivityIndicator color="#fff" />
         </View>
       ) : (
-        <>
-          <Text className="text-white/80 text-sm leading-5">{description}</Text>
-          {bullets && bullets.length > 0 && (
-            <View className="mt-3">
-              {bullets.map((bullet, i) => (
-                <View key={i} className="flex-row mb-1">
-                  <Text className="text-white/80 text-sm mr-2">•</Text>
-                  <Text className="text-white/80 text-sm leading-5 flex-1">
-                    {bullet}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </>
+        <Text className="text-white/80 text-sm leading-5">{description}</Text>
       )}
     </View>
   );

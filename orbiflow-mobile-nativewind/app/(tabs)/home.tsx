@@ -111,7 +111,6 @@ export default function InicioScreen() {
                 isLoading={insightLoading}
                 title={insight?.title ?? ""}
                 description={insight?.description ?? ""}
-                bullets={insight?.bullets}
               />
             )}
 

@@ -12,17 +12,14 @@ function TabBarBlurBackground() {
   return (
     <BlurView
       tint="light"
-      intensity={Platform.OS === "ios" ? 50 : 70}
+      intensity={Platform.OS === "ios" ? 60 : 80}
       style={[
         StyleSheet.absoluteFillObject,
         {
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           overflow: "hidden",
-          backgroundColor:
-            Platform.OS === "android"
-              ? "rgba(241, 246, 246, 0.8)"
-              : "rgba(241, 246, 246, 0.55)",
+          backgroundColor: "rgba(241, 246, 246, 0.9)",
         },
       ]}
     />
