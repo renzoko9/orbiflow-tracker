@@ -1,9 +1,10 @@
 import { Platform, StyleSheet, View } from "react-native";
-import { Tabs, useSegments } from "expo-router";
+import { Redirect, Tabs, useSegments } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { Home, ArrowLeftRight, Wallet, Settings } from "lucide-react-native";
 import { FloatingAddButton } from "@/src/ui/components/molecules";
+import { useAuthStore } from "@/src/core/store";
 
 const TAB_BAR_HEIGHT = 80;
 const FAB_ALLOWED_TABS = ["home", "transactions"];
@@ -27,8 +28,14 @@ function TabBarBlurBackground() {
 }
 
 export default function TabLayout() {
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const insets = useSafeAreaInsets();
   const segments = useSegments();
+
+  if (!isHydrated) return null;
+
+  if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
   const currentTab = segments[segments.length - 1];
   const showFab = FAB_ALLOWED_TABS.includes(currentTab);
   const fabBottom =
