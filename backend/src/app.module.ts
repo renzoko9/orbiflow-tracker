@@ -8,7 +8,13 @@ import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath:
+        process.env.NODE_ENV && process.env.NODE_ENV !== 'development'
+          ? [`.env.${process.env.NODE_ENV}`, '.env']
+          : ['.env'],
+    }),
     TypeOrmModule.forRoot(typeOrmConfig()),
     ThrottlerModule.forRoot([
       {
