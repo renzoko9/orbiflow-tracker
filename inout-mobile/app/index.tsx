@@ -19,9 +19,8 @@ export default function Index() {
     );
   }
 
-  // TODO: redirigir a /(tabs)/home cuando se incorpore el dashboard.
   return isAuthenticated ? (
-    <Redirect href="/(auth)/login" />
+    <Redirect href="/(tabs)/home" />
   ) : (
     <Redirect href="/(auth)/login" />
   );
