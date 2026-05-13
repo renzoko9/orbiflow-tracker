@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "INOUT",
+    "slug": "inout-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "inout",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.inout.mobile"
+    },
+    "android": {
+      "package": "com.inout.mobile",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FAF7F2",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#0F1535"
+          }
+        }
+      ],
+      "expo-secure-store",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permite a INOUT acceder a tu galería para elegir tu foto de perfil.",
+          "cameraPermission": "Permite a INOUT usar la cámara para tomar tu foto de perfil."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
