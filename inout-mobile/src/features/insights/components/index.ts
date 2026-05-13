@@ -1,0 +1,1 @@
+export { AIInsightsCard } from "./AIInsightsCard";
