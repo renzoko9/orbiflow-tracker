@@ -20,3 +20,4 @@ export { SelectField } from "./SelectField";
 export { DateField } from "./DateField";
 export { FloatingAddButton } from "./FloatingAddButton";
 export { Card } from "./Card";
+export { SectionEyebrow } from "./SectionEyebrow";

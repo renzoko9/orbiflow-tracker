@@ -1,117 +1,63 @@
-import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { List, PieChart } from "lucide-react-native";
-import { Card } from "@/shared/ui";
-import { useThemeTokens } from "@/shared/theme";
+import { Text, View } from "react-native";
+import { SectionEyebrow } from "@/shared/ui";
 import { formatCurrency } from "@/shared/i18n";
-import { getIconComponent } from "@/shared/utils";
 import type { CategoryAggregate } from "../model";
-import { CategoryDonutChart } from "./CategoryDonutChart";
-
-type ViewMode = "list" | "chart";
 
 interface TopCategoriesCardProps {
   categories: CategoryAggregate[];
   totalExpenses: number;
 }
 
+const tabular = { fontVariant: ["tabular-nums" as const] };
+
 export function TopCategoriesCard({
   categories,
   totalExpenses,
 }: TopCategoriesCardProps) {
-  const tokens = useThemeTokens();
-  const [mode, setMode] = useState<ViewMode>("chart");
-
   if (categories.length === 0 || totalExpenses === 0) return null;
 
   return (
-    <View className="mb-4">
-      <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-base font-semibold text-textPrimary">
-          En que gastaste mas?
-        </Text>
-        <View className="flex-row items-center gap-1 bg-surfaceMuted rounded-lg p-0.5">
-          <TouchableOpacity
-            onPress={() => setMode("list")}
-            hitSlop={6}
-            className={`px-2 py-1 rounded-md ${
-              mode === "list" ? "bg-surface" : ""
-            }`}
-            activeOpacity={0.7}
-          >
-            <List
-              size={16}
-              color={mode === "list" ? tokens.brand : tokens.textSecondary}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setMode("chart")}
-            hitSlop={6}
-            className={`px-2 py-1 rounded-md ${
-              mode === "chart" ? "bg-surface" : ""
-            }`}
-            activeOpacity={0.7}
-          >
-            <PieChart
-              size={16}
-              color={mode === "chart" ? tokens.brand : tokens.textSecondary}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+    <View className="px-5 mb-8">
+      <SectionEyebrow label="En que gastaste · Este mes" />
 
-      <Card padded={false} className="overflow-hidden">
-        {mode === "list" ? (
-          categories.map((cat, idx) => {
-            const Icon = getIconComponent(cat.icon);
-            const percentage = (cat.amount / totalExpenses) * 100;
-            const isLast = idx === categories.length - 1;
-
-            return (
-              <View
-                key={cat.id}
-                className={`flex-row items-center px-4 py-3 ${
-                  !isLast ? "border-b border-border" : ""
-                }`}
-              >
-                <View
-                  className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                  style={{ backgroundColor: cat.color + "25" }}
+      <View className="gap-4">
+        {categories.map((cat) => {
+          const percentage = (cat.amount / totalExpenses) * 100;
+          return (
+            <View key={cat.id}>
+              <View className="flex-row items-baseline justify-between mb-1.5">
+                <Text
+                  className="text-base font-medium text-textPrimary flex-1 mr-3"
+                  numberOfLines={1}
                 >
-                  <Icon size={20} color={cat.color} />
-                </View>
-                <View className="flex-1 mr-3">
-                  <Text
-                    className="text-base font-medium text-textPrimary mb-2"
-                    numberOfLines={1}
-                  >
-                    {cat.name}
-                  </Text>
-                  <View className="h-1.5 rounded-full bg-surfaceMuted overflow-hidden">
-                    <View
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${percentage}%`,
-                        backgroundColor: cat.color,
-                      }}
-                    />
-                  </View>
-                </View>
-                <Text className="text-base font-semibold text-textPrimary">
+                  {cat.name}
+                </Text>
+                <Text
+                  className="text-base font-bold text-textPrimary"
+                  style={tabular}
+                >
                   {formatCurrency(cat.amount)}
                 </Text>
               </View>
-            );
-          })
-        ) : (
-          <View className="px-4 py-4">
-            <CategoryDonutChart
-              categories={categories}
-              totalExpenses={totalExpenses}
-            />
-          </View>
-        )}
-      </Card>
+              <View className="h-1.5 rounded-full bg-surfaceMuted overflow-hidden">
+                <View
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${percentage}%`,
+                    backgroundColor: cat.color,
+                  }}
+                />
+              </View>
+              <Text
+                className="text-[11px] text-textTertiary mt-1"
+                style={tabular}
+              >
+                {percentage.toFixed(0)}% del total
+              </Text>
+            </View>
+          );
+        })}
+      </View>
     </View>
   );
 }

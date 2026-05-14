@@ -5,17 +5,21 @@ import { useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Alert, Loading } from "@/shared/ui";
 import { useAuthStore } from "@/shared/auth";
-import { getCurrentMonthLabel, getCurrentMonthRange, getPreviousMonthRange } from "@/shared/utils";
+import { getCurrentMonthRange, getPreviousMonthRange } from "@/shared/utils";
 import { useAccounts } from "@/features/accounts";
 import { useTransactions } from "@/features/transactions";
 import { AIInsightsCard, useMonthlyInsight } from "@/features/insights";
 import {
+  BalanceOverviewCard,
   HomeHeader,
-  MonthlySummaryCard,
   RecentTransactionsCard,
   TopCategoriesCard,
 } from "../components";
 import { aggregateMonth, topExpenseCategories } from "../model";
+
+function Hairline() {
+  return <View className="h-px bg-border mx-5 mb-8" />;
+}
 
 export function HomeScreen() {
   const router = useRouter();
@@ -24,7 +28,6 @@ export function HomeScreen() {
 
   const currentMonthRange = useMemo(() => getCurrentMonthRange(), []);
   const previousMonthRange = useMemo(() => getPreviousMonthRange(), []);
-  const monthName = useMemo(() => getCurrentMonthLabel(), []);
 
   const { data: accounts = [] } = useAccounts();
 
@@ -71,6 +74,8 @@ export function HomeScreen() {
     [transactions],
   );
 
+  const showInsight = insightLoading || insight?.available;
+
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
@@ -78,23 +83,20 @@ export function HomeScreen() {
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}
+        contentContainerStyle={{ paddingBottom: tabBarHeight + 32 }}
       >
-        <HomeHeader
-          userName={user?.name ?? "Usuario"}
-          totalBalance={totalBalance}
-        />
+        <HomeHeader userName={user?.name ?? "Usuario"} />
 
         {isLoading ? (
           <Loading />
         ) : error ? (
-          <View className="px-4">
+          <View className="px-5">
             <Alert variant="error" message={error.message} />
           </View>
         ) : (
-          <View className="px-4">
-            <MonthlySummaryCard
-              monthName={monthName}
+          <>
+            <BalanceOverviewCard
+              totalBalance={totalBalance}
               income={currentSummary.income}
               expenses={currentSummary.expenses}
               previousNet={previousSummary.net}
@@ -105,19 +107,24 @@ export function HomeScreen() {
               totalExpenses={currentSummary.expenses}
             />
 
-            {(insightLoading || insight?.available) && (
-              <AIInsightsCard
-                isLoading={insightLoading}
-                title={insight?.title ?? ""}
-                description={insight?.description ?? ""}
-              />
+            {showInsight && (
+              <>
+                <Hairline />
+                <View className="px-5 mb-8">
+                  <AIInsightsCard
+                    isLoading={insightLoading}
+                    title={insight?.title ?? ""}
+                    description={insight?.description ?? ""}
+                  />
+                </View>
+              </>
             )}
 
             <RecentTransactionsCard
               transactions={recentTransactions}
               onSeeAll={() => router.push("/transactions")}
             />
-          </View>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>

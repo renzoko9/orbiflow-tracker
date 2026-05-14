@@ -1,9 +1,7 @@
 import { Text, View } from "react-native";
-import { formatCurrency } from "@/shared/i18n";
 
 interface HomeHeaderProps {
   userName: string;
-  totalBalance: number;
 }
 
 function getGreeting(): string {
@@ -13,16 +11,15 @@ function getGreeting(): string {
   return "Buenas noches";
 }
 
-export function HomeHeader({ userName, totalBalance }: HomeHeaderProps) {
+export function HomeHeader({ userName }: HomeHeaderProps) {
   return (
-    <View className="px-4 pt-4 pb-6">
-      <Text className="text-base text-textSecondary">{getGreeting()},</Text>
-      <Text className="text-2xl font-bold text-textPrimary mb-5">
+    <View className="px-5 pt-6 pb-6">
+      <Text className="text-sm text-textTertiary">{getGreeting()},</Text>
+      <Text
+        className="text-3xl font-extrabold text-textPrimary mt-1"
+        style={{ letterSpacing: -0.5 }}
+      >
         {userName}
-      </Text>
-      <Text className="text-sm text-textSecondary mb-1">Tu balance total</Text>
-      <Text className="text-4xl font-semibold text-textPrimary">
-        {formatCurrency(totalBalance)}
       </Text>
     </View>
   );

@@ -1,5 +1,6 @@
 import { ActivityIndicator, Text, View } from "react-native";
 import { Sparkles } from "lucide-react-native";
+import { useThemeTokens } from "@/shared/theme";
 
 interface AIInsightsCardProps {
   title: string;
@@ -8,31 +9,43 @@ interface AIInsightsCardProps {
 }
 
 /**
- * Card destacada para mostrar un insight generado con IA.
- * Usa `surfaceInverse` para resaltar contra el fondo claro.
+ * Insight con pleca lateral mango sobre fondo suave del mismo tono.
+ * Crea un acento calido que rompe el ritmo de los bloques fríos.
  */
 export function AIInsightsCard({
   title,
   description,
   isLoading = false,
 }: AIInsightsCardProps) {
+  const tokens = useThemeTokens();
+
   return (
-    <View className="rounded-2xl px-4 py-5 mb-4 bg-surfaceInverse">
-      <View className="flex-row items-center mb-2">
-        <Sparkles size={20} color="#fff" />
-        <Text className="text-textInverse font-semibold text-base ml-2">
-          {isLoading ? "Generando insight..." : title}
+    <View
+      className="bg-accentSoft rounded-xl pl-5 pr-5 py-5 border-l-[3px] border-accent"
+    >
+      <View className="flex-row items-center gap-2 mb-2">
+        <Sparkles size={14} color={tokens.accentStrong} />
+        <Text
+          className="text-[10px] font-bold text-accentStrong uppercase"
+          style={{ letterSpacing: 1.5 }}
+        >
+          Insight mensual
         </Text>
       </View>
 
       {isLoading ? (
-        <View className="py-3">
-          <ActivityIndicator color="#fff" />
+        <View className="py-2">
+          <ActivityIndicator color={tokens.accentStrong} />
         </View>
       ) : (
-        <Text className="text-textInverse opacity-80 text-sm leading-5">
-          {description}
-        </Text>
+        <>
+          <Text className="text-base font-bold text-onAccent mb-1">
+            {title}
+          </Text>
+          <Text className="text-sm text-onAccent/80 leading-5">
+            {description}
+          </Text>
+        </>
       )}
     </View>
   );
