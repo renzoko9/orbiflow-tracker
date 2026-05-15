@@ -29,14 +29,14 @@ export function BalanceOverviewCard({
   return (
     <View className="rounded-2xl bg-brandStrong p-6 mx-5 mb-8">
       <Text
-        className="text-[11px] font-bold text-textInverse/60 uppercase"
-        style={{ letterSpacing: 1.2 }}
+        className="text-[11px] font-sans-bold text-textInverse/60 uppercase"
+        style={{ letterSpacing: 0.4 }}
       >
         Balance total
       </Text>
       <Text
-        className="text-[36px] font-extrabold text-textInverse mt-2"
-        style={[{ letterSpacing: -1.2, lineHeight: 40 }, tabular]}
+        className="text-[42px] font-display-bold text-textInverse mt-2"
+        style={[{ letterSpacing: 0, lineHeight: 48 }, tabular]}
       >
         {formatCurrency(totalBalance)}
       </Text>
@@ -49,9 +49,8 @@ export function BalanceOverviewCard({
             <TrendingDown size={14} color={tokens.danger} />
           )}
           <Text
-            className={`text-xs font-semibold ${
-              isPositive ? "text-success" : "text-danger"
-            }`}
+            className={`text-xs font-sans-semibold ${isPositive ? "text-success" : "text-danger"
+              }`}
             style={tabular}
           >
             {isPositive ? "+" : "−"}
@@ -65,13 +64,13 @@ export function BalanceOverviewCard({
       <View className="flex-row">
         <View className="flex-1">
           <Text
-            className="text-[10px] font-bold text-textInverse/60 uppercase"
-            style={{ letterSpacing: 1.2 }}
+            className="text-[10px] font-sans-bold text-textInverse/60 uppercase"
+            style={{ letterSpacing: 0.4 }}
           >
             Ingresos
           </Text>
           <Text
-            className="text-base font-bold text-success mt-1.5"
+            className="text-base font-display-bold text-success mt-1.5"
             style={tabular}
           >
             {formatCurrency(income)}
@@ -79,13 +78,13 @@ export function BalanceOverviewCard({
         </View>
         <View className="flex-1">
           <Text
-            className="text-[10px] font-bold text-textInverse/60 uppercase"
-            style={{ letterSpacing: 1.2 }}
+            className="text-[10px] font-sans-bold text-textInverse/60 uppercase"
+            style={{ letterSpacing: 0.4 }}
           >
             Gastos
           </Text>
           <Text
-            className="text-base font-bold text-danger mt-1.5"
+            className="text-base font-display-bold text-danger mt-1.5"
             style={tabular}
           >
             {formatCurrency(expenses)}
@@ -93,15 +92,14 @@ export function BalanceOverviewCard({
         </View>
         <View className="flex-1">
           <Text
-            className="text-[10px] font-bold text-textInverse/60 uppercase"
-            style={{ letterSpacing: 1.2 }}
+            className="text-[10px] font-sans-bold text-textInverse/60 uppercase"
+            style={{ letterSpacing: 0.4 }}
           >
             Neto
           </Text>
           <Text
-            className={`text-base font-bold mt-1.5 ${
-              net >= 0 ? "text-textInverse" : "text-danger"
-            }`}
+            className={`text-base font-display-bold mt-1.5 ${net >= 0 ? "text-textInverse" : "text-danger"
+              }`}
             style={tabular}
           >
             {net >= 0 ? "+" : ""}

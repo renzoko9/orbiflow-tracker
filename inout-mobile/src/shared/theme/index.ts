@@ -8,3 +8,4 @@ export {
   type ThemeTokens,
 } from "./tokens";
 export { ThemeProvider, useTheme, useThemeTokens } from "./ThemeProvider";
+export { fontMap, installTextDefaults } from "./fonts";

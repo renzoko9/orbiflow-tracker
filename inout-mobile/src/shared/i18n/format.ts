@@ -30,6 +30,14 @@ const monthFormatter = new Intl.DateTimeFormat(APP_CONSTANTS.locale, {
   month: "long",
 });
 
+const weekdayFormatter = new Intl.DateTimeFormat(APP_CONSTANTS.locale, {
+  weekday: "long",
+});
+
+const dayOfMonthFormatter = new Intl.DateTimeFormat(APP_CONSTANTS.locale, {
+  day: "numeric",
+});
+
 export function formatCurrency(amount: number | string): string {
   const value = typeof amount === "string" ? Number(amount) : amount;
   if (Number.isNaN(value)) return `${APP_CONSTANTS.currencySymbol} 0.00`;
@@ -62,4 +70,36 @@ export function formatMonthName(input: string | Date): string {
 
 export function getCurrentMonthName(): string {
   return formatMonthName(new Date());
+}
+
+/**
+ * Devuelve "Jueves 14": dia de la semana capitalizado + numero de dia.
+ * Pensado para subtitulos cortos tipo header.
+ */
+export function formatWeekdayShort(input: string | Date): string {
+  const d = typeof input === "string" ? new Date(input) : input;
+  const weekday = weekdayFormatter.format(d);
+  const day = dayOfMonthFormatter.format(d);
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${day}`;
+}
+
+/**
+ * "Hoy" / "Ayer" / "14 may" segun la cercania con la fecha actual.
+ * Pensado para listas con muchos items donde la fecha exacta es ruido.
+ */
+export function formatRelativeDay(input: string | Date): string {
+  const d = typeof input === "string" ? new Date(input) : input;
+  const now = new Date();
+  const sameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (sameDay(d, now)) return "Hoy";
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (sameDay(d, yesterday)) return "Ayer";
+
+  return formatShortDate(d);
 }

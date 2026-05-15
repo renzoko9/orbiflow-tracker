@@ -1,25 +1,33 @@
+import { useMemo } from "react";
 import { Text, View } from "react-native";
+import { formatWeekdayShort } from "@/shared/i18n";
 
 interface HomeHeaderProps {
   userName: string;
+  monthlyNet?: number;
 }
 
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Buenos dias";
-  if (h < 19) return "Buenas tardes";
-  return "Buenas noches";
+function getStatusLine(net: number | undefined): string {
+  if (net === undefined) return "todo en orden";
+  if (net > 0) return "vas bien este mes";
+  if (net < 0) return "ojo con los gastos";
+  return "todo en orden";
 }
 
-export function HomeHeader({ userName }: HomeHeaderProps) {
+export function HomeHeader({ userName, monthlyNet }: HomeHeaderProps) {
+  const today = useMemo(() => formatWeekdayShort(new Date()), []);
+  const status = getStatusLine(monthlyNet);
+
   return (
     <View className="px-5 pt-6 pb-6">
-      <Text className="text-sm text-textTertiary">{getGreeting()},</Text>
       <Text
-        className="text-3xl font-extrabold text-textPrimary mt-1"
-        style={{ letterSpacing: -0.5 }}
+        className="text-[11px] font-sans-bold uppercase text-textDisabled mb-1"
+        style={{ letterSpacing: 0.4 }}
       >
-        {userName}
+        Resumen
+      </Text>
+      <Text className="text-3xl font-sans-extrabold text-textPrimary">
+        Hola, {userName}
       </Text>
     </View>
   );

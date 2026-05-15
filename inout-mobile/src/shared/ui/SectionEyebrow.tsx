@@ -25,8 +25,7 @@ export function SectionEyebrow({
       )}
     >
       <Text
-        className="text-[11px] font-bold uppercase text-textTertiary"
-        style={{ letterSpacing: 1.2 }}
+        className="text-[11px] font-sans-bold uppercase text-textTertiary"
       >
         {label}
       </Text>

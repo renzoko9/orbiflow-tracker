@@ -21,3 +21,4 @@ export { DateField } from "./DateField";
 export { FloatingAddButton } from "./FloatingAddButton";
 export { Card } from "./Card";
 export { SectionEyebrow } from "./SectionEyebrow";
+export { Wordmark } from "./Wordmark";

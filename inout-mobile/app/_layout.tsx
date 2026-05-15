@@ -1,9 +1,32 @@
 import "../global.css";
+import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
 import { AppProviders } from "@/providers/AppProviders";
+import { fontMap, installTextDefaults } from "@/shared/theme";
+
+// Aplicar default Manrope antes de que monte el primer <Text>.
+installTextDefaults();
+
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Tolerable: si ya se oculto el splash, seguir.
+});
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(fontMap);
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
     <AppProviders>
       <StatusBar style="dark" />

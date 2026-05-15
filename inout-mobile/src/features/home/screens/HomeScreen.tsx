@@ -85,7 +85,10 @@ export function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: tabBarHeight + 32 }}
       >
-        <HomeHeader userName={user?.name ?? "Usuario"} />
+        <HomeHeader
+          userName={user?.name ?? "Usuario"}
+          monthlyNet={currentSummary.net}
+        />
 
         {isLoading ? (
           <Loading />

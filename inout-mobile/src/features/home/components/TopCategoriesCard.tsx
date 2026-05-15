@@ -27,13 +27,13 @@ export function TopCategoriesCard({
             <View key={cat.id}>
               <View className="flex-row items-baseline justify-between mb-1.5">
                 <Text
-                  className="text-base font-medium text-textPrimary flex-1 mr-3"
+                  className="text-base font-sans-medium text-textPrimary flex-1 mr-3"
                   numberOfLines={1}
                 >
                   {cat.name}
                 </Text>
                 <Text
-                  className="text-base font-bold text-textPrimary"
+                  className="text-base font-display-bold text-textPrimary"
                   style={tabular}
                 >
                   {formatCurrency(cat.amount)}
