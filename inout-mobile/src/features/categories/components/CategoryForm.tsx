@@ -13,7 +13,6 @@ import {
   FormField,
   type CircleSelectorItem,
 } from "@/shared/ui";
-import { getIconComponent } from "@/shared/utils";
 import {
   CATEGORY_COLORS,
   CATEGORY_ICONS,
@@ -53,21 +52,17 @@ interface CategoryFormProps {
 type InternalFormValues = UpdateCategoryFormValues;
 
 function buildIconItems(selectedColor: string): CircleSelectorItem[] {
-  return CATEGORY_ICONS.map((iconName, index) => {
-    const IconComp = getIconComponent(iconName);
-    return {
-      id: index,
-      label: "",
-      icon: <IconComp size={22} color="#fff" />,
-      color: selectedColor,
-    };
-  });
+  return CATEGORY_ICONS.map((iconName, index) => ({
+    id: index,
+    label: "",
+    iconName,
+    color: selectedColor,
+  }));
 }
 
 const colorItems: CircleSelectorItem[] = CATEGORY_COLORS.map((c, index) => ({
   id: index,
   label: "",
-  icon: null,
   color: c,
 }));
 

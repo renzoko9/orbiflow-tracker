@@ -3,6 +3,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { CalendarDays, Tag } from "lucide-react-native";
 import {
   BottomSheet,
+  BottomSheetScrollView,
   BottomSheetView,
   CircleSelector,
   SegmentedControl,
@@ -11,7 +12,6 @@ import {
   type CircleSelectorItem,
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
-import { getIconComponent } from "@/shared/utils";
 import { CategoryType, type Category } from "@/features/categories";
 
 export type TypeFilter = "ALL" | CategoryType;
@@ -52,24 +52,13 @@ export function TransactionFilters({
   const dateSheet = useRef<BottomSheetModal>(null);
 
   const categoryItems: CircleSelectorItem[] = [
-    {
-      id: 0,
-      label: "Todas",
-      icon: (() => {
-        const Icon = getIconComponent("tag");
-        return <Icon size={18} color="#fff" />;
-      })(),
-      color: tokens.brand,
-    },
-    ...categories.map((cat) => {
-      const Icon = getIconComponent(cat.icon);
-      return {
-        id: cat.id,
-        label: cat.name,
-        icon: <Icon size={18} color="#fff" />,
-        color: cat.color,
-      };
-    }),
+    { id: 0, label: "Todas", iconName: "tag", color: tokens.brand },
+    ...categories.map((cat) => ({
+      id: cat.id,
+      label: cat.name,
+      iconName: cat.icon,
+      color: cat.color,
+    })),
   ];
 
   const selectedCategoryLabel = selectedCategoryId
@@ -113,25 +102,34 @@ export function TransactionFilters({
         </View>
       </View>
 
-      <BottomSheet ref={categorySheet} snapPoints={["50%"]}>
-        <BottomSheetView className="pb-8 px-4">
-          <Text className="text-base font-semibold text-textPrimary py-3">
-            Filtrar por categoria
+      <BottomSheet ref={categorySheet} snapPoints={["70%"]}>
+        <View className="px-5 pt-2">
+          <Text
+            className="text-[10px] font-sans-bold uppercase text-textTertiary"
+            style={{ letterSpacing: 1.2 }}
+          >
+            Filtro
           </Text>
-          <CircleSelector
-            items={categoryItems}
-            selectedId={selectedCategoryId ?? 0}
-            onSelect={(id) => {
-              onCategoryChange(id === 0 ? null : id);
-              categorySheet.current?.dismiss();
-            }}
-            layout="wrap"
-            className="justify-center py-4"
-          />
-        </BottomSheetView>
+          <Text className="text-2xl font-sans-extrabold text-textPrimary mt-1 mb-3">
+            Categoria
+          </Text>
+        </View>
+        <BottomSheetScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+          <View className="px-5">
+            <CircleSelector
+              items={categoryItems}
+              selectedId={selectedCategoryId ?? 0}
+              layout="list"
+              onSelect={(id) => {
+                onCategoryChange(id === 0 ? null : id);
+                categorySheet.current?.dismiss();
+              }}
+            />
+          </View>
+        </BottomSheetScrollView>
       </BottomSheet>
 
-      <BottomSheet ref={dateSheet} snapPoints={["30%"]}>
+      <BottomSheet ref={dateSheet} snapPoints={["35%"]}>
         <BottomSheetView className="pb-8 px-4">
           <Text className="text-base font-semibold text-textPrimary py-3">
             Rango de fecha

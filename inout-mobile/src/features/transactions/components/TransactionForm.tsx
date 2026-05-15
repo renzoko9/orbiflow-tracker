@@ -24,7 +24,6 @@ import {
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { APP_CONSTANTS } from "@/config";
-import { getIconComponent } from "@/shared/utils";
 import { useAccounts, type Account } from "@/features/accounts";
 import {
   CategoryType,
@@ -65,15 +64,12 @@ interface TransactionFormProps {
 }
 
 function mapCategoriesToItems(categories: Category[]): CircleSelectorItem[] {
-  return categories.map((cat) => {
-    const Icon = getIconComponent(cat.icon);
-    return {
-      id: cat.id,
-      label: cat.name,
-      icon: <Icon size={22} color="#fff" />,
-      color: cat.color,
-    };
-  });
+  return categories.map((cat) => ({
+    id: cat.id,
+    label: cat.name,
+    iconName: cat.icon,
+    color: cat.color,
+  }));
 }
 
 export function TransactionForm({

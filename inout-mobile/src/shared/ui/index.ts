@@ -11,6 +11,7 @@ export { CircleSelector, type CircleSelectorItem } from "./CircleSelector";
 export {
   BottomSheet,
   BottomSheetView,
+  BottomSheetScrollView,
   type BottomSheetModal,
 } from "./BottomSheet";
 export { KebabMenu, type KebabMenuItem } from "./KebabMenu";

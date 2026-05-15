@@ -8,6 +8,7 @@ import {
 import {
   BottomSheetModal,
   BottomSheetView,
+  BottomSheetScrollView,
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
 } from "@gorhom/bottom-sheet";
@@ -57,5 +58,5 @@ export const BottomSheet = forwardRef(function BottomSheet(
   );
 });
 
-export { BottomSheetView };
+export { BottomSheetView, BottomSheetScrollView };
 export type { BottomSheetModal };

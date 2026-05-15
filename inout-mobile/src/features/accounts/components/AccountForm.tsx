@@ -14,7 +14,6 @@ import {
   type CircleSelectorItem,
 } from "@/shared/ui";
 import { formatCurrency } from "@/shared/i18n";
-import { getIconComponent } from "@/shared/utils";
 import {
   ACCOUNT_COLORS,
   ACCOUNT_ICONS,
@@ -54,21 +53,17 @@ interface AccountFormProps {
 type InternalFormValues = CreateAccountFormValues & UpdateAccountFormValues;
 
 function buildIconItems(selectedColor: string): CircleSelectorItem[] {
-  return ACCOUNT_ICONS.map((iconName, index) => {
-    const IconComp = getIconComponent(iconName);
-    return {
-      id: index,
-      label: "",
-      icon: <IconComp size={22} color="#fff" />,
-      color: selectedColor,
-    };
-  });
+  return ACCOUNT_ICONS.map((iconName, index) => ({
+    id: index,
+    label: "",
+    iconName,
+    color: selectedColor,
+  }));
 }
 
 const colorItems: CircleSelectorItem[] = ACCOUNT_COLORS.map((c, index) => ({
   id: index,
   label: "",
-  icon: null,
   color: c,
 }));
 
