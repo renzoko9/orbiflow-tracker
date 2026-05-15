@@ -15,7 +15,7 @@ export function TransactionSectionHeader({
     <View className="bg-background pt-6 pb-3 px-4">
       <Text
         className="text-[10px] font-sans-bold uppercase text-textTertiary"
-        style={{ letterSpacing: 1.2 }}
+        style={{ letterSpacing: 0.5 }}
       >
         {title}
       </Text>

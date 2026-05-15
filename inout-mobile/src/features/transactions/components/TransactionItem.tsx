@@ -48,7 +48,6 @@ export function TransactionItem({
         {hasDescription && (
           <Text
             className="text-[10px] uppercase text-textTertiary mt-1"
-            style={{ letterSpacing: 0.6 }}
             numberOfLines={1}
           >
             {categoryName}
