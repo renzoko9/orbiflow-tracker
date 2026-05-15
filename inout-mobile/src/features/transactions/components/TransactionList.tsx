@@ -16,9 +16,15 @@ export function TransactionList({
 
   if (sections.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center py-16">
-        <Text className="text-textSecondary text-base">
-          No hay movimientos registrados
+      <View className="flex-1 items-center justify-center px-8 py-16">
+        <Text
+          className="text-[10px] font-sans-bold uppercase text-textTertiary mb-3"
+          style={{ letterSpacing: 1.2 }}
+        >
+          Sin actividad
+        </Text>
+        <Text className="text-base text-textSecondary text-center">
+          Todavia no registraste movimientos en este periodo.
         </Text>
       </View>
     );

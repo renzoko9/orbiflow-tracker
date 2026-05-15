@@ -14,6 +14,19 @@ import {
 import { useTransactions } from "../api";
 import type { FilterTransactionsParams } from "../model";
 
+function getRangeLabel(range: string): string {
+  switch (range) {
+    case "today":
+      return "hoy";
+    case "week":
+      return "esta semana";
+    case "month":
+      return "este mes";
+    default:
+      return "en total";
+  }
+}
+
 function getDateRange(range: string): {
   dateFrom?: string;
   dateTo?: string;
@@ -82,13 +95,21 @@ export function TransactionsListScreen() {
       edges={["top", "left", "right"]}
       className="flex-1 bg-background"
     >
-      <View className="px-4 pt-4 pb-2">
-        <Text className="text-xl font-bold text-textPrimary">Movimientos</Text>
+      <View className="px-4 pt-6 pb-5">
+        <Text
+          className="text-3xl font-sans-extrabold text-textPrimary"
+          style={{ letterSpacing: -0.3 }}
+        >
+          Movimientos
+        </Text>
+        <Text className="text-sm text-textTertiary mt-1.5">
+          {transactions.length} {transactions.length === 1 ? "movimiento" : "movimientos"} {getRangeLabel(dateRange)}
+        </Text>
       </View>
 
-      <View className="px-4 pb-2 gap-3">
+      <View className="px-4 pb-3 gap-3">
         <Input
-          placeholder="Buscar por descripcion o categoria..."
+          placeholder="Buscar movimiento..."
           value={searchText}
           onChangeText={setSearchText}
           leftIcon={<Search size={18} color={tokens.textTertiary} />}
