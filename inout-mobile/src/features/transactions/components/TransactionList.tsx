@@ -1,5 +1,6 @@
-import { SectionList, Text, View } from "react-native";
-import { SwipeableTransactionItem } from "./SwipeableTransactionItem";
+import { Pressable, SectionList, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { TransactionItem } from "./TransactionItem";
 import { TransactionSectionHeader } from "./TransactionSectionHeader";
 import { groupTransactionsByDate, type TransactionListItem } from "../model";
 
@@ -12,6 +13,7 @@ export function TransactionList({
   transactions,
   bottomInset = 0,
 }: TransactionListProps) {
+  const router = useRouter();
   const sections = groupTransactionsByDate(transactions);
 
   if (sections.length === 0) {
@@ -37,7 +39,28 @@ export function TransactionList({
       renderSectionHeader={({ section }) => (
         <TransactionSectionHeader title={section.title} />
       )}
-      renderItem={({ item }) => <SwipeableTransactionItem transaction={item} />}
+      renderItem={({ item }) => (
+        <Pressable
+          onPress={() =>
+            router.push({
+              pathname: "/transactions/[id]",
+              params: { id: String(item.id) },
+            })
+          }
+          android_ripple={{ color: "rgba(0,0,0,0.05)" }}
+          accessibilityRole="button"
+          accessibilityLabel={`Ver detalle de ${item.description || item.category?.name || "movimiento"}`}
+        >
+          <TransactionItem
+            categoryName={item.category?.name ?? "Sin categoria"}
+            categoryIcon={item.category?.icon ?? "tag"}
+            categoryColor={item.category?.color ?? "#a6a6a6"}
+            description={item.description}
+            amount={item.amount}
+            type={item.type}
+          />
+        </Pressable>
+      )}
       showsVerticalScrollIndicator={false}
       stickySectionHeadersEnabled
       contentContainerStyle={{ paddingBottom: bottomInset }}

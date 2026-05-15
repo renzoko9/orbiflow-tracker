@@ -1,7 +1,6 @@
 export { TransactionItem } from "./TransactionItem";
 export { TransactionSectionHeader } from "./TransactionSectionHeader";
 export { TransactionList } from "./TransactionList";
-export { SwipeableTransactionItem } from "./SwipeableTransactionItem";
 export { AccountSelectField } from "./AccountSelectField";
 export {
   TransactionForm,
