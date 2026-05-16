@@ -11,6 +11,7 @@ import {
 import { AccountsService } from './accounts.service';
 import { CreateAccountRequest } from './dto/create-account.dto';
 import { UpdateAccountRequest } from './dto/update-account.dto';
+import { AccountMonthStatsResponse } from './models/account-month-stats-response.model';
 import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
 import { User } from '@/common/decorators/user.decorator';
 import { Account } from '@/database/entities/account.entity';
@@ -44,6 +45,14 @@ export class AccountsController {
     @User('id') userId: number,
   ): Promise<Account> {
     return this.accountsService.findOne(+id, userId);
+  }
+
+  @Get(':id/month-stats')
+  getMonthStats(
+    @Param('id') id: string,
+    @User('id') userId: number,
+  ): Promise<AccountMonthStatsResponse> {
+    return this.accountsService.getMonthStats(+id, userId);
   }
 
   @Patch(':id')

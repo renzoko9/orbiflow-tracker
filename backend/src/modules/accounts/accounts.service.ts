@@ -1,14 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, Not } from 'typeorm';
 import { Account } from '@Entities';
-import { AccountRepository } from '@Repositories';
+import { AccountRepository, TransactionRepository } from '@Repositories';
 import { CreateAccountRequest } from './dto/create-account.dto';
 import { UpdateAccountRequest } from './dto/update-account.dto';
-import { ErrorCodeEnum } from '@Enums';
+import { AccountMonthStatsResponse } from './models/account-month-stats-response.model';
+import { CategoryTypeEnum, ErrorCodeEnum } from '@Enums';
 
 @Injectable()
 export class AccountsService {
-  constructor(private readonly accountRepository: AccountRepository) {}
+  constructor(
+    private readonly accountRepository: AccountRepository,
+    private readonly transactionRepository: TransactionRepository,
+  ) {}
 
   async create(
     userId: number,
@@ -79,5 +83,48 @@ export class AccountsService {
 
     account.archivedAt = null;
     return this.accountRepository.save(account);
+  }
+
+  async getMonthStats(
+    id: number,
+    userId: number,
+  ): Promise<AccountMonthStatsResponse> {
+    await this.findOne(id, userId);
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
+    const monthStart = this.formatDate(startDate);
+    const monthEnd = this.formatDate(endDate);
+
+    const rows = await this.transactionRepository
+      .createQueryBuilder('tx')
+      .select('tx.type', 'type')
+      .addSelect('SUM(tx.amount)', 'total')
+      .where('tx.account_id = :id', { id })
+      .andWhere('tx.user_id = :userId', { userId })
+      .andWhere('tx.date >= :start', { start: monthStart })
+      .andWhere('tx.date <= :end', { end: monthEnd })
+      .groupBy('tx.type')
+      .getRawMany<{ type: number; total: string }>();
+
+    let income = 0;
+    let expenses = 0;
+    for (const row of rows) {
+      const total = Number(row.total);
+      if (Number(row.type) === CategoryTypeEnum.Income) income = total;
+      else if (Number(row.type) === CategoryTypeEnum.Expense) expenses = total;
+    }
+
+    return { income, expenses, monthStart, monthEnd };
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
