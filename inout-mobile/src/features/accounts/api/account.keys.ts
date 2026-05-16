@@ -7,4 +7,5 @@ export const accountKeys = {
   lists: () => [...accountKeys.all, "list"] as const,
   archived: () => [...accountKeys.all, "archived"] as const,
   detail: (id: number) => [...accountKeys.all, "detail", id] as const,
+  monthStats: (id: number) => [...accountKeys.all, "month-stats", id] as const,
 };

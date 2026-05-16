@@ -20,6 +20,7 @@ import { getCurrentMonthLabel } from "@/shared/utils";
 import { AccountHero, AccountMonthStats } from "../components";
 import {
   useAccount,
+  useAccountMonthStats,
   useArchiveAccount,
   useRestoreAccount,
 } from "../api";
@@ -32,10 +33,12 @@ export function AccountDetailScreen() {
   const accountId = Number(id);
 
   const { data: account, isLoading, error } = useAccount(accountId);
+  const archived = account ? isArchived(account) : false;
+  const { data: monthStats } = useAccountMonthStats(
+    archived ? undefined : accountId,
+  );
   const archiveAccount = useArchiveAccount();
   const restoreAccount = useRestoreAccount();
-
-  const archived = account ? isArchived(account) : false;
 
   const handleEdit = () => {
     router.push({
@@ -189,8 +192,8 @@ export function AccountDetailScreen() {
           ) : (
             <AccountMonthStats
               monthName={getCurrentMonthLabel()}
-              income={0}
-              expenses={0}
+              income={monthStats?.income ?? 0}
+              expenses={monthStats?.expenses ?? 0}
             />
           )}
         </View>

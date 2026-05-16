@@ -38,6 +38,14 @@ export function useAccount(id: number | undefined) {
   });
 }
 
+export function useAccountMonthStats(id: number | undefined) {
+  return useQuery({
+    queryKey: accountKeys.monthStats(id ?? -1),
+    queryFn: () => accountApi.getAccountMonthStats(id as number),
+    enabled: typeof id === "number" && id > 0,
+  });
+}
+
 export function useCreateAccount() {
   const qc = useQueryClient();
   return useMutation({

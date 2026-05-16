@@ -1,6 +1,7 @@
 import { httpClient } from "@/shared/api";
 import type {
   Account,
+  AccountMonthStatsDto,
   CreateAccountInput,
   UpdateAccountInput,
 } from "../model";
@@ -14,6 +15,7 @@ const PATHS = {
   byId: (id: number) => `/accounts/${id}`,
   archived: "/accounts/archived",
   restore: (id: number) => `/accounts/${id}/restore`,
+  monthStats: (id: number) => `/accounts/${id}/month-stats`,
 } as const;
 
 export async function listAccounts(): Promise<Account[]> {
@@ -53,5 +55,14 @@ export async function archiveAccount(id: number): Promise<Account> {
 
 export async function restoreAccount(id: number): Promise<Account> {
   const { data } = await httpClient.patch<Account>(PATHS.restore(id));
+  return data;
+}
+
+export async function getAccountMonthStats(
+  id: number,
+): Promise<AccountMonthStatsDto> {
+  const { data } = await httpClient.get<AccountMonthStatsDto>(
+    PATHS.monthStats(id),
+  );
   return data;
 }

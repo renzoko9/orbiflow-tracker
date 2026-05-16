@@ -33,6 +33,13 @@ export interface UpdateAccountInput {
 /** Modelo de dominio. Por ahora alias del DTO; cuando diverja se separa. */
 export type Account = AccountDto;
 
+export interface AccountMonthStatsDto {
+  income: number;
+  expenses: number;
+  monthStart: string;
+  monthEnd: string;
+}
+
 export function isArchived(account: Account): boolean {
   return account.archivedAt !== null && account.archivedAt !== undefined;
 }
