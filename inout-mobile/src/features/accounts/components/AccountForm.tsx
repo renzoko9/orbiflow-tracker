@@ -9,9 +9,9 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
-  CircleSelector,
+  IconSelector,
   FormField,
-  type CircleSelectorItem,
+  type IconSelectorItem,
 } from "@/shared/ui";
 import { formatCurrency } from "@/shared/i18n";
 import {
@@ -52,7 +52,7 @@ interface AccountFormProps {
 
 type InternalFormValues = CreateAccountFormValues & UpdateAccountFormValues;
 
-function buildIconItems(selectedColor: string): CircleSelectorItem[] {
+function buildIconItems(selectedColor: string): IconSelectorItem[] {
   return ACCOUNT_ICONS.map((iconName, index) => ({
     id: index,
     label: "",
@@ -61,7 +61,7 @@ function buildIconItems(selectedColor: string): CircleSelectorItem[] {
   }));
 }
 
-const colorItems: CircleSelectorItem[] = ACCOUNT_COLORS.map((c, index) => ({
+const colorItems: IconSelectorItem[] = ACCOUNT_COLORS.map((c, index) => ({
   id: index,
   label: "",
   color: c,
@@ -107,7 +107,7 @@ export function AccountForm({
             control={control}
             name="icon"
             render={({ field: { value, onChange } }) => (
-              <CircleSelector
+              <IconSelector
                 items={iconItems}
                 selectedId={ACCOUNT_ICONS.indexOf(
                   (value ??
@@ -115,7 +115,7 @@ export function AccountForm({
                 )}
                 onSelect={(idx) => onChange(ACCOUNT_ICONS[idx])}
                 layout="scroll"
-                circleSize={56}
+                tileSize={56}
                 itemWidth={56}
               />
             )}
@@ -128,7 +128,7 @@ export function AccountForm({
             control={control}
             name="color"
             render={({ field: { value, onChange } }) => (
-              <CircleSelector
+              <IconSelector
                 items={colorItems}
                 selectedId={ACCOUNT_COLORS.indexOf(
                   (value ??
@@ -136,7 +136,7 @@ export function AccountForm({
                 )}
                 onSelect={(idx) => onChange(ACCOUNT_COLORS[idx])}
                 layout="scroll"
-                circleSize={56}
+                tileSize={56}
                 itemWidth={56}
               />
             )}

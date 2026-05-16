@@ -5,13 +5,14 @@ import {
   BottomSheet,
   BottomSheetScrollView,
   BottomSheetView,
-  CircleSelector,
+  IconSelector,
   SegmentedControl,
   SelectField,
   type BottomSheetModal,
-  type CircleSelectorItem,
+  type IconSelectorItem,
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
+import { getIconComponent } from "@/shared/utils";
 import { CategoryType, type Category } from "@/features/categories";
 
 export type TypeFilter = "ALL" | CategoryType;
@@ -51,7 +52,7 @@ export function TransactionFilters({
   const categorySheet = useRef<BottomSheetModal>(null);
   const dateSheet = useRef<BottomSheetModal>(null);
 
-  const categoryItems: CircleSelectorItem[] = [
+  const categoryItems: IconSelectorItem[] = [
     { id: 0, label: "Todas", iconName: "tag", color: tokens.brand },
     ...categories.map((cat) => ({
       id: cat.id,
@@ -61,9 +62,13 @@ export function TransactionFilters({
     })),
   ];
 
-  const selectedCategoryLabel = selectedCategoryId
-    ? categories.find((c) => c.id === selectedCategoryId)?.name
+  const selectedCategory = selectedCategoryId
+    ? categories.find((c) => c.id === selectedCategoryId)
     : undefined;
+  const selectedCategoryLabel = selectedCategory?.name;
+  const SelectedCategoryIcon = selectedCategory
+    ? getIconComponent(selectedCategory.icon)
+    : null;
 
   const selectedDateLabel =
     DATE_RANGES.find((d) => d.value === dateRange)?.label ?? "Todo";
@@ -85,7 +90,16 @@ export function TransactionFilters({
       <View className="flex-row gap-2">
         <View className="flex-1">
           <SelectField
-            icon={<Tag size={18} color={tokens.textTertiary} />}
+            icon={
+              SelectedCategoryIcon && selectedCategory ? (
+                <SelectedCategoryIcon
+                  size={18}
+                  color={selectedCategory.color}
+                />
+              ) : (
+                <Tag size={18} color={tokens.textTertiary} />
+              )
+            }
             label={selectedCategoryLabel}
             placeholder="Categoria"
             onPress={() => categorySheet.current?.present()}
@@ -116,7 +130,7 @@ export function TransactionFilters({
         </View>
         <BottomSheetScrollView contentContainerStyle={{ paddingBottom: 32 }}>
           <View className="px-5">
-            <CircleSelector
+            <IconSelector
               items={categoryItems}
               selectedId={selectedCategoryId ?? 0}
               layout="list"

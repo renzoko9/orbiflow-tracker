@@ -15,12 +15,12 @@ import { Plus } from "lucide-react-native";
 import {
   Alert,
   Button,
-  CircleSelector,
+  IconSelector,
   DateField,
   FormField,
   Loading,
   SegmentedControl,
-  type CircleSelectorItem,
+  type IconSelectorItem,
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { APP_CONSTANTS } from "@/config";
@@ -63,7 +63,7 @@ interface TransactionFormProps {
   onSubmit: (data: TransactionFormSubmitValues) => void;
 }
 
-function mapCategoriesToItems(categories: Category[]): CircleSelectorItem[] {
+function mapCategoriesToItems(categories: Category[]): IconSelectorItem[] {
   return categories.map((cat) => ({
     id: cat.id,
     label: cat.name,
@@ -200,7 +200,7 @@ export function TransactionForm({
                 control={control}
                 name="categoryId"
                 render={({ field: { value, onChange } }) => (
-                  <CircleSelector
+                  <IconSelector
                     items={categoryItems}
                     selectedId={value ?? null}
                     onSelect={onChange}

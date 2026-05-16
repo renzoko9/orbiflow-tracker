@@ -1,44 +1,52 @@
 import { type ReactNode } from "react";
 import { ScrollView, TouchableOpacity, View, Text } from "react-native";
-import { Check } from "lucide-react-native";
+import { ChevronsLeft } from "lucide-react-native";
 import { cn, getIconComponent } from "@/shared/utils";
 import { useThemeTokens } from "@/shared/theme";
 
-export interface CircleSelectorItem {
+export interface IconSelectorItem {
   id: number;
   label: string;
   iconName?: string;
   color: string;
 }
 
-interface CircleSelectorProps {
-  items: CircleSelectorItem[];
+interface IconSelectorProps {
+  items: IconSelectorItem[];
   selectedId: number | null;
   onSelect: (id: number) => void;
   layout?: "scroll" | "wrap" | "list";
-  circleSize?: number;
+  tileSize?: number;
   itemWidth?: number;
   className?: string;
   trailingAction?: ReactNode;
 }
 
-export function CircleSelector({
+export function IconSelector({
   items,
   selectedId,
   onSelect,
   layout = "wrap",
-  circleSize = 56,
+  tileSize = 56,
   itemWidth = 72,
   className,
   trailingAction,
-}: CircleSelectorProps) {
+}: IconSelectorProps) {
   if (layout === "list") {
-    return <ListLayout items={items} selectedId={selectedId} onSelect={onSelect} className={className} />;
+    return (
+      <ListLayout
+        items={items}
+        selectedId={selectedId}
+        onSelect={onSelect}
+        className={className}
+      />
+    );
   }
 
   const content = items.map((item) => {
     const selected = selectedId === item.id;
     const Icon = item.iconName ? getIconComponent(item.iconName) : null;
+    const hasIcon = Boolean(Icon);
     return (
       <TouchableOpacity
         key={item.id}
@@ -49,18 +57,19 @@ export function CircleSelector({
       >
         <View
           className={cn(
-            "items-center justify-center rounded-full",
+            "items-center justify-center",
+            hasIcon ? "rounded-xl" : "rounded-full",
             item.label ? "mb-1" : "",
             selected && "border-2 border-brand",
           )}
           style={{
-            width: circleSize,
-            height: circleSize,
-            backgroundColor: item.color,
-            opacity: selected ? 1 : 0.55,
+            width: tileSize,
+            height: tileSize,
+            backgroundColor: hasIcon ? item.color + "1F" : item.color,
+            opacity: selected || !hasIcon ? 1 : 0.7,
           }}
         >
-          {Icon ? <Icon size={Math.round(circleSize * 0.4)} color="#fff" /> : null}
+          {Icon ? <Icon size={Math.round(tileSize * 0.4)} color={item.color} /> : null}
         </View>
         {item.label ? (
           <Text
@@ -98,7 +107,7 @@ export function CircleSelector({
 }
 
 interface ListLayoutProps {
-  items: CircleSelectorItem[];
+  items: IconSelectorItem[];
   selectedId: number | null;
   onSelect: (id: number) => void;
   className?: string;
@@ -113,7 +122,7 @@ function ListLayout({ items, selectedId, onSelect, className }: ListLayoutProps)
         const Icon = item.iconName ? getIconComponent(item.iconName) : null;
         return (
           <View key={item.id}>
-            {index > 0 ? <View className="h-px bg-border ml-14" /> : null}
+            {index > 0 ? <View className="h-px bg-border" /> : null}
             <TouchableOpacity
               onPress={() => onSelect(item.id)}
               activeOpacity={0.7}
@@ -122,10 +131,10 @@ function ListLayout({ items, selectedId, onSelect, className }: ListLayoutProps)
               accessibilityState={{ selected }}
             >
               <View
-                className="w-10 h-10 rounded-full items-center justify-center"
+                className="w-11 h-11 rounded-xl items-center justify-center"
                 style={{ backgroundColor: item.color + "1F" }}
               >
-                {Icon ? <Icon size={18} color={item.color} /> : null}
+                {Icon ? <Icon size={22} color={item.color} /> : null}
               </View>
               <Text
                 className={cn(
@@ -137,7 +146,9 @@ function ListLayout({ items, selectedId, onSelect, className }: ListLayoutProps)
               >
                 {item.label}
               </Text>
-              {selected ? <Check size={18} color={tokens.brand} /> : null}
+              {selected ? (
+                <ChevronsLeft size={20} color={tokens.brand} />
+              ) : null}
             </TouchableOpacity>
           </View>
         );

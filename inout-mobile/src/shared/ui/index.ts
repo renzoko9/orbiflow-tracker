@@ -7,7 +7,7 @@ export { Loading } from "./Loading";
 export { ErrorBoundary } from "./ErrorBoundary";
 export { ToastHost, showToast } from "./Toast";
 export { SegmentedControl } from "./SegmentedControl";
-export { CircleSelector, type CircleSelectorItem } from "./CircleSelector";
+export { IconSelector, type IconSelectorItem } from "./IconSelector";
 export {
   BottomSheet,
   BottomSheetView,
