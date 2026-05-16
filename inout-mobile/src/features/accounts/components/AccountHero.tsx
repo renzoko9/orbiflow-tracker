@@ -10,6 +10,8 @@ interface AccountHeroProps {
   color: string;
 }
 
+const tabular = { fontVariant: ["tabular-nums" as const] };
+
 export function AccountHero({
   name,
   balance,
@@ -20,33 +22,43 @@ export function AccountHero({
   const Icon = getIconComponent(icon);
 
   return (
-    <View className="flex-row items-center px-4 pt-2 pb-6">
+    <View className="px-5 pt-2 pb-8">
       <View
-        className="w-16 h-16 rounded-2xl items-center justify-center mr-4"
-        style={{ backgroundColor: color + "25" }}
+        className="w-14 h-14 rounded-2xl items-center justify-center mb-4"
+        style={{ backgroundColor: color + "1F" }}
       >
-        <Icon size={32} color={color} />
+        <Icon size={28} color={color} />
       </View>
 
-      <View className="flex-1">
+      <Text
+        className="text-[10px] font-sans-bold uppercase text-textTertiary mb-2"
+        style={{ letterSpacing: 1.2 }}
+      >
+        Cuenta
+      </Text>
+
+      <Text
+        className="text-3xl font-sans-extrabold text-textPrimary"
+        numberOfLines={1}
+      >
+        {name}
+      </Text>
+
+      <Text
+        className="text-[44px] font-display-bold text-textPrimary mt-3"
+        style={[{ lineHeight: 56, includeFontPadding: false }, tabular]}
+      >
+        {formatCurrency(balance)}
+      </Text>
+
+      {description ? (
         <Text
-          className="text-lg font-semibold text-textPrimary"
-          numberOfLines={1}
+          className="text-base font-sans-medium text-textSecondary mt-2"
+          numberOfLines={3}
         >
-          {name}
+          {description}
         </Text>
-        <Text className="text-2xl font-bold text-textPrimary mt-0.5">
-          {formatCurrency(balance)}
-        </Text>
-        {description ? (
-          <Text
-            className="text-sm text-textSecondary mt-1"
-            numberOfLines={2}
-          >
-            {description}
-          </Text>
-        ) : null}
-      </View>
+      ) : null}
     </View>
   );
 }

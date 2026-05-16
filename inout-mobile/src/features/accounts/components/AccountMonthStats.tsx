@@ -1,5 +1,4 @@
 import { Text, View } from "react-native";
-import { Card } from "@/shared/ui";
 import { formatCurrency } from "@/shared/i18n";
 
 interface AccountMonthStatsProps {
@@ -8,6 +7,8 @@ interface AccountMonthStatsProps {
   expenses: number;
 }
 
+const tabular = { fontVariant: ["tabular-nums" as const] };
+
 export function AccountMonthStats({
   monthName,
   income,
@@ -15,36 +16,67 @@ export function AccountMonthStats({
 }: AccountMonthStatsProps) {
   const net = income - expenses;
   const netClass = net >= 0 ? "text-success" : "text-danger";
+  const netSign = net > 0 ? "+ " : net < 0 ? "− " : "";
 
   return (
-    <Card className="mb-4">
-      <Text className="text-base font-semibold text-textPrimary mb-3">
+    <View className="mb-4">
+      <Text
+        className="text-[10px] font-sans-bold uppercase text-textTertiary"
+        style={{ letterSpacing: 1.2 }}
+      >
+        Este mes
+      </Text>
+      <Text className="text-xl font-sans-extrabold text-textPrimary mt-1 mb-4">
         {monthName}
       </Text>
 
       <View className="flex-row">
-        <View className="flex-1 items-center">
-          <Text className="text-xs text-textSecondary mb-1">Ingresos</Text>
-          <Text className="text-base font-semibold text-success">
+        <View className="flex-1">
+          <Text
+            className="text-[10px] font-sans-bold uppercase text-textTertiary"
+            style={{ letterSpacing: 0.6 }}
+          >
+            Ingresos
+          </Text>
+          <Text
+            className="text-lg font-display-bold text-success mt-1"
+            style={[{ includeFontPadding: false }, tabular]}
+          >
             {formatCurrency(income)}
           </Text>
         </View>
-        <View className="w-px bg-border" />
-        <View className="flex-1 items-center">
-          <Text className="text-xs text-textSecondary mb-1">Gastos</Text>
-          <Text className="text-base font-semibold text-danger">
+        <View className="w-px bg-border mx-3" />
+        <View className="flex-1">
+          <Text
+            className="text-[10px] font-sans-bold uppercase text-textTertiary"
+            style={{ letterSpacing: 0.6 }}
+          >
+            Gastos
+          </Text>
+          <Text
+            className="text-lg font-display-bold text-danger mt-1"
+            style={[{ includeFontPadding: false }, tabular]}
+          >
             {formatCurrency(expenses)}
           </Text>
         </View>
-        <View className="w-px bg-border" />
-        <View className="flex-1 items-center">
-          <Text className="text-xs text-textSecondary mb-1">Neto</Text>
-          <Text className={`text-base font-semibold ${netClass}`}>
-            {net >= 0 ? "+" : ""}
-            {formatCurrency(net)}
+        <View className="w-px bg-border mx-3" />
+        <View className="flex-1">
+          <Text
+            className="text-[10px] font-sans-bold uppercase text-textTertiary"
+            style={{ letterSpacing: 0.6 }}
+          >
+            Neto
+          </Text>
+          <Text
+            className={`text-lg font-display-bold mt-1 ${netClass}`}
+            style={[{ includeFontPadding: false }, tabular]}
+          >
+            {netSign}
+            {formatCurrency(Math.abs(net))}
           </Text>
         </View>
       </View>
-    </Card>
+    </View>
   );
 }

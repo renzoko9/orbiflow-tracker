@@ -1,11 +1,14 @@
 import { Text, View } from "react-native";
-import { Card } from "@/shared/ui";
+import { Card, SectionEyebrow } from "@/shared/ui";
 import { formatPercent } from "@/shared/i18n";
+import { getIconComponent } from "@/shared/utils";
 import type { Account } from "../model";
 
 interface AccountsDistributionCardProps {
   accounts: Account[];
 }
+
+const tabular = { fontVariant: ["tabular-nums" as const] };
 
 export function AccountsDistributionCard({
   accounts,
@@ -24,17 +27,16 @@ export function AccountsDistributionCard({
       id: acc.id,
       name: acc.name,
       color: acc.color,
+      icon: acc.icon,
       percentage: (Math.abs(Number(acc.balance)) / totalAbs) * 100,
     }))
     .sort((a, b) => b.percentage - a.percentage);
 
   return (
     <View className="mb-4">
-      <Text className="text-base font-semibold text-textPrimary mb-2">
-        Distribucion del balance
-      </Text>
+      <SectionEyebrow label="Distribucion" />
       <Card>
-        <View className="h-2.5 rounded-full bg-surfaceMuted overflow-hidden flex-row mb-4">
+        <View className="h-3 rounded-full bg-surfaceMuted overflow-hidden flex-row mb-5">
           {segments.map((seg) => (
             <View
               key={seg.id}
@@ -46,24 +48,32 @@ export function AccountsDistributionCard({
           ))}
         </View>
 
-        <View className="gap-2">
-          {segments.map((seg) => (
-            <View key={seg.id} className="flex-row items-center">
-              <View
-                className="w-2.5 h-2.5 rounded-full mr-2"
-                style={{ backgroundColor: seg.color }}
-              />
-              <Text
-                className="flex-1 text-sm text-textPrimary"
-                numberOfLines={1}
-              >
-                {seg.name}
-              </Text>
-              <Text className="text-sm font-medium text-textPrimary">
-                {formatPercent(seg.percentage)}
-              </Text>
-            </View>
-          ))}
+        <View className="gap-3">
+          {segments.map((seg) => {
+            const Icon = getIconComponent(seg.icon);
+            return (
+              <View key={seg.id} className="flex-row items-center">
+                <View
+                  className="w-7 h-7 rounded-lg items-center justify-center mr-3"
+                  style={{ backgroundColor: seg.color + "1F" }}
+                >
+                  <Icon size={14} color={seg.color} />
+                </View>
+                <Text
+                  className="flex-1 text-sm font-sans-medium text-textPrimary"
+                  numberOfLines={1}
+                >
+                  {seg.name}
+                </Text>
+                <Text
+                  className="text-sm font-display-semibold text-textPrimary"
+                  style={tabular}
+                >
+                  {formatPercent(seg.percentage)}
+                </Text>
+              </View>
+            );
+          })}
         </View>
       </Card>
     </View>

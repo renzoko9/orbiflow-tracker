@@ -1,15 +1,19 @@
-import { Alert as RNAlert, ScrollView, Text, View } from "react-native";
+import {
+  Alert as RNAlert,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pencil, RotateCcw, Trash2 } from "lucide-react-native";
 import { ApiError } from "@/shared/api";
 import {
   Alert as AlertBox,
-  KebabMenu,
   Loading,
   ScreenHeader,
   showToast,
-  type KebabMenuItem,
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { getCurrentMonthLabel } from "@/shared/utils";
@@ -32,6 +36,13 @@ export function AccountDetailScreen() {
   const restoreAccount = useRestoreAccount();
 
   const archived = account ? isArchived(account) : false;
+
+  const handleEdit = () => {
+    router.push({
+      pathname: "/accounts/edit/[id]",
+      params: { id: String(accountId) },
+    });
+  };
 
   const handleArchive = () => {
     if (!account) return;
@@ -100,79 +111,120 @@ export function AccountDetailScreen() {
     );
   };
 
-  const menuItems: KebabMenuItem[] = archived
-    ? [
-        {
-          label: "Restaurar",
-          icon: <RotateCcw size={18} color={tokens.textPrimary} />,
-          onPress: handleRestore,
-        },
-      ]
-    : [
-        {
-          label: "Editar",
-          icon: <Pencil size={18} color={tokens.textPrimary} />,
-          onPress: () =>
-            router.push({
-              pathname: "/accounts/edit/[id]",
-              params: { id: String(accountId) },
-            }),
-        },
-        {
-          label: "Eliminar",
-          icon: <Trash2 size={18} color={tokens.danger} />,
-          onPress: handleArchive,
-          variant: "danger",
-        },
-      ];
-
-  return (
-    <SafeAreaView className="flex-1 bg-background">
-      <ScreenHeader
-        title="Detalle de cuenta"
-        rightAction={account ? <KebabMenu items={menuItems} /> : null}
-      />
-
-      {isLoading ? (
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-background">
+        <ScreenHeader title="Detalle" />
         <Loading />
-      ) : error || !account ? (
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !account) {
+    return (
+      <SafeAreaView className="flex-1 bg-background">
+        <ScreenHeader title="Detalle" />
         <View className="px-4 mt-4">
           <AlertBox
             variant="error"
             message={error?.message ?? "No se pudo cargar la cuenta"}
           />
         </View>
-      ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 32 }}
-        >
-          <AccountHero
-            name={account.name}
-            balance={account.balance}
-            description={account.description}
-            icon={account.icon}
-            color={account.color}
-          />
+      </SafeAreaView>
+    );
+  }
 
-          <View className="px-4">
-            {archived ? (
-              <View className="rounded-2xl bg-brandSoft px-4 py-3 mb-4">
-                <Text className="text-sm text-brand">
-                  Esta cuenta esta archivada. El historial se conserva, pero no
-                  cuenta en tus totales ni admite nuevos movimientos.
-                </Text>
-              </View>
-            ) : (
-              <AccountMonthStats
-                monthName={getCurrentMonthLabel()}
-                income={0}
-                expenses={0}
-              />
-            )}
-          </View>
-        </ScrollView>
-      )}
+  return (
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      className="flex-1 bg-background"
+    >
+      <ScreenHeader
+        title="Detalle"
+        rightAction={
+          archived ? null : (
+            <TouchableOpacity
+              onPress={handleEdit}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Editar cuenta"
+            >
+              <Pencil size={22} color={tokens.textPrimary} />
+            </TouchableOpacity>
+          )
+        }
+      />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
+        <AccountHero
+          name={account.name}
+          balance={account.balance}
+          description={account.description}
+          icon={account.icon}
+          color={account.color}
+        />
+
+        <View className="h-px bg-border mx-5" />
+
+        <View className="px-5 pt-6">
+          {archived ? (
+            <View
+              className="rounded-2xl px-4 py-4"
+              style={{ backgroundColor: tokens.brand + "14" }}
+            >
+              <Text
+                className="text-[10px] font-sans-bold uppercase text-brand mb-1"
+                style={{ letterSpacing: 1.2 }}
+              >
+                Cuenta archivada
+              </Text>
+              <Text className="text-sm text-textPrimary leading-5">
+                El historial de movimientos se conserva, pero no cuenta en tus
+                totales ni admite nuevos movimientos.
+              </Text>
+            </View>
+          ) : (
+            <AccountMonthStats
+              monthName={getCurrentMonthLabel()}
+              income={0}
+              expenses={0}
+            />
+          )}
+        </View>
+      </ScrollView>
+
+      <View className="px-5 pt-4 pb-6 border-t border-border bg-background">
+        {archived ? (
+          <TouchableOpacity
+            onPress={handleRestore}
+            disabled={restoreAccount.isPending}
+            className="flex-row items-center justify-center px-4 py-3.5 rounded-xl bg-brand active:bg-brandStrong"
+            accessibilityRole="button"
+            accessibilityLabel="Restaurar cuenta"
+          >
+            <RotateCcw size={16} color={tokens.onBrand} />
+            <Text className="text-base font-sans-bold text-onBrand ml-2">
+              Restaurar cuenta
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={handleArchive}
+            disabled={archiveAccount.isPending}
+            className="flex-row items-center justify-center px-4 py-3.5 rounded-xl border border-danger/40 active:bg-dangerSoft"
+            accessibilityRole="button"
+            accessibilityLabel="Eliminar cuenta"
+          >
+            <Trash2 size={16} color={tokens.danger} />
+            <Text className="text-base font-sans-bold text-danger ml-2">
+              Eliminar cuenta
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
