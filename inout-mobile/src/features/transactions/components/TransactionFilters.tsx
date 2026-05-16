@@ -1,10 +1,17 @@
 import { useRef } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { CalendarDays, Tag } from "lucide-react-native";
+import {
+  CalendarDays,
+  CalendarRange,
+  ChevronsLeft,
+  History,
+  Sun,
+  Tag,
+  type LucideIcon,
+} from "lucide-react-native";
 import {
   BottomSheet,
   BottomSheetScrollView,
-  BottomSheetView,
   IconSelector,
   SegmentedControl,
   SelectField,
@@ -12,7 +19,7 @@ import {
   type IconSelectorItem,
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
-import { getIconComponent } from "@/shared/utils";
+import { cn, getIconComponent } from "@/shared/utils";
 import { CategoryType, type Category } from "@/features/categories";
 
 export type TypeFilter = "ALL" | CategoryType;
@@ -20,13 +27,14 @@ export type TypeFilter = "ALL" | CategoryType;
 interface DateRangeOption {
   label: string;
   value: string;
+  Icon: LucideIcon;
 }
 
 export const DATE_RANGES: DateRangeOption[] = [
-  { label: "Todo", value: "all" },
-  { label: "Hoy", value: "today" },
-  { label: "Esta semana", value: "week" },
-  { label: "Este mes", value: "month" },
+  { label: "Todo", value: "all", Icon: History },
+  { label: "Hoy", value: "today", Icon: Sun },
+  { label: "Esta semana", value: "week", Icon: CalendarRange },
+  { label: "Este mes", value: "month", Icon: CalendarDays },
 ];
 
 interface TransactionFiltersProps {
@@ -70,8 +78,10 @@ export function TransactionFilters({
     ? getIconComponent(selectedCategory.icon)
     : null;
 
-  const selectedDateLabel =
-    DATE_RANGES.find((d) => d.value === dateRange)?.label ?? "Todo";
+  const selectedDate =
+    DATE_RANGES.find((d) => d.value === dateRange) ?? DATE_RANGES[0]!;
+  const SelectedDateIcon = selectedDate.Icon;
+  const dateIsActive = dateRange !== "all";
 
   return (
     <View className="gap-3">
@@ -108,8 +118,13 @@ export function TransactionFilters({
 
         <View className="flex-1">
           <SelectField
-            icon={<CalendarDays size={18} color={tokens.textTertiary} />}
-            label={selectedDateLabel}
+            icon={
+              <SelectedDateIcon
+                size={18}
+                color={dateIsActive ? tokens.brand : tokens.textTertiary}
+              />
+            }
+            label={selectedDate.label}
             placeholder="Fecha"
             onPress={() => dateSheet.current?.present()}
           />
@@ -143,38 +158,61 @@ export function TransactionFilters({
         </BottomSheetScrollView>
       </BottomSheet>
 
-      <BottomSheet ref={dateSheet} snapPoints={["35%"]}>
-        <BottomSheetView className="pb-8 px-4">
-          <Text className="text-base font-semibold text-textPrimary py-3">
-            Rango de fecha
+      <BottomSheet ref={dateSheet} snapPoints={["50%"]}>
+        <View className="px-5 pt-2">
+          <Text
+            className="text-[10px] font-sans-bold uppercase text-textTertiary"
+            style={{ letterSpacing: 1.2 }}
+          >
+            Filtro
           </Text>
-          <View className="gap-2">
-            {DATE_RANGES.map((opt) => (
-              <TouchableOpacity
-                key={opt.value}
-                onPress={() => {
-                  onDateRangeChange(opt.value);
-                  dateSheet.current?.dismiss();
-                }}
-                className={`rounded-xl px-4 py-3 border ${
-                  dateRange === opt.value
-                    ? "border-brand bg-brandSoft"
-                    : "border-border bg-surface"
-                }`}
-              >
-                <Text
-                  className={
-                    dateRange === opt.value
-                      ? "text-brand font-semibold"
-                      : "text-textPrimary"
-                  }
-                >
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <Text className="text-2xl font-sans-extrabold text-textPrimary mt-1 mb-3">
+            Periodo
+          </Text>
+        </View>
+        <BottomSheetScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+          <View className="px-5">
+            {DATE_RANGES.map((opt, index) => {
+              const selected = dateRange === opt.value;
+              const Icon = opt.Icon;
+              return (
+                <View key={opt.value}>
+                  {index > 0 ? <View className="h-px bg-border" /> : null}
+                  <TouchableOpacity
+                    onPress={() => {
+                      onDateRangeChange(opt.value);
+                      dateSheet.current?.dismiss();
+                    }}
+                    activeOpacity={0.7}
+                    className="flex-row items-center gap-3 py-3"
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                  >
+                    <View
+                      className="w-11 h-11 rounded-xl items-center justify-center"
+                      style={{ backgroundColor: tokens.brand + "1F" }}
+                    >
+                      <Icon size={22} color={tokens.brand} />
+                    </View>
+                    <Text
+                      className={cn(
+                        "flex-1 text-base",
+                        selected
+                          ? "font-sans-bold text-brand"
+                          : "font-sans-medium text-textPrimary",
+                      )}
+                    >
+                      {opt.label}
+                    </Text>
+                    {selected ? (
+                      <ChevronsLeft size={20} color={tokens.brand} />
+                    ) : null}
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
           </View>
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheet>
     </View>
   );
