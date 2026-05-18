@@ -8,9 +8,12 @@ interface SelectFieldProps {
   label?: string;
   placeholder?: string;
   icon?: ReactNode;
+  rightLabel?: string;
   error?: string;
   onPress: () => void;
 }
+
+const tabular = { fontVariant: ["tabular-nums" as const] };
 
 /**
  * Campo que se ve como un Input pero al tocarse abre algo (BottomSheet, picker).
@@ -19,6 +22,7 @@ export function SelectField({
   label,
   placeholder,
   icon,
+  rightLabel,
   error,
   onPress,
 }: SelectFieldProps) {
@@ -42,6 +46,15 @@ export function SelectField({
         >
           {label ?? placeholder ?? "Selecciona..."}
         </Text>
+        {rightLabel ? (
+          <Text
+            className="text-base font-display-bold text-textSecondary mr-2"
+            style={[{ includeFontPadding: false }, tabular]}
+            numberOfLines={1}
+          >
+            {rightLabel}
+          </Text>
+        ) : null}
         <ChevronDown size={18} color={tokens.textTertiary} />
       </View>
       {error ? (

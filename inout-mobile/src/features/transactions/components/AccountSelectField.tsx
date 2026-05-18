@@ -1,6 +1,8 @@
 import { useRef } from "react";
 import { Wallet } from "lucide-react-native";
 import { useThemeTokens } from "@/shared/theme";
+import { formatCurrency } from "@/shared/i18n";
+import { getIconComponent } from "@/shared/utils";
 import {
   BottomSheet,
   SelectField,
@@ -24,13 +26,22 @@ export function AccountSelectField({
   const tokens = useThemeTokens();
   const sheetRef = useRef<BottomSheetModal>(null);
   const selected = accounts.find((a) => a.id === selectedId);
+  const SelectedIcon = selected ? getIconComponent(selected.icon) : null;
+
+  const icon =
+    SelectedIcon && selected ? (
+      <SelectedIcon size={18} color={selected.color} />
+    ) : (
+      <Wallet size={18} color={tokens.textTertiary} />
+    );
 
   return (
     <>
       <SelectField
-        icon={<Wallet size={18} color={tokens.textTertiary} />}
+        icon={icon}
         label={selected?.name}
         placeholder="Selecciona una cuenta"
+        rightLabel={selected ? formatCurrency(selected.balance) : undefined}
         error={error}
         onPress={() => sheetRef.current?.present()}
       />

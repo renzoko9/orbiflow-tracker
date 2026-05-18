@@ -19,6 +19,7 @@ import {
   DateField,
   FormField,
   Loading,
+  SectionEyebrow,
   SegmentedControl,
   type IconSelectorItem,
 } from "@/shared/ui";
@@ -129,8 +130,12 @@ export function TransactionForm({
       className="flex-1"
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="flex-col gap-3 p-4">
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
+        <View className="px-5 pt-2">
           <Controller
             control={control}
             name="type"
@@ -145,150 +150,177 @@ export function TransactionForm({
               />
             )}
           />
+        </View>
 
-          <View className="flex-col gap-3 items-center py-6">
-            <Text className="text-base text-textPrimary">Monto</Text>
-            <Controller
-              control={control}
-              name="amount"
-              render={({ field: { onChange, value } }) => (
-                <View className="flex-row gap-4 items-center justify-center">
-                  <Text className="text-5xl font-semibold text-textPrimary">
-                    {APP_CONSTANTS.currencySymbol}
+        <View className="flex-col gap-3 items-center py-6">
+          <Text className="text-[16px] font-display-semibold uppercase text-textPrimary">Monto</Text>
+          <Controller
+            control={control}
+            name="amount"
+            render={({ field: { onChange, value } }) => (
+              <View className="flex-row gap-4 items-center justify-center">
+                <Text className="text-[40px] font-display-bold text-textPrimary">
+                  {APP_CONSTANTS.currencySymbol}
+                </Text>
+                <View>
+                  <Text className="text-[48px] font-sans-bold text-textPrimary opacity-0">
+                    {value !== undefined ? String(value) : "0.00"}
                   </Text>
-                  <View>
-                    <Text className="text-[48px] font-bold text-textPrimary opacity-0">
-                      {value !== undefined ? String(value) : "0.00"}
-                    </Text>
-                    <TextInput
-                      className="text-[48px] font-bold text-textPrimary absolute inset-0"
-                      placeholder="0.00"
-                      placeholderTextColor={tokens.textDisabled}
-                      value={value !== undefined ? String(value) : ""}
-                      onChangeText={(text) => {
-                        if (text === "" || text === ".") {
-                          onChange(undefined);
-                          return;
-                        }
-                        if (/^\d*\.?\d*$/.test(text)) {
-                          onChange(
-                            text.endsWith(".") ? text : parseFloat(text),
-                          );
-                        }
-                      }}
-                      keyboardType="decimal-pad"
-                    />
-                  </View>
+                  <TextInput
+                    className="text-[48px] font-display-bold text-textPrimary absolute inset-0"
+                    placeholder="0.00"
+                    placeholderTextColor={tokens.textDisabled}
+                    value={value !== undefined ? String(value) : ""}
+                    onChangeText={(text) => {
+                      if (text === "" || text === ".") {
+                        onChange(undefined);
+                        return;
+                      }
+                      if (/^\d*\.?\d*$/.test(text)) {
+                        onChange(
+                          text.endsWith(".") ? text : parseFloat(text),
+                        );
+                      }
+                    }}
+                    keyboardType="decimal-pad"
+                  />
                 </View>
-              )}
-            />
-            {errors.amount && (
-              <Text className="text-danger text-sm mt-1">
-                {errors.amount.message}
-              </Text>
+              </View>
             )}
-          </View>
+          />
+          {errors.amount && (
+            <Text className="text-danger text-sm mt-1">
+              {errors.amount.message}
+            </Text>
+          )}
+        </View>
 
-          <View className="flex-col gap-2 mb-4">
-            <Text className="text-base text-textPrimary">Categoria</Text>
-            {categoriesLoading ? (
-              <Loading variant="inline" />
-            ) : categoriesError ? (
-              <Alert variant="error" message={categoriesError.message} />
-            ) : (
-              <Controller
-                control={control}
-                name="categoryId"
-                render={({ field: { value, onChange } }) => (
-                  <IconSelector
-                    items={categoryItems}
-                    selectedId={value ?? null}
-                    onSelect={onChange}
-                    layout="scroll"
-                    className="py-2"
-                    trailingAction={
-                      <TouchableOpacity
-                        onPress={() =>
-                          router.push({
-                            pathname: "/categories/create",
-                            params: { type: String(type) },
-                          })
-                        }
-                        className="items-center"
-                        style={{ width: 72 }}
-                      >
-                        <View
-                          className="rounded-full items-center justify-center border-2 border-dashed border-border bg-surfaceMuted"
-                          style={{ width: 56, height: 56 }}
-                        >
-                          <Plus size={24} color={tokens.brand} />
-                        </View>
-                        <Text className="text-xs text-center text-textPrimary mt-1">
-                          Nueva
-                        </Text>
-                      </TouchableOpacity>
-                    }
-                  />
-                )}
-              />
-            )}
-            {errors.categoryId && (
-              <Text className="text-danger text-sm">
-                {errors.categoryId.message}
-              </Text>
-            )}
-          </View>
+        <View className="h-px bg-border mx-5" />
 
-          <View className="flex-col gap-2">
-            <Text className="text-base text-textPrimary">Cuenta</Text>
-            {accountsLoading ? (
-              <Loading variant="inline" />
-            ) : accountsError ? (
-              <Alert variant="error" message={accountsError.message} />
-            ) : (
-              <Controller
-                control={control}
-                name="accountId"
-                render={({ field: { value, onChange } }) => (
-                  <AccountSelectField
-                    accounts={activeAccounts}
-                    selectedId={value ?? null}
-                    onSelect={onChange}
-                    error={errors.accountId?.message}
-                  />
-                )}
-              />
-            )}
-          </View>
-
-          <View className="flex-col gap-2">
-            <Text className="text-base text-textPrimary">Descripcion</Text>
-            <FormField
-              control={control}
-              name="description"
-              placeholder="Ej: Almuerzo en restaurante"
-            />
-          </View>
-
-          <View className="flex-col gap-2">
-            <Text className="text-base text-textPrimary">Fecha</Text>
+        <View className="px-5 pt-6">
+          <SectionEyebrow label="Categoria" />
+          {categoriesLoading ? (
+            <Loading variant="inline" />
+          ) : categoriesError ? (
+            <Alert variant="error" message={categoriesError.message} />
+          ) : (
             <Controller
               control={control}
-              name="date"
+              name="categoryId"
               render={({ field: { value, onChange } }) => (
-                <DateField
-                  value={value}
-                  onChange={onChange}
-                  error={errors.date?.message}
-                  maximumDate={new Date()}
+                <IconSelector
+                  items={categoryItems}
+                  selectedId={value ?? null}
+                  onSelect={onChange}
+                  layout="scroll"
+                  trailingAction={
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push({
+                          pathname: "/categories/create",
+                          params: { type: String(type) },
+                        })
+                      }
+                      className="items-center"
+                      style={{ width: 72 }}
+                      activeOpacity={0.7}
+                    >
+                      <View className="w-16 h-16 rounded-xl items-center justify-center border border-dashed border-borderStrong bg-surfaceMuted mb-1">
+                        <Plus size={22} color={tokens.brand} strokeWidth={2.5} />
+                      </View>
+                      <Text className="text-xs text-center font-sans-semibold text-brand">
+                        Nueva
+                      </Text>
+                    </TouchableOpacity>
+                  }
                 />
               )}
             />
+          )}
+          {errors.categoryId ? (
+            <Text className="text-xs text-danger mt-2">
+              {errors.categoryId.message}
+            </Text>
+          ) : null}
+        </View>
+
+        <View className="h-px bg-border mx-5 mt-6" />
+
+        <View className="px-5 pt-6">
+          <SectionEyebrow label="Cuenta" />
+          {accountsLoading ? (
+            <Loading variant="inline" />
+          ) : accountsError ? (
+            <Alert variant="error" message={accountsError.message} />
+          ) : (
+            <Controller
+              control={control}
+              name="accountId"
+              render={({ field: { value, onChange } }) => (
+                <AccountSelectField
+                  accounts={activeAccounts}
+                  selectedId={value ?? null}
+                  onSelect={onChange}
+                  error={errors.accountId?.message}
+                />
+              )}
+            />
+          )}
+        </View>
+
+        <View className="h-px bg-border mx-5 mt-6" />
+
+        <View className="px-5 pt-6">
+          <SectionEyebrow label="Detalles" />
+
+          <View className="gap-4">
+            <View>
+              <View className="flex-row items-center mb-2">
+                <Text
+                  className="text-[10px] font-sans-bold uppercase text-textTertiary"
+                  style={{ letterSpacing: 0.6 }}
+                >
+                  Descripcion
+                </Text>
+                <Text
+                  className="text-[10px] font-sans-bold uppercase text-textDisabled ml-2"
+                  style={{ letterSpacing: 0.6 }}
+                >
+                  · Opcional
+                </Text>
+              </View>
+              <FormField
+                control={control}
+                name="description"
+                placeholder="Ej. Almuerzo en restaurante"
+              />
+            </View>
+
+            <View>
+              <Text
+                className="text-[10px] font-sans-bold uppercase text-textTertiary mb-2"
+                style={{ letterSpacing: 0.6 }}
+              >
+                Fecha
+              </Text>
+              <Controller
+                control={control}
+                name="date"
+                render={({ field: { value, onChange } }) => (
+                  <DateField
+                    value={value}
+                    onChange={onChange}
+                    error={errors.date?.message}
+                    maximumDate={new Date()}
+                  />
+                )}
+              />
+            </View>
           </View>
         </View>
       </ScrollView>
 
-      <View className="p-4">
+      <View className="px-5 pt-4 pb-6 border-t border-border bg-background">
         <Button
           variant="primary"
           size="lg"
