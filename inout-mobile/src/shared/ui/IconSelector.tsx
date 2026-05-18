@@ -1,8 +1,6 @@
 import { type ReactNode } from "react";
 import { ScrollView, TouchableOpacity, View, Text } from "react-native";
-import { ChevronsLeft } from "lucide-react-native";
 import { cn, getIconComponent } from "@/shared/utils";
-import { useThemeTokens } from "@/shared/theme";
 
 export interface IconSelectorItem {
   id: number;
@@ -60,7 +58,7 @@ export function IconSelector({
             "items-center justify-center",
             hasIcon ? "rounded-xl" : "rounded-full",
             item.label ? "mb-1" : "",
-            selected && "border-2 border-brand",
+            selected && "border-2 border-slate-500",
           )}
           style={{
             width: tileSize,
@@ -114,7 +112,6 @@ interface ListLayoutProps {
 }
 
 function ListLayout({ items, selectedId, onSelect, className }: ListLayoutProps) {
-  const tokens = useThemeTokens();
   return (
     <View className={className}>
       {items.map((item, index) => {
@@ -126,7 +123,10 @@ function ListLayout({ items, selectedId, onSelect, className }: ListLayoutProps)
             <TouchableOpacity
               onPress={() => onSelect(item.id)}
               activeOpacity={0.7}
-              className="flex-row items-center gap-3 py-3"
+              className={cn(
+                "flex-row items-center gap-3 px-5 py-3",
+                selected && "bg-brandSoft",
+              )}
               accessibilityRole="button"
               accessibilityState={{ selected }}
             >
@@ -146,9 +146,6 @@ function ListLayout({ items, selectedId, onSelect, className }: ListLayoutProps)
               >
                 {item.label}
               </Text>
-              {selected ? (
-                <ChevronsLeft size={20} color={tokens.brand} />
-              ) : null}
             </TouchableOpacity>
           </View>
         );

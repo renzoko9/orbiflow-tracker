@@ -3,7 +3,6 @@ import { Text, TouchableOpacity, View } from "react-native";
 import {
   CalendarDays,
   CalendarRange,
-  ChevronsLeft,
   History,
   Sun,
   Tag,
@@ -144,17 +143,15 @@ export function TransactionFilters({
           </Text>
         </View>
         <BottomSheetScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-          <View className="px-5">
-            <IconSelector
-              items={categoryItems}
-              selectedId={selectedCategoryId ?? 0}
-              layout="list"
-              onSelect={(id) => {
-                onCategoryChange(id === 0 ? null : id);
-                categorySheet.current?.dismiss();
-              }}
-            />
-          </View>
+          <IconSelector
+            items={categoryItems}
+            selectedId={selectedCategoryId ?? 0}
+            layout="list"
+            onSelect={(id) => {
+              onCategoryChange(id === 0 ? null : id);
+              categorySheet.current?.dismiss();
+            }}
+          />
         </BottomSheetScrollView>
       </BottomSheet>
 
@@ -171,47 +168,45 @@ export function TransactionFilters({
           </Text>
         </View>
         <BottomSheetScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-          <View className="px-5">
-            {DATE_RANGES.map((opt, index) => {
-              const selected = dateRange === opt.value;
-              const Icon = opt.Icon;
-              return (
-                <View key={opt.value}>
-                  {index > 0 ? <View className="h-px bg-border" /> : null}
-                  <TouchableOpacity
-                    onPress={() => {
-                      onDateRangeChange(opt.value);
-                      dateSheet.current?.dismiss();
-                    }}
-                    activeOpacity={0.7}
-                    className="flex-row items-center gap-3 py-3"
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
+          {DATE_RANGES.map((opt, index) => {
+            const selected = dateRange === opt.value;
+            const Icon = opt.Icon;
+            return (
+              <View key={opt.value}>
+                {index > 0 ? <View className="h-px bg-border" /> : null}
+                <TouchableOpacity
+                  onPress={() => {
+                    onDateRangeChange(opt.value);
+                    dateSheet.current?.dismiss();
+                  }}
+                  activeOpacity={0.7}
+                  className={cn(
+                    "flex-row items-center gap-3 px-5 py-3",
+                    selected && "bg-brandSoft",
+                  )}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                >
+                  <View
+                    className="w-11 h-11 rounded-xl items-center justify-center"
+                    style={{ backgroundColor: tokens.brand + "1F" }}
                   >
-                    <View
-                      className="w-11 h-11 rounded-xl items-center justify-center"
-                      style={{ backgroundColor: tokens.brand + "1F" }}
-                    >
-                      <Icon size={22} color={tokens.brand} />
-                    </View>
-                    <Text
-                      className={cn(
-                        "flex-1 text-base",
-                        selected
-                          ? "font-sans-bold text-brand"
-                          : "font-sans-medium text-textPrimary",
-                      )}
-                    >
-                      {opt.label}
-                    </Text>
-                    {selected ? (
-                      <ChevronsLeft size={20} color={tokens.brand} />
-                    ) : null}
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
-          </View>
+                    <Icon size={22} color={tokens.brand} />
+                  </View>
+                  <Text
+                    className={cn(
+                      "flex-1 text-base",
+                      selected
+                        ? "font-sans-bold text-brand"
+                        : "font-sans-medium text-textPrimary",
+                    )}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
         </BottomSheetScrollView>
       </BottomSheet>
     </View>
