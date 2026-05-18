@@ -36,7 +36,7 @@ export function AccountsDistributionCard({
     <View className="mb-4">
       <SectionEyebrow label="Distribucion" />
       <Card>
-        <View className="h-3 rounded-full bg-surfaceMuted overflow-hidden flex-row mb-5">
+        <View className="h-8 rounded-md bg-surfaceMuted overflow-hidden flex-row mb-5">
           {segments.map((seg) => (
             <View
               key={seg.id}
