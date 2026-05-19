@@ -1,0 +1,211 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   INOUT - Design tokens
+   ----------------------------------------------------------------------------
+   Hierarchy is achieved through SURFACE CONTRAST only.
+   Never apply box-shadow. Never apply gradients. Never invent new colors.
+   Primary Green -> INCOME / IN flows only.
+   Action Red    -> EXPENSE / OUT flows only.
+   Navy Deep     -> main balance card only.
+   ============================================================================ */
+
+@theme {
+  --color-sage: #E8EBE6;
+  --color-ink: #0E0F0C;
+  --color-ink-60: rgba(14, 15, 12, 0.60);
+  --color-ink-40: rgba(14, 15, 12, 0.40);
+  --color-ink-12: rgba(14, 15, 12, 0.12);
+  --color-primary-green: #9FE870;
+  --color-action-red: #D03238;
+  --color-navy-deep: #1B2B5E;
+  --color-white-pure: #FFFFFF;
+  --color-white-60: rgba(255, 255, 255, 0.60);
+  --color-white-15: rgba(255, 255, 255, 0.15);
+  --color-green-soft: #DCF6C7;
+  --color-red-soft: #F6D7D8;
+  --color-navy-soft: #D4D7E1;
+
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-display: "Oswald", "Bebas Neue", "Arial Narrow", sans-serif;
+
+  --radius-input: 12px;
+  --radius-chip: 12px;
+  --radius-card: 24px;
+  --radius-sheet: 28px;
+  --radius-pill: 999px;
+
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================================
+   Base
+   ============================================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+html, body {
+  background: var(--color-sage);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html { overflow-x: clip; }
+body { overflow-x: clip; }
+
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button { font-family: inherit; cursor: pointer; border: 0; background: none; padding: 0; color: inherit; }
+
+p { font-size: 16px; line-height: 1.5; color: var(--color-ink); margin: 0; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  margin: 0;
+  line-height: 1.15;
+}
+
+/* ============================================================================
+   Layout primitives
+   ============================================================================ */
+:root {
+  --page-max: 1240px;
+  --gutter: clamp(20px, 4vw, 64px);
+}
+
+.wrap {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+/* ============================================================================
+   Display / amounts: ALWAYS Oswald with tabular figures
+   ============================================================================ */
+.display, .amount, .amt {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+/* ============================================================================
+   Eyebrow row
+   ============================================================================ */
+.eyebrow-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-60);
+}
+.eyebrow-row.on-dark { color: var(--color-white-60); }
+.eyebrow-row .tick { width: 18px; height: 1px; background: currentColor; }
+
+/* ============================================================================
+   Section title + lead
+   ============================================================================ */
+.section__h2 {
+  font-size: clamp(38px, 5.6vw, 76px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  margin: 18px 0 0;
+  text-wrap: balance;
+}
+.section__lead {
+  margin-top: 24px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--color-ink-60);
+  max-width: 620px;
+}
+
+/* ============================================================================
+   Buttons
+   ============================================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 22px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 120ms var(--ease-out), background 120ms var(--ease-out), color 120ms var(--ease-out);
+  white-space: nowrap;
+}
+.btn--ink { background: var(--color-ink); color: var(--color-white-pure); }
+.btn--green { background: var(--color-primary-green); color: var(--color-ink); }
+.btn--ghost { background: transparent; color: var(--color-ink); border: 1px solid var(--color-ink-12); }
+.btn--ghost-on-dark { background: transparent; color: var(--color-white-pure); border: 1px solid var(--color-white-15); }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: scale(0.97); }
+.btn--sm { height: 40px; padding: 0 18px; font-size: 13px; }
+.btn svg { width: 16px; height: 16px; }
+
+/* ============================================================================
+   Section base
+   ============================================================================ */
+section { padding: clamp(80px, 10vw, 128px) 0; }
+
+/* ============================================================================
+   Motion: keyframes
+   ============================================================================ */
+@keyframes inout-rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes inout-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes inout-ghost-in {
+  from { opacity: 0; }
+  to { opacity: 0.05; }
+}
+@keyframes inout-drift {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  50% { transform: translateX(-1.2%) translateY(-0.6%); }
+}
+@keyframes inout-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes inout-bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal--lag-1 { transition-delay: 80ms; }
+.reveal--lag-2 { transition-delay: 160ms; }
+.reveal--lag-3 { transition-delay: 240ms; }
+.reveal--lag-4 { transition-delay: 320ms; }
+
+/* Reduce motion respect */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .reveal { opacity: 1; transform: none; }
+}

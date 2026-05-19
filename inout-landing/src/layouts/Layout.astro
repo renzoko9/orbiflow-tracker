@@ -1,0 +1,74 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "INOUT - Tu dinero, bajo control",
+  description = "Registra ingresos y gastos en segundos. Mandale una foto del recibo por WhatsApp o pidele a la IA que registre por ti. Cada sol contado, sin abrir la app.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/logo-mark.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="/app-mobile-screenshot.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <slot />
+    <script src="https://unpkg.com/lucide@latest" is:inline></script>
+    <script is:inline>
+      if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+
+      (function () {
+        var nav = document.querySelector(".nav");
+        if (!nav) return;
+        var threshold = 24;
+        function update() {
+          if (window.scrollY > threshold) nav.classList.add("is-scrolled");
+          else nav.classList.remove("is-scrolled");
+        }
+        update();
+        window.addEventListener("scroll", update, { passive: true });
+      })();
+
+      (function () {
+        var els = document.querySelectorAll(".reveal");
+        if (!els.length) return;
+        if (!("IntersectionObserver" in window)) {
+          els.forEach(function (el) { el.classList.add("in-view"); });
+          return;
+        }
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("in-view");
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+        els.forEach(function (el) { io.observe(el); });
+      })();
+    </script>
+  </body>
+</html>
