@@ -1,0 +1,111 @@
+---
+import LogoMark from "./LogoMark.astro";
+---
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__top">
+      <div>
+        <div class="foot__brand">
+          <LogoMark />
+          <span>INOUT</span>
+        </div>
+        <p class="foot__tag">Control de flujo de caja personal con asistente de IA integrado.</p>
+      </div>
+
+      <div class="foot__col">
+        <h4>Producto</h4>
+        <a href="#producto">Como funciona</a>
+        <a href="#ia">IA + WhatsApp</a>
+        <a href="#categorias">Categorias</a>
+        <a href="#descargar">Descargar</a>
+      </div>
+
+      <div class="foot__col">
+        <h4>Compa&ntilde;ia</h4>
+        <a href="#">Blog</a>
+        <a href="#">Contacto</a>
+        <a href="#">Prensa</a>
+        <a href="#">Trabaja con nosotros</a>
+      </div>
+
+      <div class="foot__col">
+        <h4>Legal</h4>
+        <a href="#">Privacidad</a>
+        <a href="#">Terminos</a>
+        <a href="#">Cookies</a>
+        <a href="#">Seguridad</a>
+      </div>
+    </div>
+
+    <div class="foot__bottom">
+      <div>&copy; 2026 INOUT. Todos los derechos reservados.</div>
+      <div>v1.4.0 &middot; IA + WhatsApp habilitados</div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    background: var(--color-ink);
+    color: var(--color-white-pure);
+    padding: 80px 0 40px;
+  }
+  .foot :global(h4) { color: var(--color-white-60); }
+
+  .foot__top {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 40px;
+  }
+  @media (max-width: 900px) {
+    .foot__top { grid-template-columns: 1fr 1fr; }
+  }
+  .foot__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  .foot__brand :global(svg) {
+    width: 28px;
+    height: 32px;
+    color: var(--color-white-pure);
+  }
+  .foot__tag {
+    margin-top: 18px;
+    color: var(--color-white-60);
+    font-size: 15px;
+    max-width: 320px;
+    line-height: 1.5;
+  }
+  .foot__col h4 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-white-60);
+    margin-bottom: 16px;
+  }
+  .foot__col a {
+    display: block;
+    color: var(--color-white-pure);
+    font-size: 15px;
+    padding: 6px 0;
+    opacity: 0.9;
+    transition: opacity 120ms;
+  }
+  .foot__col a:hover { opacity: 1; }
+  .foot__bottom {
+    margin-top: 64px;
+    padding-top: 28px;
+    border-top: 1px solid var(--color-white-15);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--color-white-60);
+  }
+</style>

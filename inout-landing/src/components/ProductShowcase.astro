@@ -1,0 +1,188 @@
+---
+---
+<section class="product-section">
+  <div class="wrap product">
+    <div class="product__media">
+      <div class="phone-frame">
+        <div class="phone-frame__screen">
+          <img src="/app-mobile-screenshot.png" alt="Pantalla principal de INOUT mostrando el balance total" />
+        </div>
+
+        <div class="callout callout--in">
+          <span class="pip"><i data-lucide="trending-up"></i></span>
+          <span>+S/&nbsp;1,000.00</span>
+        </div>
+        <div class="callout callout--out">
+          <span class="pip"><i data-lucide="trending-down"></i></span>
+          <span>&minus;S/&nbsp;372.90</span>
+        </div>
+        <div class="callout callout--cat">
+          <span class="pip"><i data-lucide="layers"></i></span>
+          <span>4 categorias activas</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="eyebrow-row"><span class="tick"></span> Tu pantalla principal</div>
+      <h2 class="section__h2 product__title">Claridad que se siente dise&ntilde;ada.</h2>
+      <p class="section__lead">
+        Una tarjeta navy. Un numero grande. Tres lineas honestas. Asi luce tu situacion financiera en INOUT &mdash; sin graficos confusos ni gamification innecesaria.
+      </p>
+
+      <div class="feature-list">
+        <div class="feature">
+          <div class="feature__icon green"><i data-lucide="zap"></i></div>
+          <div>
+            <h3>Registra en menos de 30 segundos</h3>
+            <p>Dos botones grandes: IN para ingresos, OUT para gastos. Monto, categoria, listo. Sin asistentes ni pasos opcionales.</p>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature__icon navy"><i data-lucide="trending-up"></i></div>
+          <div>
+            <h3>Tu balance, siempre arriba</h3>
+            <p>La tarjeta navy del inicio te muestra balance total, ingresos, gastos y neto del mes. Todo de un vistazo.</p>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature__icon"><i data-lucide="shapes"></i></div>
+          <div>
+            <h3>Categorias que s&iacute; usas</h3>
+            <p>Alimentacion, transporte, casa, educacion, gimnasio. 24 categorias hechas para la vida diaria, no para contadores.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .product-section { padding-top: 0; }
+  .product {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: clamp(40px, 6vw, 96px);
+    align-items: center;
+  }
+  @media (max-width: 900px) {
+    .product { grid-template-columns: 1fr; }
+  }
+
+  .product__media { position: relative; }
+  .product__title { font-size: clamp(36px, 4.6vw, 60px); }
+
+  .phone-frame {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+    aspect-ratio: 9 / 19.5;
+    background: var(--color-ink);
+    border-radius: 52px;
+    padding: 12px;
+    border: 1px solid var(--color-ink-12);
+  }
+  .phone-frame::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 28px;
+    background: var(--color-ink);
+    border-radius: 999px;
+    z-index: 3;
+  }
+  .phone-frame__screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 42px;
+    overflow: hidden;
+    background: var(--color-sage);
+  }
+  .phone-frame__screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  .callout {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--color-white-pure);
+    border: 1px solid var(--color-ink-12);
+    border-radius: var(--radius-pill);
+    padding: 8px 14px 8px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .callout .pip {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    color: var(--color-white-pure);
+  }
+  .callout :global(.lucide) { width: 14px; height: 14px; }
+
+  .callout--in  { left: -28px; top: 18%; }
+  .callout--in  .pip { background: var(--color-primary-green); color: var(--color-ink); }
+  .callout--out { right: -28px; top: 36%; }
+  .callout--out .pip { background: var(--color-action-red); }
+  .callout--cat { left: -16px; bottom: 22%; }
+  .callout--cat .pip { background: var(--color-navy-deep); }
+
+  @media (max-width: 900px) {
+    .callout--in  { left: 0; }
+    .callout--out { right: 0; }
+    .callout--cat { left: 8px; }
+  }
+
+  .feature-list {
+    display: grid;
+    gap: 28px;
+    margin-top: 36px;
+  }
+  .feature {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 20px;
+    align-items: start;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-ink-12);
+  }
+  .feature:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .feature__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: var(--color-ink);
+    color: var(--color-white-pure);
+  }
+  .feature__icon.green { background: var(--color-primary-green); color: var(--color-ink); }
+  .feature__icon.navy  { background: var(--color-navy-deep); color: var(--color-white-pure); }
+  .feature__icon :global(.lucide) { width: 22px; height: 22px; stroke-width: 2; }
+  .feature h3 {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    margin: 0 0 6px;
+  }
+  .feature p {
+    font-size: 15px;
+    color: var(--color-ink-60);
+    line-height: 1.5;
+  }
+</style>

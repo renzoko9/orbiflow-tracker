@@ -1,0 +1,87 @@
+---
+import LogoMark from "./LogoMark.astro";
+---
+<header class="nav">
+  <div class="wrap nav__inner">
+    <a class="brand" href="#top" aria-label="INOUT">
+      <LogoMark />
+      <span>INOUT</span>
+    </a>
+    <nav class="nav__links">
+      <a href="#producto">Producto</a>
+      <a href="#ia">IA + WhatsApp</a>
+      <a href="#como">Como funciona</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav__cta">
+      <a href="#descargar" class="btn btn--sm btn--green">
+        Descargar gratis <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--color-ink);
+    border-bottom: 1px solid transparent;
+    color: var(--color-white-pure);
+    transition:
+      background 200ms var(--ease-out),
+      border-color 200ms var(--ease-out),
+      backdrop-filter 200ms var(--ease-out);
+  }
+  .nav.is-scrolled {
+    background: rgba(14, 15, 12, 0.85);
+    backdrop-filter: saturate(160%) blur(18px);
+    -webkit-backdrop-filter: saturate(160%) blur(18px);
+    border-bottom-color: var(--color-white-15);
+  }
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-size: 18px;
+    color: var(--color-white-pure);
+  }
+  .brand :global(svg) {
+    width: 26px;
+    height: 28px;
+    color: var(--color-white-pure);
+  }
+  .nav__links {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+  .nav__links a {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-white-60);
+    transition: color 120ms var(--ease-out);
+  }
+  .nav__links a:hover {
+    color: var(--color-white-pure);
+  }
+  .nav__cta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  @media (max-width: 720px) {
+    .nav__links {
+      display: none;
+    }
+  }
+</style>

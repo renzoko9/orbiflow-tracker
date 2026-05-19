@@ -1,0 +1,97 @@
+---
+const steps = [
+  {
+    num: "01",
+    title: "Descarga la app",
+    body: "Disponible en iOS y Android. Sin registro obligatorio para empezar - entras directo al dashboard.",
+  },
+  {
+    num: "02",
+    title: "Pulsa IN u OUT - o mandale al bot",
+    body: "Dos botones en la app, una foto por WhatsApp, o un mensaje al chatbot. La IA detecta los datos y los registra por ti.",
+  },
+  {
+    num: "03",
+    title: "Mira tu balance",
+    body: "El balance total se actualiza al instante. Vas a ver, mes a mes, exactamente donde se va cada sol.",
+  },
+];
+---
+<section id="como">
+  <div class="wrap">
+    <div class="eyebrow-row reveal"><span class="tick"></span> Como funciona</div>
+    <h2 class="section__h2 reveal reveal--lag-1">
+      Tres pasos.<br />Cero curva de aprendizaje.
+    </h2>
+
+    <div class="steps reveal reveal--lag-2">
+      {steps.map((s) => (
+        <div class="step">
+          <div class="step__num">{s.num}<span class="of">/03</span></div>
+          <h3>{s.title}</h3>
+          <p>{s.body}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .steps {
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+  }
+  @media (max-width: 900px) {
+    .steps { grid-template-columns: 1fr; }
+  }
+  .step {
+    padding: 32px;
+    border-left: 1px solid var(--color-ink-12);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 240px;
+  }
+  .step:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+  @media (max-width: 900px) {
+    .step {
+      border-left: 0;
+      border-top: 1px solid var(--color-ink-12);
+      padding-left: 0;
+      padding-top: 32px;
+    }
+    .step:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+  }
+  .step__num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 56px;
+    line-height: 1;
+    color: var(--color-ink);
+  }
+  .step__num .of {
+    color: var(--color-ink-40);
+    font-size: 22px;
+    vertical-align: super;
+    margin-left: 4px;
+  }
+  .step h3 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 8px 0 0;
+  }
+  .step p {
+    color: var(--color-ink-60);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+</style>

@@ -1,0 +1,132 @@
+---
+const cats = [
+  { name: "Educacion", amount: 250, pct: 67, color: "#488A4E", icon: "graduation-cap" },
+  { name: "Gimnasio", amount: 68, pct: 18, color: "#9B6EC4", icon: "dumbbell" },
+  { name: "Casa", amount: 40, pct: 11, color: "#327A7A", icon: "home" },
+  { name: "Alimentacion", amount: 15, pct: 4, color: "#B2804C", icon: "utensils" },
+];
+
+const tint = (hex: string) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, 0.12)`;
+};
+---
+<section class="cats-section" id="categorias">
+  <div class="wrap">
+    <div class="eyebrow-row reveal">
+      <span class="tick"></span> En qu&eacute; gastaste &middot; Este mes
+    </div>
+    <h2 class="section__h2 reveal reveal--lag-1">
+      Categorias reales,<br />sin inventos.
+    </h2>
+    <p class="section__lead reveal reveal--lag-2">
+      Cada movimiento OUT va a una categoria con nombre humano y un color asignado. Asi se ven en tu pantalla principal.
+    </p>
+
+    <div class="cats reveal reveal--lag-3">
+      {cats.map((c) => (
+        <article class="cat">
+          <div class="cat__tile" style={`background:${tint(c.color)};`}>
+            <i data-lucide={c.icon} style={`color:${c.color}`}></i>
+          </div>
+          <div>
+            <div class="cat__row">
+              <span class="cat__name">{c.name}</span>
+              <span class="cat__amt">S/&nbsp;{c.amount}</span>
+            </div>
+            <div class="cat__bar">
+              <span style={`background:${c.color}; width:${c.pct}%;`}></span>
+            </div>
+            <div class="cat__pct">{c.pct}% del total</div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .cats-section {
+    background: var(--color-white-pure);
+    border-top: 1px solid var(--color-ink-12);
+    border-bottom: 1px solid var(--color-ink-12);
+  }
+  .cats {
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .cats { grid-template-columns: repeat(2, 1fr); }
+  }
+  .cat {
+    border: 1px solid var(--color-ink-12);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: var(--color-white-pure);
+    transition:
+      border-color 120ms var(--ease-out),
+      transform 120ms var(--ease-out);
+  }
+  .cat:hover {
+    border-color: var(--color-ink);
+    transform: translateY(-2px);
+  }
+  .cat__tile {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+  }
+  .cat__tile :global(.lucide) {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2;
+  }
+  .cat__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .cat__name {
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .cat__amt {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    font-size: 26px;
+    line-height: 1;
+  }
+  .cat__bar {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-ink-12);
+    position: relative;
+    overflow: hidden;
+    margin-top: 14px;
+  }
+  .cat__bar > span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 999px;
+  }
+  .cat__pct {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-40);
+    margin-top: 10px;
+  }
+</style>

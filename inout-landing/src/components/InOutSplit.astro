@@ -1,0 +1,128 @@
+---
+---
+<section id="producto">
+  <div class="wrap">
+    <div class="eyebrow-row reveal">
+      <span class="tick"></span> Dos botones. Una respuesta.
+    </div>
+    <h2 class="section__h2 reveal reveal--lag-1">
+      Todo lo que entra. <br />Todo lo que sale.
+    </h2>
+    <p class="section__lead reveal reveal--lag-2">
+      INOUT divide tu vida financiera en dos columnas: ingresos y gastos. Sin sub-cuentas. Sin balances confusos. Solo lo que necesitas para saber, hoy, en qu&eacute; se va tu plata.
+    </p>
+
+    <div class="inout reveal reveal--lag-3">
+      <div class="inout__panel inout__in">
+        <div class="inout__big">IN</div>
+        <div class="inout__label-stack">
+          <div class="inout__role">IN</div>
+          <div class="inout__sub">Todo lo que entra</div>
+        </div>
+        <div class="inout__row">
+          <div class="inout__amount">S/&nbsp;1,000.00</div>
+          <svg class="inout__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 17 L17 7"></path>
+            <polyline points="9 7 17 7 17 15"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <div class="inout__panel inout__out">
+        <div class="inout__big">OUT</div>
+        <div class="inout__label-stack">
+          <div class="inout__role">OUT</div>
+          <div class="inout__sub">Todo lo que sale</div>
+        </div>
+        <div class="inout__row">
+          <div class="inout__amount">S/&nbsp;720.50</div>
+          <svg class="inout__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 7 L7 17"></path>
+            <polyline points="15 17 7 17 7 9"></polyline>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .inout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    isolation: isolate;
+    margin-top: 56px;
+  }
+  .inout__panel {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .inout__in  { background: var(--color-primary-green); color: var(--color-ink); }
+  .inout__out { background: var(--color-ink); color: var(--color-white-pure); }
+
+  .inout__big {
+    position: absolute;
+    inset: auto 0 -18% 0;
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(220px, 30vw, 420px);
+    line-height: 0.8;
+    letter-spacing: -0.02em;
+    animation: inout-drift 18s var(--ease-in-out) infinite;
+  }
+  .inout__in .inout__big { color: rgba(14, 15, 12, 0.18); }
+  .inout__out .inout__big {
+    color: rgba(255, 255, 255, 0.08);
+    animation-duration: 22s;
+    animation-direction: reverse;
+  }
+
+  .inout__label-stack { position: relative; z-index: 2; }
+  .inout__role {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(64px, 8vw, 110px);
+    line-height: 0.9;
+    letter-spacing: -0.01em;
+  }
+  .inout__sub {
+    margin-top: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .inout__in .inout__sub  { color: rgba(14, 15, 12, 0.6); }
+  .inout__out .inout__sub { color: var(--color-white-60); }
+
+  .inout__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+  .inout__amount {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    font-size: clamp(28px, 3.4vw, 44px);
+    line-height: 1;
+  }
+  .inout__in .inout__amount  { color: var(--color-ink); }
+  .inout__out .inout__amount { color: var(--color-primary-green); }
+  .inout__arrow { width: 28px; height: 28px; stroke-width: 2; }
+
+  @media (max-width: 720px) {
+    .inout { grid-template-columns: 1fr; }
+    .inout__panel { aspect-ratio: 1 / 1; padding: 28px; }
+  }
+</style>
