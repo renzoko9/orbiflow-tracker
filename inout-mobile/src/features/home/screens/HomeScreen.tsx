@@ -110,7 +110,8 @@ export function HomeScreen() {
               totalExpenses={currentSummary.expenses}
             />
 
-            {showInsight && (
+            <Hairline />
+            {/* {showInsight && (
               <>
                 <Hairline />
                 <View className="px-5 mb-8">
@@ -121,7 +122,7 @@ export function HomeScreen() {
                   />
                 </View>
               </>
-            )}
+            )} */}
 
             <RecentTransactionsCard
               transactions={recentTransactions}
