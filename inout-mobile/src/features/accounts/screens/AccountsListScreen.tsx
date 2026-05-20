@@ -2,28 +2,23 @@ import { useMemo } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { ArrowRight, Plus, Wallet } from "lucide-react-native";
-import { Alert, Button, Loading, SectionEyebrow } from "@/shared/ui";
-import { useThemeTokens } from "@/shared/theme";
 import {
-  AccountCard,
-  AccountsDistributionCard,
-  AccountsHeader,
-} from "../components";
+  Alert,
+  Button,
+  Loading,
+  ScreenHeader,
+  SectionEyebrow,
+} from "@/shared/ui";
+import { useThemeTokens } from "@/shared/theme";
+import { AccountCard, AccountsDistributionCard } from "../components";
 import { useAccounts, useArchivedAccounts } from "../api";
 
 export function AccountsListScreen() {
   const router = useRouter();
   const tokens = useThemeTokens();
-  const tabBarHeight = useBottomTabBarHeight();
   const { data: accounts = [], isLoading, error } = useAccounts();
   const { data: archived = [] } = useArchivedAccounts();
-
-  const totalBalance = useMemo(
-    () => accounts.reduce((sum, acc) => sum + Number(acc.balance), 0),
-    [accounts],
-  );
 
   const totalAbs = useMemo(
     () =>
@@ -32,10 +27,19 @@ export function AccountsListScreen() {
   );
 
   return (
-    <SafeAreaView
-      edges={["top", "left", "right"]}
-      className="flex-1 bg-background"
-    >
+    <SafeAreaView className="flex-1 bg-background">
+      <ScreenHeader
+        title="Mis cuentas"
+        rightAction={
+          <TouchableOpacity
+            onPress={() => router.push("/accounts/create")}
+            hitSlop={8}
+          >
+            <Plus size={22} color={tokens.brand} />
+          </TouchableOpacity>
+        }
+      />
+
       {isLoading ? (
         <Loading />
       ) : error ? (
@@ -44,33 +48,14 @@ export function AccountsListScreen() {
         </View>
       ) : (
         <ScrollView
+          className="flex-1"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}
+          contentContainerStyle={{ paddingBottom: 32 }}
         >
-          <AccountsHeader
-            totalBalance={totalBalance}
-            accountCount={accounts.length}
-          />
-
-          <View className="px-4">
+          <View className="px-4 pt-4">
             <AccountsDistributionCard accounts={accounts} />
 
-            <SectionEyebrow
-              label="Mis cuentas"
-              rightElement={
-                <TouchableOpacity
-                  onPress={() => router.push("/accounts/create")}
-                  hitSlop={8}
-                  className="flex-row items-center gap-1"
-                >
-                  <Plus size={14} color={tokens.brand} />
-                  <Text className="text-xs font-sans-bold uppercase text-brand"
-                        style={{ letterSpacing: 0.6 }}>
-                    Nueva
-                  </Text>
-                </TouchableOpacity>
-              }
-            />
+            <SectionEyebrow label="Mis cuentas" />
 
             {accounts.length === 0 ? (
               <View className="items-center py-12 px-6">
