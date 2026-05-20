@@ -76,18 +76,26 @@ export function SettingsScreen() {
       edges={["top", "left", "right"]}
       className="flex-1 bg-background"
     >
-      <View className="px-4 pt-4 pb-2">
-        <Text className="text-xl font-bold text-textPrimary">Ajustes</Text>
+      <View className="px-5 pt-6 pb-6">
+        <Text
+          className="text-[11px] font-sans-bold uppercase text-textDisabled mb-1"
+          style={{ letterSpacing: 0.4 }}
+        >
+          Configuracion
+        </Text>
+        <Text className="text-3xl font-sans-extrabold text-textPrimary">
+          Ajustes
+        </Text>
       </View>
 
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 8,
+          paddingHorizontal: 20,
+          paddingTop: 4,
           paddingBottom: tabBarHeight + 24,
-          gap: 20,
+          gap: 24,
         }}
       >
         <ProfileHeader
@@ -181,7 +189,12 @@ export function SettingsScreen() {
             icon={<Info size={ICON_SIZE} color={tokens.brand} />}
             title="Version"
             rightElement={
-              <Text className="text-sm text-textSecondary">{APP_VERSION}</Text>
+              <Text
+                className="text-sm font-display-semibold text-textSecondary"
+                style={{ fontVariant: ["tabular-nums"] }}
+              >
+                {APP_VERSION}
+              </Text>
             }
           />
         </SettingsSection>

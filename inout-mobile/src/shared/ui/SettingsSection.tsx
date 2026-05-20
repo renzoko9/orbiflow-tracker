@@ -11,9 +11,9 @@ export function SettingsSection({ title, children }: SettingsSectionProps) {
   const lastIdx = items.length - 1;
 
   return (
-    <View className="gap-2">
+    <View className="gap-3">
       {title ? (
-        <Text className="text-xs font-semibold text-textTertiary uppercase tracking-wide px-1">
+        <Text className="text-[11px] font-sans-bold uppercase text-textTertiary">
           {title}
         </Text>
       ) : null}

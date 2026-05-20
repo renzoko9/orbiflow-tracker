@@ -43,7 +43,7 @@ export function SettingsItem({
       )}
     >
       <View
-        className="items-center justify-center rounded-full"
+        className="items-center justify-center rounded-xl"
         style={{
           width: 36,
           height: 36,
@@ -55,7 +55,7 @@ export function SettingsItem({
       <View className="flex-1">
         <Text
           className={cn(
-            "text-base font-medium",
+            "text-base font-sans-semibold",
             danger ? "text-danger" : "text-textPrimary",
           )}
         >
@@ -66,11 +66,9 @@ export function SettingsItem({
         ) : null}
       </View>
       {badge ? (
-        <View className="bg-surfaceMuted px-2 py-0.5 rounded-full">
-          <Text className="text-[10px] font-semibold text-textSecondary uppercase tracking-wide">
-            {badge}
-          </Text>
-        </View>
+        <Text className="text-[10px] font-sans-bold text-textTertiary uppercase">
+          {badge}
+        </Text>
       ) : null}
       {rightElement ??
         (onPress && !danger ? (
