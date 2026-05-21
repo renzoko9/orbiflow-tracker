@@ -1,9 +1,14 @@
 import { Text, TouchableOpacity, View } from "react-native";
+import { ArrowLeftRight, ArrowRight } from "lucide-react-native";
 import { SectionEyebrow } from "@/shared/ui";
+import { useThemeTokens } from "@/shared/theme";
 import { formatCurrency, formatRelativeDay } from "@/shared/i18n";
 import { getIconComponent } from "@/shared/utils";
 import { CategoryType } from "@/features/categories";
-import type { TransactionListItem } from "@/features/transactions";
+import {
+  getListItemKey,
+  type TransactionListItem,
+} from "@/features/transactions";
 
 interface RecentTransactionsCardProps {
   transactions: TransactionListItem[];
@@ -16,6 +21,8 @@ export function RecentTransactionsCard({
   transactions,
   onSeeAll,
 }: RecentTransactionsCardProps) {
+  const tokens = useThemeTokens();
+
   if (transactions.length === 0) return null;
 
   const seeAll = (
@@ -33,6 +40,70 @@ export function RecentTransactionsCard({
 
       <View className="gap-6">
         {transactions.map((tx) => {
+          if (tx.kind === "transfer") {
+            const label = tx.description?.trim()
+              ? tx.description
+              : "Transferencia";
+
+            return (
+              <View
+                key={getListItemKey(tx)}
+                className="flex-row items-center"
+              >
+                <View
+                  className="w-11 h-11 rounded-xl items-center justify-center mr-3.5"
+                  style={{ backgroundColor: tokens.brand + "1F" }}
+                >
+                  <ArrowLeftRight size={20} color={tokens.brand} />
+                </View>
+
+                <View className="flex-1 mr-3">
+                  <Text
+                    className="text-[14px] font-sans-medium text-textPrimary"
+                    numberOfLines={1}
+                  >
+                    {label}
+                  </Text>
+                  <View className="flex-row items-center mt-1">
+                    <Text
+                      className="text-[10px] uppercase text-textTertiary"
+                      style={{ letterSpacing: 0.6 }}
+                      numberOfLines={1}
+                    >
+                      {tx.sourceAccount.name}
+                    </Text>
+                    <ArrowRight
+                      size={10}
+                      color={tokens.textTertiary}
+                      style={{ marginHorizontal: 4 }}
+                    />
+                    <Text
+                      className="text-[10px] uppercase text-textTertiary"
+                      style={{ letterSpacing: 0.6 }}
+                      numberOfLines={1}
+                    >
+                      {tx.destinationAccount.name}
+                    </Text>
+                    <Text
+                      className="text-[10px] uppercase text-textTertiary ml-1"
+                      style={{ letterSpacing: 0.6 }}
+                      numberOfLines={1}
+                    >
+                      · {formatRelativeDay(tx.date)}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text
+                  className="text-[17px] font-display-bold text-textPrimary"
+                  style={tabular}
+                >
+                  {formatCurrency(tx.amount)}
+                </Text>
+              </View>
+            );
+          }
+
           const categoryName = tx.category?.name ?? "Sin categoria";
           const categoryIcon = tx.category?.icon ?? "tag";
           const categoryColor = tx.category?.color ?? "#a6a6a6";
@@ -43,7 +114,7 @@ export function RecentTransactionsCard({
           const label = tx.description?.trim() ? tx.description : categoryName;
 
           return (
-            <View key={tx.id} className="flex-row items-center">
+            <View key={getListItemKey(tx)} className="flex-row items-center">
               <View
                 className="w-11 h-11 rounded-xl items-center justify-center mr-3.5"
                 style={{ backgroundColor: categoryColor + "1F" }}

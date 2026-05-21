@@ -30,3 +30,9 @@ export function groupTransactionsByDate(
     data,
   }));
 }
+
+export function getListItemKey(item: TransactionListItem): string {
+  return item.kind === "transfer"
+    ? `transfer:${item.transferGroupId}`
+    : `movement:${item.id}`;
+}

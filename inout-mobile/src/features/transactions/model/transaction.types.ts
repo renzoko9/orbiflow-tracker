@@ -2,10 +2,15 @@ import { CategoryType } from "@/features/categories";
 
 /**
  * DTOs del backend para transacciones.
- * El backend tiene 3 shapes distintas segun el endpoint:
- * - List: TransactionListResponse (con category embed + accountId/Name)
- * - Detail: TransactionDetailResponse (con category + account embed)
- * - Mutation result: TransactionResponse (resumido)
+ *
+ * El listado global (`GET /transactions`) devuelve una union discriminada por
+ * `kind`: las transferencias se colapsan a una sola fila y comparten el feed
+ * con los movimientos normales.
+ *
+ * El listado por cuenta (`GET /transactions/account/:id`) devuelve siempre
+ * filas tipo `movement`, pero las que pertenecen a una transferencia traen
+ * `transferGroupId` y `counterpartyAccount` para que la UI las renderice
+ * distinto.
  */
 
 export interface TransactionCategoryEmbed {
@@ -22,7 +27,13 @@ export interface TransactionAccountEmbed {
   balance: number;
 }
 
-export interface TransactionListItemDto {
+export interface AccountRefEmbed {
+  id: number;
+  name: string;
+}
+
+export interface MovementListItem {
+  kind: "movement";
   id: number;
   amount: number;
   description: string;
@@ -33,6 +44,32 @@ export interface TransactionListItemDto {
   accountName: string;
 }
 
+export interface TransferListItem {
+  kind: "transfer";
+  transferGroupId: string;
+  amount: number;
+  description: string;
+  date: string;
+  sourceAccount: AccountRefEmbed;
+  destinationAccount: AccountRefEmbed;
+}
+
+export type TransactionListItem = MovementListItem | TransferListItem;
+
+export interface AccountMovementListItem {
+  kind: "movement";
+  id: number;
+  amount: number;
+  description: string;
+  type: CategoryType;
+  date: string;
+  category: TransactionCategoryEmbed | null;
+  accountId: number;
+  accountName: string;
+  transferGroupId: string | null;
+  counterpartyAccount: AccountRefEmbed | null;
+}
+
 export interface TransactionDetailDto {
   id: number;
   amount: number;
@@ -41,6 +78,17 @@ export interface TransactionDetailDto {
   date: string;
   category: TransactionCategoryEmbed | null;
   account: TransactionAccountEmbed;
+  transferGroupId: string | null;
+  createdAt: string;
+}
+
+export interface TransferDetailDto {
+  transferGroupId: string;
+  amount: number;
+  description: string;
+  date: string;
+  sourceAccount: TransactionAccountEmbed;
+  destinationAccount: TransactionAccountEmbed;
   createdAt: string;
 }
 
@@ -72,6 +120,22 @@ export interface UpdateTransactionInput {
   accountId?: number;
 }
 
+export interface CreateTransferInput {
+  amount: number;
+  description?: string;
+  date: string;
+  sourceAccountId: number;
+  destinationAccountId: number;
+}
+
+export interface UpdateTransferInput {
+  amount?: number;
+  description?: string;
+  date?: string;
+  sourceAccountId?: number;
+  destinationAccountId?: number;
+}
+
 export interface FilterTransactionsParams {
   type?: CategoryType;
   categoryId?: number;
@@ -81,6 +145,11 @@ export interface FilterTransactionsParams {
   limit?: number;
 }
 
-/** Alias para uso comodo en componentes que reciben el listado. */
-export type TransactionListItem = TransactionListItemDto;
 export type TransactionDetail = TransactionDetailDto;
+export type TransferDetail = TransferDetailDto;
+
+export function isTransferListItem(
+  item: TransactionListItem,
+): item is TransferListItem {
+  return item.kind === "transfer";
+}

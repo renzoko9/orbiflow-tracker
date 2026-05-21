@@ -1,8 +1,13 @@
 import { Pressable, SectionList, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { TransactionItem } from "./TransactionItem";
+import { TransferItem } from "./TransferItem";
 import { TransactionSectionHeader } from "./TransactionSectionHeader";
-import { groupTransactionsByDate, type TransactionListItem } from "../model";
+import {
+  getListItemKey,
+  groupTransactionsByDate,
+  type TransactionListItem,
+} from "../model";
 
 interface TransactionListProps {
   transactions: TransactionListItem[];
@@ -35,32 +40,57 @@ export function TransactionList({
   return (
     <SectionList
       sections={sections}
-      keyExtractor={(item) => String(item.id)}
+      keyExtractor={(item) => getListItemKey(item)}
       renderSectionHeader={({ section }) => (
         <TransactionSectionHeader title={section.title} />
       )}
-      renderItem={({ item }) => (
-        <Pressable
-          onPress={() =>
-            router.push({
-              pathname: "/transactions/[id]",
-              params: { id: String(item.id) },
-            })
-          }
-          android_ripple={{ color: "rgba(0,0,0,0.05)" }}
-          accessibilityRole="button"
-          accessibilityLabel={`Ver detalle de ${item.description || item.category?.name || "movimiento"}`}
-        >
-          <TransactionItem
-            categoryName={item.category?.name ?? "Sin categoria"}
-            categoryIcon={item.category?.icon ?? "tag"}
-            categoryColor={item.category?.color ?? "#a6a6a6"}
-            description={item.description}
-            amount={item.amount}
-            type={item.type}
-          />
-        </Pressable>
-      )}
+      renderItem={({ item }) => {
+        if (item.kind === "transfer") {
+          return (
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: "/transactions/transfer/[groupId]",
+                  params: { groupId: item.transferGroupId },
+                })
+              }
+              android_ripple={{ color: "rgba(0,0,0,0.05)" }}
+              accessibilityRole="button"
+              accessibilityLabel={`Ver detalle de transferencia de ${item.sourceAccount.name} a ${item.destinationAccount.name}`}
+            >
+              <TransferItem
+                amount={item.amount}
+                description={item.description}
+                sourceAccountName={item.sourceAccount.name}
+                destinationAccountName={item.destinationAccount.name}
+              />
+            </Pressable>
+          );
+        }
+
+        return (
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/transactions/[id]",
+                params: { id: String(item.id) },
+              })
+            }
+            android_ripple={{ color: "rgba(0,0,0,0.05)" }}
+            accessibilityRole="button"
+            accessibilityLabel={`Ver detalle de ${item.description || item.category?.name || "movimiento"}`}
+          >
+            <TransactionItem
+              categoryName={item.category?.name ?? "Sin categoria"}
+              categoryIcon={item.category?.icon ?? "tag"}
+              categoryColor={item.category?.color ?? "#a6a6a6"}
+              description={item.description}
+              amount={item.amount}
+              type={item.type}
+            />
+          </Pressable>
+        );
+      }}
       showsVerticalScrollIndicator={false}
       stickySectionHeadersEnabled
       contentContainerStyle={{ paddingBottom: bottomInset }}

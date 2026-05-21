@@ -4,6 +4,9 @@ import type { TransactionListItem } from "@/features/transactions";
 /**
  * Agregaciones para la pantalla home.
  * Pure functions: input -> output, sin side effects.
+ *
+ * Las transferencias entre cuentas no son ingreso ni gasto contable,
+ * por lo que quedan fuera de los totales y del top de categorias.
  */
 
 export interface MonthSummary {
@@ -17,6 +20,7 @@ export function aggregateMonth(
 ): MonthSummary {
   const summary = transactions.reduce(
     (acc, tx) => {
+      if (tx.kind !== "movement") return acc;
       const amount = Number(tx.amount);
       if (tx.type === CategoryType.INCOME) acc.income += amount;
       else acc.expenses += amount;
@@ -42,6 +46,7 @@ export function topExpenseCategories(
   const map = new Map<number, CategoryAggregate>();
 
   for (const tx of transactions) {
+    if (tx.kind !== "movement") continue;
     if (tx.type !== CategoryType.EXPENSE || !tx.category) continue;
     const cat = tx.category;
     const existing = map.get(cat.id);

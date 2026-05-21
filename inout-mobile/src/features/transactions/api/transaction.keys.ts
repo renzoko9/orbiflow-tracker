@@ -12,4 +12,6 @@ export const transactionKeys = {
   byAccount: (accountId: number) =>
     [...transactionKeys.all, "by-account", accountId] as const,
   detail: (id: number) => [...transactionKeys.all, "detail", id] as const,
+  transferDetail: (groupId: string) =>
+    [...transactionKeys.all, "transfer", groupId] as const,
 };
