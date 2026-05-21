@@ -317,7 +317,11 @@ export class InsightsService {
     const daysRemaining = daysInMonth - daysElapsed;
 
     const transactions = await this.transactionRepo.find({
-      where: { user: { id: userId }, date: Between(start, end) },
+      where: {
+        user: { id: userId },
+        date: Between(start, end),
+        transferGroupId: IsNull(),
+      },
       relations: ['category'],
     });
 
@@ -416,7 +420,11 @@ export class InsightsService {
     const { start, end } = this.periodRange(prevPeriod);
 
     const transactions = await this.transactionRepo.find({
-      where: { user: { id: userId }, date: Between(start, end) },
+      where: {
+        user: { id: userId },
+        date: Between(start, end),
+        transferGroupId: IsNull(),
+      },
       relations: ['category'],
     });
 
@@ -504,7 +512,11 @@ export class InsightsService {
     const { start, end } = this.periodRange(period);
 
     const monthTxs = await this.transactionRepo.find({
-      where: { user: { id: userId }, date: Between(start, end) },
+      where: {
+        user: { id: userId },
+        date: Between(start, end),
+        transferGroupId: IsNull(),
+      },
     });
 
     let monthIncome = 0;
@@ -518,7 +530,7 @@ export class InsightsService {
 
     const lastTxByAccount = new Map<number, Date>();
     const allTxs = await this.transactionRepo.find({
-      where: { user: { id: userId } },
+      where: { user: { id: userId }, transferGroupId: IsNull() },
       order: { date: 'DESC' },
       relations: ['account'],
     });

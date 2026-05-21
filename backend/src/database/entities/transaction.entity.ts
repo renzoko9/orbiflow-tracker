@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -43,6 +44,15 @@ export class Transaction {
   })
   @JoinColumn({ name: 'account_id' })
   account: Account;
+
+  @Index()
+  @Column({
+    name: 'transfer_group_id',
+    type: 'varchar',
+    length: 36,
+    nullable: true,
+  })
+  transferGroupId: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

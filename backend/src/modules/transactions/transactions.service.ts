@@ -1,30 +1,44 @@
 import {
+  BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
-  ForbiddenException,
-  BadRequestException,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import {
+  DataSource,
+  EntityManager,
   FindOptionsWhere,
   ILike,
+  In,
   IsNull,
   LessThanOrEqual,
   MoreThanOrEqual,
+  Not,
 } from 'typeorm';
-import { Transaction } from '@Entities';
-import { TransactionRepository, AccountRepository } from '@Repositories';
+import { Account, Transaction } from '@Entities';
+import { AccountRepository, TransactionRepository } from '@Repositories';
 import { CreateTransactionRequest } from './dto/create-transaction.dto';
 import { UpdateTransactionRequest } from './dto/update-transaction.dto';
+import { CreateTransferRequest } from './dto/create-transfer.dto';
+import { UpdateTransferRequest } from './dto/update-transfer.dto';
 import { FilterTransactionsQuery } from './dto/filter-transactions.dto';
 import { CategoryTypeEnum, ErrorCodeEnum, ResponseTypeEnum } from '@Enums';
 import { ResponseAPI } from '@/common/interfaces/response.interface';
 import {
-  TransactionResponse,
-  TransactionListResponse,
   TransactionDetailResponse,
+  TransactionListResponse,
+  TransactionResponse,
+  TransferDetailResponse,
+  AccountMovementListResponse,
 } from './models/transaction-response.model';
 import { TransactionsMapper } from './transactions.mapper';
+
+interface TransferLegs {
+  source: Transaction;
+  destination: Transaction;
+}
 
 @Injectable()
 export class TransactionsService {
@@ -34,6 +48,7 @@ export class TransactionsService {
     private readonly transactionRepository: TransactionRepository,
     private readonly accountRepository: AccountRepository,
     private readonly transactionsMapper: TransactionsMapper,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(
@@ -42,7 +57,6 @@ export class TransactionsService {
   ): Promise<ResponseAPI<TransactionResponse>> {
     this.logger.log(`Creando transacción para usuario ${userId}`);
 
-    // Verificar que la cuenta pertenezca al usuario
     const account = await this.accountRepository.findOne({
       where: { id: createTransactionRequest.accountId, user: { id: userId } },
     });
@@ -61,7 +75,6 @@ export class TransactionsService {
       });
     }
 
-    // Crear la transaccion
     const newTransaction = this.transactionRepository.create({
       amount: createTransactionRequest.amount,
       description: createTransactionRequest.description,
@@ -75,7 +88,6 @@ export class TransactionsService {
     const savedTransaction =
       await this.transactionRepository.save(newTransaction);
 
-    // Actualizar el balance de la cuenta
     await this.updateAccountBalance(
       createTransactionRequest.accountId,
       createTransactionRequest.amount,
@@ -120,15 +132,17 @@ export class TransactionsService {
       }),
     };
 
-    // Si hay dateFrom Y dateTo, combinar ambas condiciones
+    // Si se filtra por type o categoryId, las transferencias quedan fuera:
+    // no son ni income ni expense contables y no tienen categoria.
+    if (filters.type || filters.categoryId) {
+      baseWhere.transferGroupId = IsNull();
+    }
+
     if (filters.dateFrom && filters.dateTo) {
       baseWhere.date = MoreThanOrEqual(new Date(filters.dateFrom));
-      // TypeORM no permite 2 operadores en el mismo campo con FindOptions,
-      // así que filtramos dateTo en memoria cuando hay rango
     }
 
     if (filters.search) {
-      // Buscar en descripción O nombre de categoría
       where.push(
         { ...baseWhere, description: ILike(`%${filters.search}%`) },
         {
@@ -143,6 +157,10 @@ export class TransactionsService {
       where.push(baseWhere);
     }
 
+    const rawLimit = filters.limit;
+    // Sobre-traer cuando hay limit porque las transferencias colapsan 2 -> 1.
+    const fetchLimit = rawLimit ? rawLimit * 2 : undefined;
+
     const transactions = await this.transactionRepository.find({
       where,
       relations: ['category', 'account'],
@@ -150,11 +168,10 @@ export class TransactionsService {
         date: 'DESC',
         createdAt: 'DESC',
       },
-      take: filters.limit,
+      take: fetchLimit,
     });
 
-    // Filtrar dateTo en memoria cuando hay rango completo
-    const filtered =
+    const dateFiltered =
       filters.dateFrom && filters.dateTo
         ? transactions.filter((tx) => {
             const txDate =
@@ -165,22 +182,22 @@ export class TransactionsService {
           })
         : transactions;
 
-    this.logger.log(`Se encontraron ${filtered.length} transacciones`);
+    const collapsed = this.collapseListForGlobal(dateFiltered);
+    const sliced = rawLimit ? collapsed.slice(0, rawLimit) : collapsed;
 
-    return filtered.map((transaction) =>
-      this.transactionsMapper.toListResponse(transaction),
-    );
+    this.logger.log(`Se devolvieron ${sliced.length} entradas`);
+
+    return sliced;
   }
 
   async findByAccount(
     accountId: number,
     userId: number,
-  ): Promise<TransactionListResponse[]> {
+  ): Promise<AccountMovementListResponse[]> {
     this.logger.log(
       `Listando transacciones de cuenta ${accountId} para usuario ${userId}`,
     );
 
-    // Verificar que la cuenta pertenezca al usuario
     const account = await this.accountRepository.findOne({
       where: { id: accountId, user: { id: userId } },
     });
@@ -201,8 +218,18 @@ export class TransactionsService {
       },
     });
 
-    return transactions.map((transaction) =>
-      this.transactionsMapper.toListResponse(transaction),
+    const counterpartyByGroup = await this.loadCounterpartyAccounts(
+      transactions,
+      accountId,
+    );
+
+    return transactions.map((tx) =>
+      this.transactionsMapper.toAccountMovementListResponse(
+        tx,
+        tx.transferGroupId
+          ? (counterpartyByGroup.get(tx.transferGroupId) ?? null)
+          : null,
+      ),
     );
   }
 
@@ -253,7 +280,14 @@ export class TransactionsService {
       });
     }
 
-    // Si se cambia la cuenta, verificar que la nueva cuenta pertenezca al usuario
+    if (transaction.transferGroupId !== null) {
+      throw new BadRequestException({
+        message:
+          'Esta transaccion forma parte de una transferencia. Usa /transactions/transfer/:groupId.',
+        errorCode: ErrorCodeEnum.TRANSFER_USE_TRANSFER_ENDPOINT,
+      });
+    }
+
     if (
       updateTransactionDto.accountId &&
       updateTransactionDto.accountId !== transaction.account.id
@@ -276,15 +310,13 @@ export class TransactionsService {
         });
       }
 
-      // Revertir el efecto en la cuenta anterior
       await this.updateAccountBalance(
         transaction.account.id,
         transaction.amount,
         transaction.type,
-        true, // revert
+        true,
       );
 
-      // Aplicar el efecto en la nueva cuenta
       await this.updateAccountBalance(
         updateTransactionDto.accountId,
         updateTransactionDto.amount ?? transaction.amount,
@@ -294,16 +326,13 @@ export class TransactionsService {
       updateTransactionDto.amount !== undefined ||
       updateTransactionDto.type !== undefined
     ) {
-      // Si cambia el monto o el tipo, recalcular el balance
-      // Primero revertir el efecto anterior
       await this.updateAccountBalance(
         transaction.account.id,
         transaction.amount,
         transaction.type,
-        true, // revert
+        true,
       );
 
-      // Aplicar el nuevo efecto
       await this.updateAccountBalance(
         transaction.account.id,
         updateTransactionDto.amount ?? transaction.amount,
@@ -311,7 +340,6 @@ export class TransactionsService {
       );
     }
 
-    // Actualizar la transacci�n
     Object.assign(transaction, {
       ...updateTransactionDto,
       date: updateTransactionDto.date
@@ -364,17 +392,414 @@ export class TransactionsService {
       });
     }
 
-    // Revertir el efecto en el balance de la cuenta
+    if (transaction.transferGroupId !== null) {
+      throw new BadRequestException({
+        message:
+          'Esta transaccion forma parte de una transferencia. Usa /transactions/transfer/:groupId.',
+        errorCode: ErrorCodeEnum.TRANSFER_USE_TRANSFER_ENDPOINT,
+      });
+    }
+
     await this.updateAccountBalance(
       transaction.account.id,
       Number(transaction.amount),
       transaction.type,
-      true, // revert
+      true,
     );
 
     await this.transactionRepository.remove(transaction);
 
     this.logger.log(`Transacción ${id} eliminada exitosamente`);
+  }
+
+  async createTransfer(
+    userId: number,
+    dto: CreateTransferRequest,
+  ): Promise<ResponseAPI<TransferDetailResponse>> {
+    this.logger.log(
+      `Creando transferencia ${dto.sourceAccountId} -> ${dto.destinationAccountId} para usuario ${userId}`,
+    );
+
+    if (dto.sourceAccountId === dto.destinationAccountId) {
+      throw new BadRequestException({
+        message: 'La cuenta origen y destino deben ser distintas',
+        errorCode: ErrorCodeEnum.TRANSFER_SAME_ACCOUNT,
+      });
+    }
+
+    const groupId = randomUUID();
+    const dateOnly = dto.date.split('T')[0] as unknown as Date;
+
+    const pair = await this.dataSource.transaction(async (manager) => {
+      const accounts = await this.loadUsableAccounts(manager, userId, [
+        dto.sourceAccountId,
+        dto.destinationAccountId,
+      ]);
+      const sourceAccount = accounts.get(dto.sourceAccountId)!;
+      const destinationAccount = accounts.get(dto.destinationAccountId)!;
+
+      const sourceLeg = manager.create(Transaction, {
+        amount: dto.amount,
+        description: dto.description,
+        type: CategoryTypeEnum.Expense,
+        date: dateOnly,
+        user: { id: userId },
+        account: { id: sourceAccount.id },
+        transferGroupId: groupId,
+      });
+      const destinationLeg = manager.create(Transaction, {
+        amount: dto.amount,
+        description: dto.description,
+        type: CategoryTypeEnum.Income,
+        date: dateOnly,
+        user: { id: userId },
+        account: { id: destinationAccount.id },
+        transferGroupId: groupId,
+      });
+
+      const savedSource = await manager.save(Transaction, sourceLeg);
+      const savedDestination = await manager.save(Transaction, destinationLeg);
+
+      sourceAccount.balance =
+        Number(sourceAccount.balance) - Number(dto.amount);
+      destinationAccount.balance =
+        Number(destinationAccount.balance) + Number(dto.amount);
+      await manager.save(Account, [sourceAccount, destinationAccount]);
+
+      savedSource.account = sourceAccount;
+      savedDestination.account = destinationAccount;
+
+      return { source: savedSource, destination: savedDestination };
+    });
+
+    this.logger.log(`Transferencia ${groupId} creada exitosamente`);
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      title: 'Transferencia registrada',
+      message: 'La transferencia se guardó correctamente',
+      data: this.transactionsMapper.toTransferDetailResponse(pair),
+    };
+  }
+
+  async updateTransfer(
+    userId: number,
+    transferGroupId: string,
+    dto: UpdateTransferRequest,
+  ): Promise<ResponseAPI<TransferDetailResponse>> {
+    this.logger.log(
+      `Actualizando transferencia ${transferGroupId} para usuario ${userId}`,
+    );
+
+    const updated = await this.dataSource.transaction(async (manager) => {
+      const legs = await this.loadTransferLegs(
+        manager,
+        userId,
+        transferGroupId,
+      );
+
+      const newSourceAccountId = dto.sourceAccountId ?? legs.source.account.id;
+      const newDestinationAccountId =
+        dto.destinationAccountId ?? legs.destination.account.id;
+
+      if (newSourceAccountId === newDestinationAccountId) {
+        throw new BadRequestException({
+          message: 'La cuenta origen y destino deben ser distintas',
+          errorCode: ErrorCodeEnum.TRANSFER_SAME_ACCOUNT,
+        });
+      }
+
+      const accountIds = Array.from(
+        new Set([
+          legs.source.account.id,
+          legs.destination.account.id,
+          newSourceAccountId,
+          newDestinationAccountId,
+        ]),
+      );
+
+      const archivedAllowedIds = new Set<number>([
+        legs.source.account.id,
+        legs.destination.account.id,
+      ]);
+
+      const accounts = await this.loadAccountsForUser(
+        manager,
+        userId,
+        accountIds,
+        archivedAllowedIds,
+      );
+
+      const oldSource = accounts.get(legs.source.account.id)!;
+      const oldDestination = accounts.get(legs.destination.account.id)!;
+      const newSource = accounts.get(newSourceAccountId)!;
+      const newDestination = accounts.get(newDestinationAccountId)!;
+
+      const oldAmount = Number(legs.source.amount);
+      const newAmount = dto.amount ?? oldAmount;
+      const newDate = dto.date
+        ? (dto.date.split('T')[0] as unknown as Date)
+        : legs.source.date;
+      const newDescription =
+        dto.description !== undefined
+          ? dto.description
+          : legs.source.description;
+
+      oldSource.balance = Number(oldSource.balance) + oldAmount;
+      oldDestination.balance = Number(oldDestination.balance) - oldAmount;
+
+      newSource.balance = Number(newSource.balance) - newAmount;
+      newDestination.balance = Number(newDestination.balance) + newAmount;
+
+      legs.source.amount = newAmount;
+      legs.source.date = newDate;
+      legs.source.description = newDescription;
+      legs.source.account = newSource;
+
+      legs.destination.amount = newAmount;
+      legs.destination.date = newDate;
+      legs.destination.description = newDescription;
+      legs.destination.account = newDestination;
+
+      const affectedAccounts = Array.from(accounts.values());
+      await manager.save(Account, affectedAccounts);
+      await manager.save(Transaction, [legs.source, legs.destination]);
+
+      return legs;
+    });
+
+    this.logger.log(
+      `Transferencia ${transferGroupId} actualizada exitosamente`,
+    );
+
+    return {
+      responseType: ResponseTypeEnum.Success,
+      title: 'Transferencia actualizada',
+      message: 'La transferencia se actualizó correctamente',
+      data: this.transactionsMapper.toTransferDetailResponse(updated),
+    };
+  }
+
+  async deleteTransfer(userId: number, transferGroupId: string): Promise<void> {
+    this.logger.log(
+      `Eliminando transferencia ${transferGroupId} para usuario ${userId}`,
+    );
+
+    await this.dataSource.transaction(async (manager) => {
+      const legs = await this.loadTransferLegs(
+        manager,
+        userId,
+        transferGroupId,
+      );
+      const amount = Number(legs.source.amount);
+
+      const sourceAccount = await manager.findOne(Account, {
+        where: { id: legs.source.account.id },
+      });
+      const destinationAccount = await manager.findOne(Account, {
+        where: { id: legs.destination.account.id },
+      });
+
+      if (!sourceAccount || !destinationAccount) {
+        throw new NotFoundException({
+          message: 'Cuenta asociada a la transferencia no encontrada',
+          errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
+        });
+      }
+
+      sourceAccount.balance = Number(sourceAccount.balance) + amount;
+      destinationAccount.balance = Number(destinationAccount.balance) - amount;
+
+      await manager.save(Account, [sourceAccount, destinationAccount]);
+      await manager.remove(Transaction, [legs.source, legs.destination]);
+    });
+
+    this.logger.log(`Transferencia ${transferGroupId} eliminada exitosamente`);
+  }
+
+  async findTransferByGroupId(
+    transferGroupId: string,
+    userId: number,
+  ): Promise<TransferDetailResponse> {
+    this.logger.log(
+      `Buscando transferencia ${transferGroupId} para usuario ${userId}`,
+    );
+
+    const legs = await this.loadTransferLegs(
+      this.dataSource.manager,
+      userId,
+      transferGroupId,
+    );
+
+    return this.transactionsMapper.toTransferDetailResponse(legs);
+  }
+
+  private collapseListForGlobal(
+    transactions: Transaction[],
+  ): TransactionListResponse[] {
+    const result: TransactionListResponse[] = [];
+    const pendingByGroup = new Map<string, Transaction>();
+
+    for (const tx of transactions) {
+      if (!tx.transferGroupId) {
+        result.push(this.transactionsMapper.toMovementListResponse(tx));
+        continue;
+      }
+
+      const groupId = tx.transferGroupId;
+      const partner = pendingByGroup.get(groupId);
+      if (!partner) {
+        pendingByGroup.set(groupId, tx);
+        continue;
+      }
+
+      const sourceLeg = tx.type === CategoryTypeEnum.Expense ? tx : partner;
+      const destinationLeg = tx.type === CategoryTypeEnum.Income ? tx : partner;
+
+      result.push(
+        this.transactionsMapper.toTransferListResponse({
+          source: sourceLeg,
+          destination: destinationLeg,
+        }),
+      );
+      pendingByGroup.delete(groupId);
+    }
+
+    // Piernas huerfanas (partner fuera del set por filtros): exponer la pierna
+    // que se vio como movimiento normal para no perderla del listado.
+    for (const orphan of pendingByGroup.values()) {
+      result.push(this.transactionsMapper.toMovementListResponse(orphan));
+    }
+
+    return result;
+  }
+
+  private async loadCounterpartyAccounts(
+    transactions: Transaction[],
+    excludeAccountId: number,
+  ): Promise<Map<string, { id: number; name: string }>> {
+    const groupIds = Array.from(
+      new Set(
+        transactions
+          .map((tx) => tx.transferGroupId)
+          .filter((id): id is string => id !== null),
+      ),
+    );
+
+    if (groupIds.length === 0) return new Map();
+
+    const counterpartLegs = await this.transactionRepository.find({
+      where: {
+        transferGroupId: In(groupIds),
+        account: { id: Not(excludeAccountId) },
+      },
+      relations: ['account'],
+    });
+
+    const map = new Map<string, { id: number; name: string }>();
+    for (const leg of counterpartLegs) {
+      if (!leg.transferGroupId) continue;
+      map.set(leg.transferGroupId, {
+        id: leg.account.id,
+        name: leg.account.name,
+      });
+    }
+    return map;
+  }
+
+  private async loadTransferLegs(
+    manager: EntityManager,
+    userId: number,
+    transferGroupId: string,
+  ): Promise<TransferLegs> {
+    const legs = await manager.find(Transaction, {
+      where: { transferGroupId, user: { id: userId } },
+      relations: ['account'],
+    });
+
+    if (legs.length !== 2) {
+      throw new NotFoundException({
+        message: `Transfer with id ${transferGroupId} not found`,
+        errorCode: ErrorCodeEnum.TRANSFER_NOT_FOUND,
+      });
+    }
+
+    const source = legs.find((l) => l.type === CategoryTypeEnum.Expense);
+    const destination = legs.find((l) => l.type === CategoryTypeEnum.Income);
+
+    if (!source || !destination) {
+      throw new NotFoundException({
+        message: `Transfer with id ${transferGroupId} is corrupted`,
+        errorCode: ErrorCodeEnum.TRANSFER_NOT_FOUND,
+      });
+    }
+
+    return { source, destination };
+  }
+
+  private async loadUsableAccounts(
+    manager: EntityManager,
+    userId: number,
+    accountIds: number[],
+  ): Promise<Map<number, Account>> {
+    const accounts = await manager.find(Account, {
+      where: { id: In(accountIds), user: { id: userId } },
+    });
+
+    const map = new Map<number, Account>();
+    for (const account of accounts) map.set(account.id, account);
+
+    for (const id of accountIds) {
+      const account = map.get(id);
+      if (!account) {
+        throw new NotFoundException({
+          message: `Account with id ${id} not found`,
+          errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
+        });
+      }
+      if (account.archivedAt !== null) {
+        throw new BadRequestException({
+          message:
+            'No se pueden registrar transferencias con cuentas archivadas',
+          errorCode: ErrorCodeEnum.ACCOUNT_ARCHIVED,
+        });
+      }
+    }
+
+    return map;
+  }
+
+  private async loadAccountsForUser(
+    manager: EntityManager,
+    userId: number,
+    accountIds: number[],
+    archivedAllowedIds: Set<number>,
+  ): Promise<Map<number, Account>> {
+    const accounts = await manager.find(Account, {
+      where: { id: In(accountIds), user: { id: userId } },
+    });
+
+    const map = new Map<number, Account>();
+    for (const account of accounts) map.set(account.id, account);
+
+    for (const id of accountIds) {
+      const account = map.get(id);
+      if (!account) {
+        throw new NotFoundException({
+          message: `Account with id ${id} not found`,
+          errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
+        });
+      }
+      if (account.archivedAt !== null && !archivedAllowedIds.has(id)) {
+        throw new BadRequestException({
+          message:
+            'No se pueden registrar transferencias con cuentas archivadas',
+          errorCode: ErrorCodeEnum.ACCOUNT_ARCHIVED,
+        });
+      }
+    }
+
+    return map;
   }
 
   private async updateAccountBalance(
@@ -394,14 +819,12 @@ export class TransactionsService {
       });
     }
 
-    let balanceChange = amount;
+    let balanceChange = Number(amount);
 
-    // Si es EXPENSE, restar del balance
     if (type === CategoryTypeEnum.Expense) {
-      balanceChange = -amount;
+      balanceChange = -balanceChange;
     }
 
-    // Si estamos revirtiendo, invertir el cambio
     if (revert) {
       balanceChange = -balanceChange;
     }

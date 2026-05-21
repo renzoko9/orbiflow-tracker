@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { CategoryTypeEnum } from '@Enums';
 import { Transaction } from '@Entities';
 import {
-  TransactionResponse,
-  TransactionListResponse,
+  AccountMovementListResponse,
+  MovementListResponse,
   TransactionDetailResponse,
+  TransactionResponse,
+  TransferDetailResponse,
+  TransferListResponse,
 } from './models/transaction-response.model';
 
 @Injectable()
@@ -20,8 +24,9 @@ export class TransactionsMapper {
     };
   }
 
-  toListResponse(transaction: Transaction): TransactionListResponse {
+  toMovementListResponse(transaction: Transaction): MovementListResponse {
     return {
+      kind: 'movement',
       id: transaction.id,
       amount: Number(transaction.amount),
       description: transaction.description,
@@ -38,6 +43,55 @@ export class TransactionsMapper {
         : null,
       accountId: transaction.account.id,
       accountName: transaction.account.name,
+    };
+  }
+
+  toAccountMovementListResponse(
+    transaction: Transaction,
+    counterpartyAccount: { id: number; name: string } | null,
+  ): AccountMovementListResponse {
+    return {
+      kind: 'movement',
+      id: transaction.id,
+      amount: Number(transaction.amount),
+      description: transaction.description,
+      type: transaction.type,
+      date: this.formatDate(transaction.date),
+      category: transaction.category
+        ? {
+            id: transaction.category.id,
+            name: transaction.category.name,
+            icon: transaction.category.icon,
+            color: transaction.category.color,
+            type: transaction.category.type,
+          }
+        : null,
+      accountId: transaction.account.id,
+      accountName: transaction.account.name,
+      transferGroupId: transaction.transferGroupId,
+      counterpartyAccount,
+    };
+  }
+
+  toTransferListResponse(pair: {
+    source: Transaction;
+    destination: Transaction;
+  }): TransferListResponse {
+    const reference = pair.source;
+    return {
+      kind: 'transfer',
+      transferGroupId: reference.transferGroupId as string,
+      amount: Number(reference.amount),
+      description: reference.description,
+      date: this.formatDate(reference.date),
+      sourceAccount: {
+        id: pair.source.account.id,
+        name: pair.source.account.name,
+      },
+      destinationAccount: {
+        id: pair.destination.account.id,
+        name: pair.destination.account.name,
+      },
     };
   }
 
@@ -62,10 +116,41 @@ export class TransactionsMapper {
         name: transaction.account.name,
         balance: Number(transaction.account.balance),
       },
+      transferGroupId: transaction.transferGroupId,
       createdAt:
         transaction.createdAt instanceof Date
           ? transaction.createdAt.toISOString()
           : String(transaction.createdAt),
+    };
+  }
+
+  toTransferDetailResponse(pair: {
+    source: Transaction;
+    destination: Transaction;
+  }): TransferDetailResponse {
+    const reference =
+      pair.source.type === CategoryTypeEnum.Expense
+        ? pair.source
+        : pair.destination;
+    return {
+      transferGroupId: reference.transferGroupId as string,
+      amount: Number(reference.amount),
+      description: reference.description,
+      date: this.formatDate(reference.date),
+      sourceAccount: {
+        id: pair.source.account.id,
+        name: pair.source.account.name,
+        balance: Number(pair.source.account.balance),
+      },
+      destinationAccount: {
+        id: pair.destination.account.id,
+        name: pair.destination.account.name,
+        balance: Number(pair.destination.account.balance),
+      },
+      createdAt:
+        reference.createdAt instanceof Date
+          ? reference.createdAt.toISOString()
+          : String(reference.createdAt),
     };
   }
 

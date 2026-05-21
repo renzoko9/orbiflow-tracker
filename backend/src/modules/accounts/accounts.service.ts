@@ -107,6 +107,7 @@ export class AccountsService {
       .andWhere('tx.user_id = :userId', { userId })
       .andWhere('tx.date >= :start', { start: monthStart })
       .andWhere('tx.date <= :end', { end: monthEnd })
+      .andWhere('tx.transfer_group_id IS NULL')
       .groupBy('tx.type')
       .getRawMany<{ type: number; total: string }>();
 
