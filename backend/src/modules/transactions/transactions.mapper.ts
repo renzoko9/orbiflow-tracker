@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CategoryTypeEnum } from '@Enums';
+import { TransactionTypeEnum } from '@Enums';
 import { Transaction } from '@Entities';
 import {
   AccountMovementListResponse,
@@ -129,7 +129,7 @@ export class TransactionsMapper {
     destination: Transaction;
   }): TransferDetailResponse {
     const reference =
-      pair.source.type === CategoryTypeEnum.Expense
+      pair.source.type === TransactionTypeEnum.Expense
         ? pair.source
         : pair.destination;
     return {

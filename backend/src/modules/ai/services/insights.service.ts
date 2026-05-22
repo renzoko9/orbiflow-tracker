@@ -7,7 +7,7 @@ import {
   AccountRepository,
   TransactionRepository,
 } from '@Repositories';
-import { CategoryTypeEnum } from '@Enums';
+import { TransactionTypeEnum } from '@Enums';
 import { LLM_PROVIDER } from '../providers/llm.provider';
 import type { LLMProvider } from '../providers/llm.provider';
 import { InsightResponse } from '../dto/insight-response.dto';
@@ -29,10 +29,10 @@ interface MonthlyData {
     totalExpense: number;
     net: number;
   } | null;
-  topCategories: { name: string; amount: number; type: CategoryTypeEnum }[];
+  topCategories: { name: string; amount: number; type: TransactionTypeEnum }[];
   categoryDeltas: {
     name: string;
-    type: CategoryTypeEnum;
+    type: TransactionTypeEnum;
     current: number;
     previous: number;
     deltaAmount: number;
@@ -333,12 +333,12 @@ export class InsightsService {
     let weekendCount = 0;
     const byCategory = new Map<
       string,
-      { amount: number; type: CategoryTypeEnum }
+      { amount: number; type: TransactionTypeEnum }
     >();
 
     for (const tx of transactions) {
       const amount = Number(tx.amount);
-      const isExpense = tx.type === CategoryTypeEnum.Expense;
+      const isExpense = tx.type === TransactionTypeEnum.Expense;
       if (isExpense) totalExpense += amount;
       else totalIncome += amount;
 
@@ -414,7 +414,7 @@ export class InsightsService {
   ): Promise<{
     totalIncome: number;
     totalExpense: number;
-    byCategory: Map<string, { amount: number; type: CategoryTypeEnum }>;
+    byCategory: Map<string, { amount: number; type: TransactionTypeEnum }>;
   } | null> {
     const prevPeriod = this.previousPeriod(currentPeriod);
     const { start, end } = this.periodRange(prevPeriod);
@@ -434,12 +434,12 @@ export class InsightsService {
     let totalExpense = 0;
     const byCategory = new Map<
       string,
-      { amount: number; type: CategoryTypeEnum }
+      { amount: number; type: TransactionTypeEnum }
     >();
 
     for (const tx of transactions) {
       const amount = Number(tx.amount);
-      if (tx.type === CategoryTypeEnum.Expense) totalExpense += amount;
+      if (tx.type === TransactionTypeEnum.Expense) totalExpense += amount;
       else totalIncome += amount;
 
       const catName = tx.category?.name ?? 'Sin categoria';
@@ -454,8 +454,8 @@ export class InsightsService {
   }
 
   private computeCategoryDeltas(
-    current: Map<string, { amount: number; type: CategoryTypeEnum }>,
-    previous: Map<string, { amount: number; type: CategoryTypeEnum }>,
+    current: Map<string, { amount: number; type: TransactionTypeEnum }>,
+    previous: Map<string, { amount: number; type: TransactionTypeEnum }>,
   ): MonthlyData['categoryDeltas'] {
     const allNames = new Set([...current.keys(), ...previous.keys()]);
     const deltas: MonthlyData['categoryDeltas'] = [];
@@ -465,7 +465,7 @@ export class InsightsService {
       const prev = previous.get(name);
       const curAmount = cur?.amount ?? 0;
       const prevAmount = prev?.amount ?? 0;
-      const type = cur?.type ?? prev?.type ?? CategoryTypeEnum.Expense;
+      const type = cur?.type ?? prev?.type ?? TransactionTypeEnum.Expense;
       const deltaAmount = curAmount - prevAmount;
       const deltaPercent =
         prevAmount > 0
@@ -523,7 +523,7 @@ export class InsightsService {
     let monthExpense = 0;
     for (const tx of monthTxs) {
       const amount = Number(tx.amount);
-      if (tx.type === CategoryTypeEnum.Expense) monthExpense += amount;
+      if (tx.type === TransactionTypeEnum.Expense) monthExpense += amount;
       else monthIncome += amount;
     }
     const monthNet = monthIncome - monthExpense;
@@ -639,7 +639,7 @@ export class InsightsService {
 
     lines.push('TOP CATEGORIAS DEL MES (por monto):');
     for (const c of data.topCategories) {
-      const tipo = c.type === CategoryTypeEnum.Income ? 'ingreso' : 'gasto';
+      const tipo = c.type === TransactionTypeEnum.Income ? 'ingreso' : 'gasto';
       lines.push(`- ${c.name} (${tipo}): ${c.amount.toFixed(2)}`);
     }
     lines.push('');
@@ -647,7 +647,8 @@ export class InsightsService {
     if (data.categoryDeltas.length > 0) {
       lines.push('CATEGORIAS CON MAYOR VARIACION vs MES ANTERIOR:');
       for (const d of data.categoryDeltas) {
-        const tipo = d.type === CategoryTypeEnum.Income ? 'ingreso' : 'gasto';
+        const tipo =
+          d.type === TransactionTypeEnum.Income ? 'ingreso' : 'gasto';
         const sign = d.deltaPercent >= 0 ? '+' : '';
         lines.push(
           `- ${d.name} (${tipo}): ${d.previous.toFixed(2)} -> ${d.current.toFixed(2)} (${sign}${d.deltaPercent.toFixed(0)}%)`,

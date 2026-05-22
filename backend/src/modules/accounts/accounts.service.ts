@@ -5,7 +5,7 @@ import { AccountRepository, TransactionRepository } from '@Repositories';
 import { CreateAccountRequest } from './dto/create-account.dto';
 import { UpdateAccountRequest } from './dto/update-account.dto';
 import { AccountMonthStatsResponse } from './models/account-month-stats-response.model';
-import { CategoryTypeEnum, ErrorCodeEnum } from '@Enums';
+import { TransactionTypeEnum, ErrorCodeEnum } from '@Enums';
 
 @Injectable()
 export class AccountsService {
@@ -115,8 +115,9 @@ export class AccountsService {
     let expenses = 0;
     for (const row of rows) {
       const total = Number(row.total);
-      if (Number(row.type) === CategoryTypeEnum.Income) income = total;
-      else if (Number(row.type) === CategoryTypeEnum.Expense) expenses = total;
+      if (Number(row.type) === TransactionTypeEnum.Income) income = total;
+      else if (Number(row.type) === TransactionTypeEnum.Expense)
+        expenses = total;
     }
 
     return { income, expenses, monthStart, monthEnd };

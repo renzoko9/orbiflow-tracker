@@ -10,7 +10,7 @@ import {
 import { User } from './user.entity';
 import { Category } from './category.entity';
 import { Account } from './account.entity';
-import { CategoryTypeEnum } from '@Enums';
+import { TransactionTypeEnum } from '@Enums';
 
 @Entity('transactions')
 export class Transaction {
@@ -23,8 +23,8 @@ export class Transaction {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ type: 'enum', enum: CategoryTypeEnum })
-  type: CategoryTypeEnum;
+  @Column({ type: 'enum', enum: TransactionTypeEnum })
+  type: TransactionTypeEnum;
 
   @Column({ type: 'date' })
   date: Date;

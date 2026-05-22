@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { CategoryTypeEnum } from '@Enums';
+import { TransactionTypeEnum } from '@Enums';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCategoryRequest {
@@ -13,12 +13,12 @@ export class CreateCategoryRequest {
 
   @ApiProperty({
     description: 'Tipo de categoría',
-    enum: CategoryTypeEnum,
-    example: CategoryTypeEnum.Expense,
+    enum: TransactionTypeEnum,
+    example: TransactionTypeEnum.Expense,
   })
-  @IsEnum(CategoryTypeEnum)
+  @IsEnum(TransactionTypeEnum)
   @IsNotEmpty()
-  type: CategoryTypeEnum;
+  type: TransactionTypeEnum;
 
   @ApiProperty({
     description: 'Nombre del icono (lucide icon name)',

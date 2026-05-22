@@ -1,10 +1,10 @@
-import { CategoryTypeEnum } from '@Enums';
+import { TransactionTypeEnum } from '@Enums';
 
 export class TransactionResponse {
   id: number;
   amount: number;
   description: string;
-  type: CategoryTypeEnum;
+  type: TransactionTypeEnum;
   date: string;
   categoryName: string | null;
   accountName: string;
@@ -14,14 +14,14 @@ export class TransactionDetailResponse {
   id: number;
   amount: number;
   description: string;
-  type: CategoryTypeEnum;
+  type: TransactionTypeEnum;
   date: string;
   category: {
     id: number;
     name: string;
     icon: string;
     color: string;
-    type: CategoryTypeEnum;
+    type: TransactionTypeEnum;
   } | null;
   account: {
     id: number;
@@ -37,14 +37,14 @@ export interface MovementListResponse {
   id: number;
   amount: number;
   description: string;
-  type: CategoryTypeEnum;
+  type: TransactionTypeEnum;
   date: string;
   category: {
     id: number;
     name: string;
     icon: string;
     color: string;
-    type: CategoryTypeEnum;
+    type: TransactionTypeEnum;
   } | null;
   accountId: number;
   accountName: string;
@@ -69,14 +69,14 @@ export interface AccountMovementListResponse {
   id: number;
   amount: number;
   description: string;
-  type: CategoryTypeEnum;
+  type: TransactionTypeEnum;
   date: string;
   category: {
     id: number;
     name: string;
     icon: string;
     color: string;
-    type: CategoryTypeEnum;
+    type: TransactionTypeEnum;
   } | null;
   accountId: number;
   accountName: string;
