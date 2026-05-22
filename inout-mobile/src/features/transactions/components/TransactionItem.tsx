@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { formatCurrency } from "@/shared/i18n";
 import { getIconComponent } from "@/shared/utils";
-import { CategoryType } from "@/features/categories";
+import { TransactionType } from "@/features/categories";
 
 interface TransactionItemProps {
   categoryName: string;
@@ -9,7 +9,7 @@ interface TransactionItemProps {
   categoryColor: string;
   description: string;
   amount: number;
-  type: CategoryType;
+  type: TransactionType;
 }
 
 const tabular = { fontVariant: ["tabular-nums" as const] };
@@ -23,7 +23,7 @@ export function TransactionItem({
   type,
 }: TransactionItemProps) {
   const Icon = getIconComponent(categoryIcon);
-  const isExpense = type === CategoryType.EXPENSE;
+  const isExpense = type === TransactionType.EXPENSE;
   const sign = isExpense ? "−" : "+";
   const amountClass = isExpense ? "text-danger" : "text-success";
   const hasDescription = description?.trim().length > 0;

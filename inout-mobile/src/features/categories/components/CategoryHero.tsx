@@ -1,10 +1,10 @@
 import { Text, View } from "react-native";
 import { getIconComponent } from "@/shared/utils";
-import { CategoryType } from "../model";
+import { TransactionType } from "../model";
 
 interface CategoryHeroProps {
   name: string;
-  type: CategoryType;
+  type: TransactionType;
   icon: string;
   color: string;
   isGlobal: boolean;
@@ -18,7 +18,7 @@ export function CategoryHero({
   isGlobal,
 }: CategoryHeroProps) {
   const Icon = getIconComponent(icon);
-  const typeLabel = type === CategoryType.INCOME ? "Ingreso" : "Gasto";
+  const typeLabel = type === TransactionType.INCOME ? "Ingreso" : "Gasto";
 
   return (
     <View className="items-center px-4 pt-4 pb-6">

@@ -18,7 +18,7 @@ import {
 import { useThemeTokens } from "@/shared/theme";
 import { CategoryListItem } from "../components";
 import { useArchivedCategories, useCategories } from "../api";
-import { CategoryType } from "../model";
+import { TransactionType } from "../model";
 
 type TypeTab = "EXPENSE" | "INCOME";
 
@@ -28,7 +28,7 @@ export function CategoriesListScreen() {
   const [activeTab, setActiveTab] = useState<TypeTab>("EXPENSE");
 
   const selectedType =
-    activeTab === "INCOME" ? CategoryType.INCOME : CategoryType.EXPENSE;
+    activeTab === "INCOME" ? TransactionType.INCOME : TransactionType.EXPENSE;
 
   const {
     data: categories = [],

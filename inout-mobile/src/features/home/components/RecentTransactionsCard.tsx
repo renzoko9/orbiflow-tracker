@@ -4,7 +4,7 @@ import { SectionEyebrow } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { formatCurrency, formatRelativeDay } from "@/shared/i18n";
 import { getIconComponent } from "@/shared/utils";
-import { CategoryType } from "@/features/categories";
+import { TransactionType } from "@/features/categories";
 import {
   getListItemKey,
   type TransactionListItem,
@@ -108,7 +108,7 @@ export function RecentTransactionsCard({
           const categoryIcon = tx.category?.icon ?? "tag";
           const categoryColor = tx.category?.color ?? "#a6a6a6";
           const Icon = getIconComponent(categoryIcon);
-          const isExpense = tx.type === CategoryType.EXPENSE;
+          const isExpense = tx.type === TransactionType.EXPENSE;
           const sign = isExpense ? "−" : "+";
           const amountClass = isExpense ? "text-danger" : "text-success";
           const label = tx.description?.trim() ? tx.description : categoryName;

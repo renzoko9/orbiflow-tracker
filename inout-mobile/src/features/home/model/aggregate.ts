@@ -1,4 +1,4 @@
-import { CategoryType } from "@/features/categories";
+import { TransactionType } from "@/features/categories";
 import type { TransactionListItem } from "@/features/transactions";
 
 /**
@@ -22,7 +22,7 @@ export function aggregateMonth(
     (acc, tx) => {
       if (tx.kind !== "movement") return acc;
       const amount = Number(tx.amount);
-      if (tx.type === CategoryType.INCOME) acc.income += amount;
+      if (tx.type === TransactionType.INCOME) acc.income += amount;
       else acc.expenses += amount;
       return acc;
     },
@@ -47,7 +47,7 @@ export function topExpenseCategories(
 
   for (const tx of transactions) {
     if (tx.kind !== "movement") continue;
-    if (tx.type !== CategoryType.EXPENSE || !tx.category) continue;
+    if (tx.type !== TransactionType.EXPENSE || !tx.category) continue;
     const cat = tx.category;
     const existing = map.get(cat.id);
     if (existing) {

@@ -7,7 +7,7 @@ import { Alert, Card, Loading, ScreenHeader } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { CategoryListItem } from "../components";
 import { useArchivedCategories } from "../api";
-import { CategoryType } from "../model";
+import { TransactionType } from "../model";
 
 export function ArchivedCategoriesScreen() {
   const router = useRouter();
@@ -15,8 +15,8 @@ export function ArchivedCategoriesScreen() {
   const { data: categories = [], isLoading, error } = useArchivedCategories();
 
   const { expenses, incomes } = useMemo(() => {
-    const expenses = categories.filter((c) => c.type === CategoryType.EXPENSE);
-    const incomes = categories.filter((c) => c.type === CategoryType.INCOME);
+    const expenses = categories.filter((c) => c.type === TransactionType.EXPENSE);
+    const incomes = categories.filter((c) => c.type === TransactionType.INCOME);
     return { expenses, incomes };
   }, [categories]);
 

@@ -4,7 +4,7 @@ import { ApiError } from "@/shared/api";
 import { ScreenHeader, showToast } from "@/shared/ui";
 import { CategoryForm } from "../components";
 import { useCreateCategory } from "../api";
-import { CategoryType } from "../model";
+import { TransactionType } from "../model";
 
 export function CreateCategoryScreen() {
   const router = useRouter();
@@ -12,9 +12,9 @@ export function CreateCategoryScreen() {
   const createCategory = useCreateCategory();
 
   const initialType =
-    type === String(CategoryType.INCOME)
-      ? CategoryType.INCOME
-      : CategoryType.EXPENSE;
+    type === String(TransactionType.INCOME)
+      ? TransactionType.INCOME
+      : TransactionType.EXPENSE;
 
   return (
     <SafeAreaView className="flex-1 bg-background">

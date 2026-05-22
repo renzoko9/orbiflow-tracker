@@ -12,7 +12,7 @@ import { Alert, Loading, ScreenHeader, showToast } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { formatCurrency, formatDate } from "@/shared/i18n";
 import { getIconComponent } from "@/shared/utils";
-import { CategoryType } from "@/features/categories";
+import { TransactionType } from "@/features/categories";
 import { useDeleteTransaction, useTransaction } from "../api";
 
 const tabular = { fontVariant: ["tabular-nums" as const] };
@@ -83,7 +83,7 @@ export function TransactionDetailScreen() {
     );
   }
 
-  const isExpense = transaction.type === CategoryType.EXPENSE;
+  const isExpense = transaction.type === TransactionType.EXPENSE;
   const sign = isExpense ? "−" : "+";
   const amountClass = isExpense ? "text-danger" : "text-success";
   const typeLabel = isExpense ? "Gasto" : "Ingreso";

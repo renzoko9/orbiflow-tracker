@@ -27,7 +27,7 @@ import { useThemeTokens } from "@/shared/theme";
 import { APP_CONSTANTS } from "@/config";
 import { useAccounts, type Account } from "@/features/accounts";
 import {
-  CategoryType,
+  TransactionType,
   useCategories,
   type Category,
 } from "@/features/categories";
@@ -46,7 +46,7 @@ export type TransactionFormSubmitValues =
       kind: "movement";
       amount: number;
       description?: string;
-      type: CategoryType;
+      type: TransactionType;
       date: string;
       categoryId?: number;
       accountId: number;
@@ -64,7 +64,7 @@ interface TransactionFormInitialValues {
   kind?: TransactionFormKind;
   amount?: number;
   description?: string;
-  type?: CategoryType;
+  type?: TransactionType;
   date?: string;
   categoryId?: number;
   accountId?: number;
@@ -110,7 +110,7 @@ export function TransactionForm({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
       kind: initialKind,
-      type: initialValues?.type ?? CategoryType.EXPENSE,
+      type: initialValues?.type ?? TransactionType.EXPENSE,
       date: initialValues?.date ?? new Date().toISOString(),
       amount: initialValues?.amount as number,
       accountId: initialValues?.accountId,
@@ -153,7 +153,7 @@ export function TransactionForm({
         kind: "movement",
         amount: data.amount,
         description: data.description,
-        type: data.type as CategoryType,
+        type: data.type as TransactionType,
         date: data.date,
         categoryId: data.categoryId,
         accountId: data.accountId as number,
@@ -195,7 +195,7 @@ export function TransactionForm({
                   value={
                     value === "transfer"
                       ? "transfer"
-                      : type === CategoryType.INCOME
+                      : type === TransactionType.INCOME
                         ? "movement-income"
                         : "movement-expense"
                   }
@@ -208,8 +208,8 @@ export function TransactionForm({
                     setValue(
                       "type",
                       v === "movement-income"
-                        ? CategoryType.INCOME
-                        : CategoryType.EXPENSE,
+                        ? TransactionType.INCOME
+                        : TransactionType.EXPENSE,
                     );
                   }}
                 />

@@ -16,7 +16,7 @@ import {
 import {
   CATEGORY_COLORS,
   CATEGORY_ICONS,
-  CategoryType,
+  TransactionType,
   DEFAULT_CATEGORY_COLOR,
   DEFAULT_CATEGORY_ICON,
   updateCategorySchema,
@@ -33,7 +33,7 @@ export interface CategoryFormSubmitValues {
 
 interface CategoryFormInitialValues {
   name?: string;
-  type?: CategoryType;
+  type?: TransactionType;
   icon?: string;
   color?: string;
 }
@@ -74,7 +74,7 @@ export function CategoryForm({
 }: CategoryFormProps) {
   const isCreate = mode === "create";
   const submitLabel = isCreate ? "Crear categoria" : "Guardar cambios";
-  const initialType = initialValues?.type ?? CategoryType.EXPENSE;
+  const initialType = initialValues?.type ?? TransactionType.EXPENSE;
 
   const { control, handleSubmit, watch } = useForm<InternalFormValues>({
     resolver: zodResolver(updateCategorySchema),
@@ -102,7 +102,7 @@ export function CategoryForm({
           <Text className="text-base text-textPrimary">Tipo</Text>
           <View className="bg-brandSoft rounded-lg px-4 py-3">
             <Text className="text-base text-brand font-medium">
-              {initialType === CategoryType.INCOME ? "Ingreso" : "Gasto"}
+              {initialType === TransactionType.INCOME ? "Ingreso" : "Gasto"}
             </Text>
           </View>
           {!isCreate && (

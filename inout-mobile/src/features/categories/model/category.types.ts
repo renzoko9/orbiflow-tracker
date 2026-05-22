@@ -2,7 +2,7 @@
  * Coincide con backend/.../common/enum/category-type.enum.ts (Income=1, Expense=2).
  * Mantener en sync.
  */
-export enum CategoryType {
+export enum TransactionType {
   INCOME = 1,
   EXPENSE = 2,
 }
@@ -13,7 +13,7 @@ export enum CategoryType {
 export interface CategoryDto {
   id: number;
   name: string;
-  type: CategoryType;
+  type: TransactionType;
   icon: string;
   color: string;
   userId: number | null; // null = categoria global predeterminada
@@ -23,7 +23,7 @@ export interface CategoryDto {
 
 export interface CreateCategoryInput {
   name: string;
-  type: CategoryType;
+  type: TransactionType;
   icon: string;
   color: string;
 }

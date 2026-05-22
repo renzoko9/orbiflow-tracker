@@ -8,13 +8,13 @@ import * as categoryApi from "./category.api";
 import { categoryKeys } from "./category.keys";
 import type {
   Category,
-  CategoryType,
+  TransactionType,
   CreateCategoryInput,
   UpdateCategoryInput,
 } from "../model";
 
 interface UseCategoriesOptions {
-  type?: CategoryType;
+  type?: TransactionType;
 }
 
 /**

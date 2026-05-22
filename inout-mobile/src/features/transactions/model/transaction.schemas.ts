@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { CategoryType } from "@/features/categories";
+import { TransactionType } from "@/features/categories";
 
 export const createTransactionSchema = z.object({
   amount: z
     .number({ message: "El monto debe ser un numero" })
     .positive("El monto debe ser mayor a cero"),
   description: z.string().max(200, "Maximo 200 caracteres").optional(),
-  type: z.nativeEnum(CategoryType),
+  type: z.nativeEnum(TransactionType),
   date: z.string().min(1, "La fecha es obligatoria"),
   categoryId: z.number().int().positive().optional(),
   accountId: z
@@ -33,7 +33,7 @@ export const transactionFormSchema = z
       .positive("El monto debe ser mayor a cero"),
     description: z.string().max(200, "Maximo 200 caracteres").optional(),
     date: z.string().min(1, "La fecha es obligatoria"),
-    type: z.nativeEnum(CategoryType).optional(),
+    type: z.nativeEnum(TransactionType).optional(),
     categoryId: z.number().int().positive().optional(),
     accountId: z.number().int().positive().optional(),
     sourceAccountId: z.number().int().positive().optional(),

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CategoryType } from "./category.types";
+import { TransactionType } from "./category.types";
 
 const name = z
   .string()
@@ -11,7 +11,7 @@ const color = z.string().min(1, "Selecciona un color");
 
 export const createCategorySchema = z.object({
   name,
-  type: z.nativeEnum(CategoryType),
+  type: z.nativeEnum(TransactionType),
   icon,
   color,
 });

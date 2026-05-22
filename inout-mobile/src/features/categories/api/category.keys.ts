@@ -1,4 +1,4 @@
-import type { CategoryType } from "../model";
+import type { TransactionType } from "../model";
 
 /**
  * Query keys de categories.
@@ -6,7 +6,7 @@ import type { CategoryType } from "../model";
 export const categoryKeys = {
   all: ["categories"] as const,
   lists: () => [...categoryKeys.all, "list"] as const,
-  list: (type?: CategoryType) =>
+  list: (type?: TransactionType) =>
     [...categoryKeys.lists(), type ?? "all"] as const,
   archived: () => [...categoryKeys.all, "archived"] as const,
   detail: (id: number) => [...categoryKeys.all, "detail", id] as const,
