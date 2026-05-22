@@ -6,6 +6,7 @@ export {
   formatShortDate,
   formatMonthName,
   formatWeekdayShort,
+  formatHeaderDate,
   formatRelativeDay,
   getCurrentMonthName,
 } from "./format";

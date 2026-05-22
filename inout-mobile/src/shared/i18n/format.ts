@@ -38,6 +38,12 @@ const dayOfMonthFormatter = new Intl.DateTimeFormat(APP_CONSTANTS.locale, {
   day: "numeric",
 });
 
+const headerDateFormatter = new Intl.DateTimeFormat(APP_CONSTANTS.locale, {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
+
 export function formatCurrency(amount: number | string): string {
   const value = typeof amount === "string" ? Number(amount) : amount;
   if (Number.isNaN(value)) return `${APP_CONSTANTS.currencySymbol} 0.00`;
@@ -81,6 +87,15 @@ export function formatWeekdayShort(input: string | Date): string {
   const weekday = weekdayFormatter.format(d);
   const day = dayOfMonthFormatter.format(d);
   return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${day}`;
+}
+
+/**
+ * Devuelve "VIERNES 22 DE MAYO": fecha larga en mayusculas sin año.
+ * Pensado para eyebrows de header donde el año actual es implicito.
+ */
+export function formatHeaderDate(input: string | Date): string {
+  const d = typeof input === "string" ? new Date(input) : input;
+  return headerDateFormatter.format(d).replace(/,/g, "").toUpperCase();
 }
 
 /**
