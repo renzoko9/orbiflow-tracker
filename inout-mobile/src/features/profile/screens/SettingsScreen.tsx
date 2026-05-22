@@ -1,8 +1,6 @@
-import { Alert, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useQueryClient } from "@tanstack/react-query";
 import Constants from "expo-constants";
 import {
   Bell,
@@ -12,22 +10,18 @@ import {
   HelpCircle,
   Info,
   Lock,
-  LogOut,
   Moon,
   Tag,
   Upload,
-  User,
   Wallet,
 } from "lucide-react-native";
 import {
+  ScreenHeader,
   SettingsItem,
   SettingsSection,
   showToast,
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
-import { useAuthStore } from "@/shared/auth";
-import { useLogout } from "@/features/auth";
-import { ProfileHeader } from "../components";
 
 const ICON_SIZE = 18;
 const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
@@ -35,16 +29,6 @@ const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 export function SettingsScreen() {
   const router = useRouter();
   const tokens = useThemeTokens();
-  const tabBarHeight = useBottomTabBarHeight();
-  const queryClient = useQueryClient();
-  const user = useAuthStore((s) => s.user);
-  const logout = useLogout();
-
-  const fullName = user ? `${user.name} ${user.lastname}`.trim() : "Usuario";
-  const email = user?.email ?? "";
-  const avatarUrl = user?.avatarUrl ?? null;
-
-  const goToEditProfile = () => router.push("/profile/edit");
 
   const comingSoon = () =>
     showToast({
@@ -53,68 +37,24 @@ export function SettingsScreen() {
       text2: "Esta funcion estara disponible pronto",
     });
 
-  const confirmLogout = () => {
-    Alert.alert("Cerrar sesion", "Estas seguro de que quieres cerrar sesion?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Cerrar sesion",
-        style: "destructive",
-        onPress: () => {
-          logout.mutate(undefined, {
-            onSuccess: () => {
-              queryClient.clear();
-              router.replace("/(auth)/login");
-            },
-          });
-        },
-      },
-    ]);
-  };
-
   return (
-    <SafeAreaView
-      edges={["top", "left", "right"]}
-      className="flex-1 bg-background"
-    >
-      <View className="px-5 pt-6 pb-6">
-        <Text
-          className="text-[11px] font-sans-bold uppercase text-textDisabled mb-1"
-          style={{ letterSpacing: 0.4 }}
-        >
-          Configuracion
-        </Text>
-        <Text className="text-3xl font-sans-extrabold text-textPrimary">
-          Ajustes
-        </Text>
-      </View>
+    <SafeAreaView className="flex-1 bg-background">
+      <ScreenHeader title="Ajustes" />
 
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingTop: 4,
-          paddingBottom: tabBarHeight + 24,
+          paddingTop: 12,
+          paddingBottom: 32,
           gap: 24,
         }}
       >
-        <ProfileHeader
-          name={fullName}
-          email={email}
-          avatarUrl={avatarUrl}
-          onPress={goToEditProfile}
-        />
-
-        <SettingsSection title="Cuenta">
-          <SettingsItem
-            icon={<User size={ICON_SIZE} color={tokens.brand} />}
-            title="Editar perfil"
-            subtitle="Nombre, apellido y foto"
-            onPress={goToEditProfile}
-          />
+        <SettingsSection title="Seguridad">
           <SettingsItem
             icon={<Lock size={ICON_SIZE} color={tokens.brand} />}
-            title="Cambiar contrasena"
+            title="Cambiar contraseña"
             badge="Proximamente"
             onPress={comingSoon}
           />
@@ -196,16 +136,6 @@ export function SettingsScreen() {
                 {APP_VERSION}
               </Text>
             }
-          />
-        </SettingsSection>
-
-        <SettingsSection>
-          <SettingsItem
-            icon={<LogOut size={ICON_SIZE} color={tokens.danger} />}
-            iconBackground={tokens.dangerSoft}
-            title="Cerrar sesion"
-            danger
-            onPress={confirmLogout}
           />
         </SettingsSection>
       </ScrollView>

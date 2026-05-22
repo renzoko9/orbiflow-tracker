@@ -3,9 +3,9 @@ import { Redirect, Tabs, useRouter } from "expo-router";
 import { BlurView } from "expo-blur";
 import {
   ArrowLeftRight,
+  BarChart3,
   Home,
   Plus,
-  Settings,
   Sparkles,
 } from "lucide-react-native";
 import { useThemeTokens } from "@/shared/theme";
@@ -127,7 +127,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="chat"
         options={{
-          title: "Asistente",
+          title: "Chat",
           tabBarIcon: ({ color, size }) => (
             <Sparkles size={size} color={color} />
           ),
@@ -135,11 +135,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="insights"
         options={{
-          title: "Ajustes",
+          title: "Insights",
           tabBarIcon: ({ color, size }) => (
-            <Settings size={size} color={color} />
+            <BarChart3 size={size} color={color} />
           ),
         }}
       />

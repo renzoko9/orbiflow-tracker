@@ -43,6 +43,7 @@ export default function RootLayout() {
         <Stack.Screen name="categories" />
         <Stack.Screen name="transactions" />
         <Stack.Screen name="profile" />
+        <Stack.Screen name="settings" />
       </Stack>
     </AppProviders>
   );
