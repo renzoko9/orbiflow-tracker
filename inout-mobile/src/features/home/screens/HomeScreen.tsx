@@ -1,14 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { Alert, Loading } from "@/shared/ui";
+import { Alert, Loading, type BottomSheetModal } from "@/shared/ui";
 import { useAuthStore } from "@/shared/auth";
 import { getCurrentMonthRange, getPreviousMonthRange } from "@/shared/utils";
 import { useAccounts } from "@/features/accounts";
 import { useTransactions } from "@/features/transactions";
-import { AIInsightsCard, useMonthlyInsight } from "@/features/insights";
+import { AccountMenuSheet } from "@/features/profile";
 import {
   BalanceOverviewCard,
   HomeHeader,
@@ -25,6 +25,7 @@ export function HomeScreen() {
   const router = useRouter();
   const tabBarHeight = useBottomTabBarHeight();
   const user = useAuthStore((s) => s.user);
+  const accountSheet = useRef<BottomSheetModal>(null);
 
   const currentMonthRange = useMemo(() => getCurrentMonthRange(), []);
   const previousMonthRange = useMemo(() => getPreviousMonthRange(), []);
@@ -39,8 +40,6 @@ export function HomeScreen() {
     dateFrom: previousMonthRange.dateFrom,
     dateTo: currentMonthRange.dateTo,
   });
-
-  const { data: insight, isLoading: insightLoading } = useMonthlyInsight();
 
   const totalBalance = useMemo(
     () => accounts.reduce((sum, acc) => sum + Number(acc.balance), 0),
@@ -74,8 +73,6 @@ export function HomeScreen() {
     [transactions],
   );
 
-  const showInsight = insightLoading || insight?.available;
-
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
@@ -87,7 +84,8 @@ export function HomeScreen() {
       >
         <HomeHeader
           userName={user?.name ?? "Usuario"}
-          monthlyNet={currentSummary.net}
+          avatarUrl={user?.avatarUrl}
+          onAvatarPress={() => accountSheet.current?.present()}
         />
 
         {isLoading ? (
@@ -111,18 +109,6 @@ export function HomeScreen() {
             />
 
             <Hairline />
-            {/* {showInsight && (
-              <>
-                <Hairline />
-                <View className="px-5 mb-8">
-                  <AIInsightsCard
-                    isLoading={insightLoading}
-                    title={insight?.title ?? ""}
-                    description={insight?.description ?? ""}
-                  />
-                </View>
-              </>
-            )} */}
 
             <RecentTransactionsCard
               transactions={recentTransactions}
@@ -131,6 +117,12 @@ export function HomeScreen() {
           </>
         )}
       </ScrollView>
+
+      <AccountMenuSheet
+        ref={accountSheet}
+        onEditProfile={() => router.push("/profile/edit")}
+        onSettings={() => router.push("/settings")}
+      />
     </SafeAreaView>
   );
 }
