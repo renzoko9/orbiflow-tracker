@@ -23,8 +23,11 @@ import { CreateTransactionRequest } from './dto/create-transaction.dto';
 import { UpdateTransactionRequest } from './dto/update-transaction.dto';
 import { CreateTransferRequest } from './dto/create-transfer.dto';
 import { UpdateTransferRequest } from './dto/update-transfer.dto';
-import { FilterTransactionsQuery } from './dto/filter-transactions.dto';
-import { CategoryTypeEnum, ErrorCodeEnum, ResponseTypeEnum } from '@Enums';
+import {
+  FilterTransactionsQuery,
+  TransactionKindFilter,
+} from './dto/filter-transactions.dto';
+import { TransactionTypeEnum, ErrorCodeEnum, ResponseTypeEnum } from '@Enums';
 import { ResponseAPI } from '@/common/interfaces/response.interface';
 import {
   TransactionDetailResponse,
@@ -118,12 +121,14 @@ export class TransactionsService {
     );
 
     const where: FindOptionsWhere<Transaction>[] = [];
+    const onlyTransfers = filters.kind === TransactionKindFilter.Transfer;
 
     const baseWhere: FindOptionsWhere<Transaction> = {
       user: { id: userId },
       account: { archivedAt: IsNull() },
-      ...(filters.type && { type: filters.type }),
-      ...(filters.categoryId && { category: { id: filters.categoryId } }),
+      ...(!onlyTransfers && filters.type && { type: filters.type }),
+      ...(!onlyTransfers &&
+        filters.categoryId && { category: { id: filters.categoryId } }),
       ...(filters.dateFrom && {
         date: MoreThanOrEqual(new Date(filters.dateFrom)),
       }),
@@ -132,9 +137,11 @@ export class TransactionsService {
       }),
     };
 
-    // Si se filtra por type o categoryId, las transferencias quedan fuera:
-    // no son ni income ni expense contables y no tienen categoria.
-    if (filters.type || filters.categoryId) {
+    if (onlyTransfers) {
+      baseWhere.transferGroupId = Not(IsNull());
+    } else if (filters.type || filters.categoryId) {
+      // Si se filtra por type o categoryId, las transferencias quedan fuera:
+      // no son ni income ni expense contables y no tienen categoria.
       baseWhere.transferGroupId = IsNull();
     }
 
@@ -441,7 +448,7 @@ export class TransactionsService {
       const sourceLeg = manager.create(Transaction, {
         amount: dto.amount,
         description: dto.description,
-        type: CategoryTypeEnum.Expense,
+        type: TransactionTypeEnum.Expense,
         date: dateOnly,
         user: { id: userId },
         account: { id: sourceAccount.id },
@@ -450,7 +457,7 @@ export class TransactionsService {
       const destinationLeg = manager.create(Transaction, {
         amount: dto.amount,
         description: dto.description,
-        type: CategoryTypeEnum.Income,
+        type: TransactionTypeEnum.Income,
         date: dateOnly,
         user: { id: userId },
         account: { id: destinationAccount.id },
@@ -653,8 +660,9 @@ export class TransactionsService {
         continue;
       }
 
-      const sourceLeg = tx.type === CategoryTypeEnum.Expense ? tx : partner;
-      const destinationLeg = tx.type === CategoryTypeEnum.Income ? tx : partner;
+      const sourceLeg = tx.type === TransactionTypeEnum.Expense ? tx : partner;
+      const destinationLeg =
+        tx.type === TransactionTypeEnum.Income ? tx : partner;
 
       result.push(
         this.transactionsMapper.toTransferListResponse({
@@ -724,8 +732,8 @@ export class TransactionsService {
       });
     }
 
-    const source = legs.find((l) => l.type === CategoryTypeEnum.Expense);
-    const destination = legs.find((l) => l.type === CategoryTypeEnum.Income);
+    const source = legs.find((l) => l.type === TransactionTypeEnum.Expense);
+    const destination = legs.find((l) => l.type === TransactionTypeEnum.Income);
 
     if (!source || !destination) {
       throw new NotFoundException({
@@ -805,7 +813,7 @@ export class TransactionsService {
   private async updateAccountBalance(
     accountId: number,
     amount: number,
-    type: CategoryTypeEnum,
+    type: TransactionTypeEnum,
     revert = false,
   ): Promise<void> {
     const account = await this.accountRepository.findOne({
@@ -821,7 +829,7 @@ export class TransactionsService {
 
     let balanceChange = Number(amount);
 
-    if (type === CategoryTypeEnum.Expense) {
+    if (type === TransactionTypeEnum.Expense) {
       balanceChange = -balanceChange;
     }
 

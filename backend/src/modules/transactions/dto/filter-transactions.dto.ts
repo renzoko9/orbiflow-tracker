@@ -7,13 +7,21 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CategoryTypeEnum } from '@Enums';
+import { TransactionTypeEnum } from '@Enums';
+
+export enum TransactionKindFilter {
+  Transfer = 'transfer',
+}
 
 export class FilterTransactionsQuery {
   @IsOptional()
-  @IsEnum(CategoryTypeEnum)
+  @IsEnum(TransactionTypeEnum)
   @Type(() => Number)
-  type?: CategoryTypeEnum;
+  type?: TransactionTypeEnum;
+
+  @IsOptional()
+  @IsEnum(TransactionKindFilter)
+  kind?: TransactionKindFilter;
 
   @IsOptional()
   @IsInt()
