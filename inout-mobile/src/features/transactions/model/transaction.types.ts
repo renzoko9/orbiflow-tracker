@@ -1,4 +1,4 @@
-import { CategoryType } from "@/features/categories";
+import { TransactionType } from "@/features/categories";
 
 /**
  * DTOs del backend para transacciones.
@@ -18,7 +18,7 @@ export interface TransactionCategoryEmbed {
   name: string;
   icon: string;
   color: string;
-  type: CategoryType;
+  type: TransactionType;
 }
 
 export interface TransactionAccountEmbed {
@@ -37,7 +37,7 @@ export interface MovementListItem {
   id: number;
   amount: number;
   description: string;
-  type: CategoryType;
+  type: TransactionType;
   date: string;
   category: TransactionCategoryEmbed | null;
   accountId: number;
@@ -61,7 +61,7 @@ export interface AccountMovementListItem {
   id: number;
   amount: number;
   description: string;
-  type: CategoryType;
+  type: TransactionType;
   date: string;
   category: TransactionCategoryEmbed | null;
   accountId: number;
@@ -74,7 +74,7 @@ export interface TransactionDetailDto {
   id: number;
   amount: number;
   description: string;
-  type: CategoryType;
+  type: TransactionType;
   date: string;
   category: TransactionCategoryEmbed | null;
   account: TransactionAccountEmbed;
@@ -96,7 +96,7 @@ export interface TransactionMutationDto {
   id: number;
   amount: number;
   description: string;
-  type: CategoryType;
+  type: TransactionType;
   date: string;
   categoryName: string | null;
   accountName: string;
@@ -105,7 +105,7 @@ export interface TransactionMutationDto {
 export interface CreateTransactionInput {
   amount: number;
   description?: string;
-  type: CategoryType;
+  type: TransactionType;
   date: string;
   categoryId?: number;
   accountId: number;
@@ -114,7 +114,7 @@ export interface CreateTransactionInput {
 export interface UpdateTransactionInput {
   amount?: number;
   description?: string;
-  type?: CategoryType;
+  type?: TransactionType;
   date?: string;
   categoryId?: number;
   accountId?: number;
@@ -137,7 +137,8 @@ export interface UpdateTransferInput {
 }
 
 export interface FilterTransactionsParams {
-  type?: CategoryType;
+  type?: TransactionType;
+  kind?: "transfer";
   categoryId?: number;
   dateFrom?: string;
   dateTo?: string;

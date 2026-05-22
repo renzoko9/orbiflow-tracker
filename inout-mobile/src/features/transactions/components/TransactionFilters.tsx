@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import {
   CalendarDays,
   CalendarRange,
@@ -12,16 +12,29 @@ import {
   BottomSheet,
   BottomSheetScrollView,
   IconSelector,
-  SegmentedControl,
   SelectField,
   type BottomSheetModal,
   type IconSelectorItem,
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { cn, getIconComponent } from "@/shared/utils";
-import { CategoryType, type Category } from "@/features/categories";
+import { TransactionType, type Category } from "@/features/categories";
 
-export type TypeFilter = "ALL" | CategoryType;
+export const TRANSFER_FILTER = "TRANSFER" as const;
+
+export type TypeFilter = "ALL" | TransactionType | typeof TRANSFER_FILTER;
+
+interface TypeFilterOption {
+  value: TypeFilter;
+  label: string;
+}
+
+const TYPE_FILTER_OPTIONS: TypeFilterOption[] = [
+  { value: "ALL", label: "Todos" },
+  { value: TransactionType.EXPENSE, label: "Gastos" },
+  { value: TransactionType.INCOME, label: "Ingresos" },
+  { value: TRANSFER_FILTER, label: "Transferencias" },
+];
 
 interface DateRangeOption {
   label: string;
@@ -59,6 +72,8 @@ export function TransactionFilters({
   const categorySheet = useRef<BottomSheetModal>(null);
   const dateSheet = useRef<BottomSheetModal>(null);
 
+  const isTransferFilter = typeFilter === TRANSFER_FILTER;
+
   const categoryItems: IconSelectorItem[] = [
     { id: 0, label: "Todas", iconName: "tag", color: tokens.brand },
     ...categories.map((cat) => ({
@@ -84,36 +99,60 @@ export function TransactionFilters({
 
   return (
     <View className="gap-3">
-      <SegmentedControl
-        options={[
-          { value: "ALL", label: "Todos" },
-          { value: String(CategoryType.EXPENSE), label: "Gastos" },
-          { value: String(CategoryType.INCOME), label: "Ingresos" },
-        ]}
-        value={String(typeFilter)}
-        onChange={(val) =>
-          onTypeChange(val === "ALL" ? "ALL" : (Number(val) as CategoryType))
-        }
-      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 8, paddingRight: 16 }}
+      >
+        {TYPE_FILTER_OPTIONS.map((opt) => {
+          const active = typeFilter === opt.value;
+          return (
+            <TouchableOpacity
+              key={String(opt.value)}
+              onPress={() => onTypeChange(opt.value)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              className={cn(
+                "px-4 py-3 rounded-xl border",
+                active
+                  ? "bg-brand border-brand"
+                  : "bg-surface border-border",
+              )}
+            >
+              <Text
+                className={cn(
+                  "text-sm font-sans-semibold",
+                  active ? "text-onBrand" : "text-textSecondary",
+                )}
+              >
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       <View className="flex-row gap-2">
-        <View className="flex-1">
-          <SelectField
-            icon={
-              SelectedCategoryIcon && selectedCategory ? (
-                <SelectedCategoryIcon
-                  size={18}
-                  color={selectedCategory.color}
-                />
-              ) : (
-                <Tag size={18} color={tokens.textTertiary} />
-              )
-            }
-            label={selectedCategoryLabel}
-            placeholder="Categoria"
-            onPress={() => categorySheet.current?.present()}
-          />
-        </View>
+        {!isTransferFilter && (
+          <View className="flex-1">
+            <SelectField
+              icon={
+                SelectedCategoryIcon && selectedCategory ? (
+                  <SelectedCategoryIcon
+                    size={18}
+                    color={selectedCategory.color}
+                  />
+                ) : (
+                  <Tag size={18} color={tokens.textTertiary} />
+                )
+              }
+              label={selectedCategoryLabel}
+              placeholder="Categoria"
+              onPress={() => categorySheet.current?.present()}
+            />
+          </View>
+        )}
 
         <View className="flex-1">
           <SelectField

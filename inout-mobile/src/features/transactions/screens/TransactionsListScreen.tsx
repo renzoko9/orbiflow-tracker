@@ -9,6 +9,7 @@ import { useCategories } from "@/features/categories";
 import {
   TransactionFilters,
   TransactionList,
+  TRANSFER_FILTER,
   type TypeFilter,
 } from "../components";
 import { useTransactions } from "../api";
@@ -69,16 +70,22 @@ export function TransactionsListScreen() {
   );
   const [dateRange, setDateRange] = useState("all");
 
+  const isTransferFilter = typeFilter === TRANSFER_FILTER;
+
   const filters = useMemo<FilterTransactionsParams>(() => {
     const { dateFrom, dateTo } = getDateRange(dateRange);
     return {
-      type: typeFilter === "ALL" ? undefined : typeFilter,
-      categoryId: selectedCategoryId ?? undefined,
+      type:
+        typeFilter === "ALL" || isTransferFilter ? undefined : typeFilter,
+      kind: isTransferFilter ? "transfer" : undefined,
+      categoryId: isTransferFilter
+        ? undefined
+        : (selectedCategoryId ?? undefined),
       dateFrom,
       dateTo,
       search: searchText || undefined,
     };
-  }, [typeFilter, selectedCategoryId, dateRange, searchText]);
+  }, [typeFilter, isTransferFilter, selectedCategoryId, dateRange, searchText]);
 
   const {
     data: transactions = [],
@@ -87,7 +94,8 @@ export function TransactionsListScreen() {
   } = useTransactions(filters);
 
   const { data: categories = [] } = useCategories({
-    type: typeFilter === "ALL" ? undefined : typeFilter,
+    type:
+      typeFilter === "ALL" || isTransferFilter ? undefined : typeFilter,
   });
 
   return (

@@ -12,5 +12,6 @@ export {
 export {
   TransactionFilters,
   DATE_RANGES,
+  TRANSFER_FILTER,
   type TypeFilter,
 } from "./TransactionFilters";
