@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { accountKeys } from "@/features/accounts";
+import { transactionKeys } from "@/features/transactions";
 import * as chatApi from "./chat.api";
 import { chatKeys } from "./chat.keys";
 import type {
@@ -34,6 +36,14 @@ export function useSendMessage() {
           };
         },
       );
+
+      const createdTx = result.actionsTaken.some(
+        (a) => a.type === "create_transaction",
+      );
+      if (createdTx) {
+        queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+        queryClient.invalidateQueries({ queryKey: accountKeys.all });
+      }
     },
   });
 }
