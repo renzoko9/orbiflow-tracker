@@ -1,6 +1,19 @@
-import { Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import {
   Camera,
   Image as ImageIcon,
@@ -8,7 +21,16 @@ import {
   Sparkles,
   X,
 } from "lucide-react-native";
+import { showToast } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
+import { resolveAvatarUrl } from "@/shared/utils";
+import { ApiError } from "@/shared/api";
+import {
+  useConversation,
+  useSendMessage,
+  type ChatMessage,
+  type SendMessageInput,
+} from "@/features/chat";
 
 const SUGGESTIONS = [
   "Gaste 20 soles en taxi",
@@ -16,11 +38,102 @@ const SUGGESTIONS = [
   "Cuanto gaste en comida este mes?",
 ];
 
+interface PendingImage {
+  uri: string;
+  mimeType: string;
+  fileName: string;
+}
+
 export function ChatScreen() {
   const router = useRouter();
   const tokens = useThemeTokens();
+  const [text, setText] = useState("");
+  const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
+  const listRef = useRef<FlatList<ChatMessage>>(null);
+
+  const { data: conversation } = useConversation();
+  const sendMessage = useSendMessage();
+
+  const messages = useMemo(
+    () => conversation?.messages ?? [],
+    [conversation],
+  );
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
+    }
+  }, [messages.length, sendMessage.isPending]);
 
   const closeChat = () => router.navigate("/home");
+
+  function showError(err: unknown) {
+    const message =
+      err instanceof ApiError ? err.message : "No pude enviar el mensaje";
+    showToast({ type: "error", text1: "Error", text2: message });
+  }
+
+  async function handlePickImage(source: "camera" | "gallery") {
+    const perm =
+      source === "camera"
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      showToast({
+        type: "error",
+        text1: "Permiso denegado",
+        text2:
+          source === "camera"
+            ? "Habilita el acceso a la camara"
+            : "Habilita el acceso a la galeria",
+      });
+      return;
+    }
+    const result =
+      source === "camera"
+        ? await ImagePicker.launchCameraAsync({
+            mediaTypes: ["images"],
+            quality: 0.7,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images"],
+            quality: 0.7,
+          });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    setPendingImage({
+      uri: asset.uri,
+      mimeType: asset.mimeType ?? "image/jpeg",
+      fileName: asset.fileName ?? `recibo-${Date.now()}.jpg`,
+    });
+  }
+
+  function handleSend() {
+    const trimmed = text.trim();
+    if (!trimmed && !pendingImage) return;
+    if (sendMessage.isPending) return;
+
+    const payload: SendMessageInput = {
+      content: trimmed || undefined,
+      imageUri: pendingImage?.uri,
+      imageMimeType: pendingImage?.mimeType,
+      imageFileName: pendingImage?.fileName,
+    };
+
+    setText("");
+    setPendingImage(null);
+
+    sendMessage.mutate(payload, { onError: showError });
+  }
+
+  function handleSuggestion(suggestion: string) {
+    if (sendMessage.isPending) return;
+    setText(suggestion);
+  }
+
+  const showEmptyState = messages.length === 0 && !sendMessage.isPending;
+  const canSend =
+    (text.trim().length > 0 || pendingImage !== null) && !sendMessage.isPending;
 
   return (
     <SafeAreaView
@@ -50,94 +163,221 @@ export function ChatScreen() {
         </View>
       </View>
 
-      <ScrollView
+      <KeyboardAvoidingView
         className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 20,
-          paddingBottom: 20,
-          gap: 12,
-        }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <View
-          className="self-start rounded-2xl bg-surface px-4 py-3"
-          style={{
-            borderTopLeftRadius: 4,
-            borderWidth: 1,
-            borderColor: tokens.border,
-            maxWidth: "85%",
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(m) => String(m.id)}
+          renderItem={({ item }) => <Bubble message={item} />}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 20,
+            paddingBottom: 20,
+            gap: 12,
           }}
-        >
-          <Text className="text-base text-textPrimary leading-6">
-            Hola, soy Otto. Cuentame que gastaste o ingresaste y lo registro
-            por ti.
-          </Text>
-        </View>
+          ListEmptyComponent={
+            showEmptyState ? (
+              <EmptyState onPickSuggestion={handleSuggestion} />
+            ) : null
+          }
+          ListFooterComponent={
+            sendMessage.isPending ? <TypingBubble /> : null
+          }
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() =>
+            listRef.current?.scrollToEnd({ animated: true })
+          }
+        />
 
-        <View
-          className="self-start rounded-2xl bg-surface px-4 py-3"
-          style={{
-            borderTopLeftRadius: 4,
-            borderWidth: 1,
-            borderColor: tokens.border,
-            maxWidth: "85%",
-          }}
-        >
-          <Text className="text-base text-textPrimary leading-6">
-            Tambien puedes mandarme una foto del voucher, producto o servicio
-            y yo me encargo del resto.
-          </Text>
-        </View>
-
-        <View className="self-start flex-row flex-wrap gap-2 mt-2">
-          {SUGGESTIONS.map((suggestion) => (
-            <Pressable
-              key={suggestion}
-              className="rounded-full bg-brandSoft px-3 py-2"
+        {pendingImage && (
+          <View
+            className="flex-row items-center gap-3 px-4 py-3"
+            style={{ borderTopWidth: 1, borderColor: tokens.border }}
+          >
+            <Image
+              source={{ uri: pendingImage.uri }}
+              style={{ width: 48, height: 48, borderRadius: 8 }}
+              contentFit="cover"
+            />
+            <Text className="flex-1 text-sm text-textSecondary">
+              Imagen lista para enviar
+            </Text>
+            <TouchableOpacity
+              onPress={() => setPendingImage(null)}
+              hitSlop={8}
             >
-              <Text className="text-xs font-sans-semibold text-brand">
-                {suggestion}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </ScrollView>
+              <X size={20} color={tokens.textTertiary} />
+            </TouchableOpacity>
+          </View>
+        )}
 
-      <View
-        className="flex-row items-center gap-2 px-3 py-2 bg-background"
-        style={{ borderTopWidth: 1, borderColor: tokens.border }}
-      >
-        <Pressable
-          className="items-center justify-center rounded-full"
-          style={{ width: 40, height: 40 }}
-        >
-          <Camera size={22} color={tokens.textSecondary} strokeWidth={2.2} />
-        </Pressable>
-        <Pressable
-          className="items-center justify-center rounded-full"
-          style={{ width: 40, height: 40 }}
-        >
-          <ImageIcon
-            size={22}
-            color={tokens.textSecondary}
-            strokeWidth={2.2}
-          />
-        </Pressable>
         <View
-          className="flex-1 px-4 py-2.5 rounded-full bg-surfaceMuted"
+          className="flex-row items-end gap-2 px-3 py-2 bg-background"
+          style={{ borderTopWidth: 1, borderColor: tokens.border }}
         >
-          <Text className="text-sm text-textTertiary">
-            Escribe o manda una foto...
+          <Pressable
+            onPress={() => handlePickImage("camera")}
+            className="items-center justify-center rounded-full"
+            style={{ width: 40, height: 40 }}
+            disabled={sendMessage.isPending}
+          >
+            <Camera size={22} color={tokens.textSecondary} strokeWidth={2.2} />
+          </Pressable>
+          <Pressable
+            onPress={() => handlePickImage("gallery")}
+            className="items-center justify-center rounded-full"
+            style={{ width: 40, height: 40 }}
+            disabled={sendMessage.isPending}
+          >
+            <ImageIcon
+              size={22}
+              color={tokens.textSecondary}
+              strokeWidth={2.2}
+            />
+          </Pressable>
+          <View className="flex-1 px-4 py-2 rounded-2xl bg-surfaceMuted">
+            <TextInput
+              value={text}
+              onChangeText={setText}
+              placeholder="Escribe o manda una foto..."
+              placeholderTextColor={tokens.textTertiary}
+              multiline
+              style={{
+                color: tokens.textPrimary,
+                fontSize: 15,
+                maxHeight: 100,
+                minHeight: 20,
+              }}
+              editable={!sendMessage.isPending}
+            />
+          </View>
+          <Pressable
+            onPress={handleSend}
+            disabled={!canSend}
+            className="items-center justify-center rounded-full"
+            style={{
+              width: 40,
+              height: 40,
+              backgroundColor: canSend ? tokens.brand : tokens.borderStrong,
+            }}
+          >
+            <Send size={18} color={tokens.onBrand} strokeWidth={2.4} />
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+function Bubble({ message }: { message: ChatMessage }) {
+  const tokens = useThemeTokens();
+  const isUser = message.role === "user";
+  const imageUrl = resolveAvatarUrl(message.imageUrl);
+
+  return (
+    <View
+      className={`max-w-[85%] ${isUser ? "self-end" : "self-start"}`}
+      style={{ gap: 6 }}
+    >
+      {imageUrl && (
+        <Image
+          source={{ uri: imageUrl }}
+          style={{
+            width: 220,
+            height: 220,
+            borderRadius: 16,
+            backgroundColor: tokens.surfaceMuted,
+          }}
+          contentFit="cover"
+        />
+      )}
+      {message.content ? (
+        <View
+          className={`rounded-2xl px-4 py-3 ${
+            isUser ? "bg-brand" : "bg-surface"
+          }`}
+          style={
+            isUser
+              ? { borderTopRightRadius: 4 }
+              : {
+                  borderTopLeftRadius: 4,
+                  borderWidth: 1,
+                  borderColor: tokens.border,
+                }
+          }
+        >
+          <Text
+            className={`text-base leading-6 ${
+              isUser ? "text-onBrand" : "text-textPrimary"
+            }`}
+          >
+            {message.content}
           </Text>
         </View>
-        <Pressable
-          className="items-center justify-center rounded-full bg-brand"
-          style={{ width: 40, height: 40 }}
-        >
-          <Send size={18} color={tokens.onBrand} strokeWidth={2.4} />
-        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+function TypingBubble() {
+  const tokens = useThemeTokens();
+  return (
+    <View
+      className="self-start rounded-2xl bg-surface px-4 py-3 flex-row items-center gap-2"
+      style={{
+        borderTopLeftRadius: 4,
+        borderWidth: 1,
+        borderColor: tokens.border,
+      }}
+    >
+      <ActivityIndicator size="small" color={tokens.textTertiary} />
+      <Text className="text-sm text-textTertiary">Otto esta pensando</Text>
+    </View>
+  );
+}
+
+function EmptyState({
+  onPickSuggestion,
+}: {
+  onPickSuggestion: (s: string) => void;
+}) {
+  return (
+    <View className="gap-3 mt-4">
+      <View
+        className="self-start rounded-2xl bg-surface px-4 py-3 max-w-[85%]"
+        style={{ borderTopLeftRadius: 4 }}
+      >
+        <Text className="text-base text-textPrimary leading-6">
+          Hola, soy Otto. Cuentame que gastaste o ingresaste y lo registro por
+          ti.
+        </Text>
       </View>
-    </SafeAreaView>
+      <View
+        className="self-start rounded-2xl bg-surface px-4 py-3 max-w-[85%]"
+        style={{ borderTopLeftRadius: 4 }}
+      >
+        <Text className="text-base text-textPrimary leading-6">
+          Tambien puedes mandarme una foto del voucher, producto o servicio y
+          yo me encargo del resto.
+        </Text>
+      </View>
+      <View className="self-start flex-row flex-wrap gap-2 mt-2">
+        {SUGGESTIONS.map((suggestion) => (
+          <Pressable
+            key={suggestion}
+            onPress={() => onPickSuggestion(suggestion)}
+            className="rounded-full bg-brandSoft px-3 py-2"
+          >
+            <Text className="text-xs font-sans-semibold text-brand">
+              {suggestion}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
   );
 }
