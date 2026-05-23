@@ -161,7 +161,7 @@ export class InsightsService {
     try {
       const llmResponse = await this.llm.generate({
         systemPrompt,
-        userPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
         tools: [INSIGHT_TOOL],
         toolChoice: { type: 'tool', name: 'emit_insight' },
         maxTokens: 800,
