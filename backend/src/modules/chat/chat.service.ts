@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { readFile } from 'fs/promises';
 import { IsNull } from 'typeorm';
 import {
   AccountRepository,
@@ -67,13 +68,24 @@ export class ChatService {
   async sendMessage(
     userId: number,
     content: string | undefined,
-    imageUrl: string | null = null,
+    image?: Express.Multer.File,
   ): Promise<SendMessageResponse> {
     const trimmed = (content ?? '').trim();
-    if (!trimmed && !imageUrl) {
+    if (!trimmed && !image) {
       throw new BadRequestException({
         message: 'El mensaje debe tener texto o una imagen.',
       });
+    }
+
+    let imageUrl: string | null = null;
+    let imageBase64: { data: string; mediaType: string } | null = null;
+    if (image) {
+      imageUrl = `/uploads/chat/${image.filename}`;
+      const buffer = await readFile(image.path);
+      imageBase64 = {
+        data: buffer.toString('base64'),
+        mediaType: image.mimetype,
+      };
     }
 
     const conversation = await this.getOrCreateConversation(userId);
@@ -89,7 +101,7 @@ export class ChatService {
 
     const systemPrompt = await this.buildSystemPrompt(userId);
     const history = await this.loadHistoryForLLM(conversation.id);
-    const newUserContent = this.buildUserContent(trimmed, imageUrl);
+    const newUserContent = this.buildUserContent(trimmed, imageBase64);
     const localMessages: LLMChatMessage[] = [
       ...history,
       { role: 'user', content: newUserContent },
@@ -187,14 +199,18 @@ export class ChatService {
 
   private buildUserContent(
     text: string,
-    imageUrl: string | null,
+    imageBase64: { data: string; mediaType: string } | null,
   ): string | LLMContentBlock[] {
-    if (!imageUrl) return text;
+    if (!imageBase64) return text;
     const blocks: LLMContentBlock[] = [];
     if (text) blocks.push({ type: 'text', text } as LLMTextBlock);
     blocks.push({
       type: 'image',
-      source: { type: 'url', url: imageUrl },
+      source: {
+        type: 'base64',
+        mediaType: imageBase64.mediaType,
+        data: imageBase64.data,
+      },
     });
     return blocks;
   }
