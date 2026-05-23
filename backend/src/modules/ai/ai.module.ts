@@ -28,5 +28,6 @@ import { LLM_PROVIDER } from './providers/llm.provider';
     // { provide: LLM_PROVIDER, useExisting: AnthropicProvider },
     { provide: LLM_PROVIDER, useExisting: OpenAIProvider },
   ],
+  exports: [LLM_PROVIDER],
 })
 export class AIModule {}

@@ -5,3 +5,5 @@ export * from './account.repository';
 export * from './email-verification-token.repository';
 export * from './password-reset-token.repository';
 export * from './ai-insight.repository';
+export * from './chat-conversation.repository';
+export * from './chat-message.repository';
