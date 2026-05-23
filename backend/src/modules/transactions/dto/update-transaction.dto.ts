@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsNumber,
@@ -63,4 +64,15 @@ export class UpdateTransactionRequest {
   @IsNumber()
   @IsOptional()
   accountId?: number;
+
+  @ApiProperty({
+    description: 'URLs de fotos adjuntas al movimiento (evidencia)',
+    example: ['/uploads/chat/recibo-123.jpg'],
+    required: false,
+    type: [String],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  photos?: string[];
 }

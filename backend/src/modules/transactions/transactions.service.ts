@@ -86,6 +86,7 @@ export class TransactionsService {
       user: { id: userId },
       account: { id: createTransactionRequest.accountId },
       category: { id: createTransactionRequest.categoryId },
+      photos: createTransactionRequest.photos ?? [],
     });
 
     const savedTransaction =

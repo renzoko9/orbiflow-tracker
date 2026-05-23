@@ -117,6 +117,7 @@ export class TransactionsMapper {
         balance: Number(transaction.account.balance),
       },
       transferGroupId: transaction.transferGroupId,
+      photos: transaction.photos ?? [],
       createdAt:
         transaction.createdAt instanceof Date
           ? transaction.createdAt.toISOString()

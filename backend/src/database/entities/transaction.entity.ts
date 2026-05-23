@@ -54,6 +54,9 @@ export class Transaction {
   })
   transferGroupId: string | null;
 
+  @Column({ type: 'text', array: true, default: () => "'{}'" })
+  photos: string[];
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

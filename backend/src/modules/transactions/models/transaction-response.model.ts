@@ -29,6 +29,7 @@ export class TransactionDetailResponse {
     balance: number;
   };
   transferGroupId: string | null;
+  photos: string[];
   createdAt: string;
 }
 
