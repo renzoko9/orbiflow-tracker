@@ -19,6 +19,9 @@ import { useThemeTokens } from "@/shared/theme";
 import { resolveAvatarUrl } from "@/shared/utils";
 import { ApiError } from "@/shared/api";
 import {
+  ProposalCard,
+  useCancelProposal,
+  useConfirmProposal,
   useConversation,
   useSendMessage,
   type ChatMessage,
@@ -45,6 +48,8 @@ export function ChatScreen() {
 
   const { data: conversation } = useConversation();
   const sendMessage = useSendMessage();
+  const confirmProposal = useConfirmProposal();
+  const cancelProposal = useCancelProposal();
 
   const messages = useMemo(
     () => conversation?.messages ?? [],
@@ -121,6 +126,23 @@ export function ChatScreen() {
     setText(suggestion);
   }
 
+  function handleConfirmProposal(id: number) {
+    confirmProposal.mutate(id, { onError: showError });
+  }
+
+  function handleCancelProposal(id: number) {
+    cancelProposal.mutate(id, { onError: showError });
+  }
+
+  const confirmingId =
+    confirmProposal.isPending && typeof confirmProposal.variables === "number"
+      ? confirmProposal.variables
+      : null;
+  const cancellingId =
+    cancelProposal.isPending && typeof cancelProposal.variables === "number"
+      ? cancelProposal.variables
+      : null;
+
   const showEmptyState = messages.length === 0 && !sendMessage.isPending;
   const canSend =
     (text.trim().length > 0 || pendingImage !== null) && !sendMessage.isPending;
@@ -161,7 +183,21 @@ export function ChatScreen() {
           ref={listRef}
           data={messages}
           keyExtractor={(m) => String(m.id)}
-          renderItem={({ item }) => <Bubble message={item} />}
+          renderItem={({ item }) =>
+            item.kind === "proposal" && item.payload ? (
+              <View className="self-start max-w-[85%]">
+                <ProposalCard
+                  message={item}
+                  isConfirming={confirmingId === item.id}
+                  isCancelling={cancellingId === item.id}
+                  onConfirm={handleConfirmProposal}
+                  onCancel={handleCancelProposal}
+                />
+              </View>
+            ) : (
+              <Bubble message={item} />
+            )
+          }
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingTop: 20,
