@@ -125,13 +125,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="chatbot"
         options={{
           title: "Chat",
           tabBarIcon: ({ color, size }) => (
-            <Sparkles size={size} color={color} />
+            <Sparkles size={size} color={color} onPress={() => router.push("/chat")} />
           ),
-          tabBarStyle: { display: "none" },
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push("/chat");
+          },
         }}
       />
       <Tabs.Screen

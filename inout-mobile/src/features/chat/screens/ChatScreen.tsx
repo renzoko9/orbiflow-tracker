@@ -11,17 +11,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import {
-  Camera,
-  Image as ImageIcon,
-  Send,
-  Sparkles,
-  X,
-} from "lucide-react-native";
-import { showToast } from "@/shared/ui";
+import { Camera, Image as ImageIcon, Send, Sparkles, X } from "lucide-react-native";
+import { ScreenHeader, showToast } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { resolveAvatarUrl } from "@/shared/utils";
 import { ApiError } from "@/shared/api";
@@ -45,7 +38,6 @@ interface PendingImage {
 }
 
 export function ChatScreen() {
-  const router = useRouter();
   const tokens = useThemeTokens();
   const [text, setText] = useState("");
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
@@ -64,8 +56,6 @@ export function ChatScreen() {
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
     }
   }, [messages.length, sendMessage.isPending]);
-
-  const closeChat = () => router.navigate("/home");
 
   function showError(err: unknown) {
     const message =
@@ -140,28 +130,27 @@ export function ChatScreen() {
       edges={["top", "left", "right", "bottom"]}
       className="flex-1 bg-background"
     >
-      <View
-        className="flex-row items-center gap-3 px-4 py-3"
-        style={{ borderBottomWidth: 1, borderColor: tokens.border }}
-      >
-        <TouchableOpacity onPress={closeChat} hitSlop={8}>
-          <X size={24} color={tokens.textPrimary} />
-        </TouchableOpacity>
-        <View
-          className="items-center justify-center rounded-full bg-brand"
-          style={{ width: 40, height: 40 }}
-        >
-          <Sparkles size={20} color={tokens.onBrand} strokeWidth={2.2} />
-        </View>
-        <View className="flex-1">
-          <Text className="text-base font-sans-bold text-textPrimary">
-            Otto
-          </Text>
-          <Text className="text-xs text-textTertiary">
-            Asistente financiero
-          </Text>
-        </View>
-      </View>
+      <ScreenHeader
+        titleAlign="left"
+        title={
+          <View className="flex-row items-center gap-3">
+            <View
+              className="items-center justify-center rounded-full bg-brand"
+              style={{ width: 36, height: 36 }}
+            >
+              <Sparkles size={18} color={tokens.onBrand} strokeWidth={2.2} />
+            </View>
+            <View>
+              <Text className="text-base font-sans-bold text-textPrimary">
+                Otto
+              </Text>
+              <Text className="text-xs text-textTertiary">
+                Asistente financiero
+              </Text>
+            </View>
+          </View>
+        }
+      />
 
       <KeyboardAvoidingView
         className="flex-1"

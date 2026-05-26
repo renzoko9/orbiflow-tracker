@@ -19,7 +19,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync().catch(() => {});
+      SplashScreen.hideAsync().catch(() => { });
     }
   }, [fontsLoaded, fontError]);
 
@@ -44,6 +44,7 @@ export default function RootLayout() {
         <Stack.Screen name="transactions" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="chat" />
       </Stack>
     </AppProviders>
   );
