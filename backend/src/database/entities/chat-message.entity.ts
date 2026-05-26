@@ -10,6 +10,8 @@ import {
 import { ChatConversation } from './chat-conversation.entity';
 
 export type ChatMessageRole = 'user' | 'assistant';
+export type ChatMessageKind = 'text' | 'proposal';
+export type ChatMessageStatus = 'pending' | 'confirmed' | 'cancelled';
 
 @Entity('chat_messages')
 export class ChatMessage {
@@ -34,6 +36,15 @@ export class ChatMessage {
 
   @Column({ name: 'image_url', type: 'varchar', length: 512, nullable: true })
   imageUrl: string | null;
+
+  @Column({ type: 'varchar', length: 16, default: 'text' })
+  kind: ChatMessageKind;
+
+  @Column({ type: 'jsonb', nullable: true })
+  payload: Record<string, unknown> | null;
+
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  status: ChatMessageStatus | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

@@ -1,9 +1,28 @@
+export type ChatMessageKind = 'text' | 'proposal';
+export type ChatMessageStatus = 'pending' | 'confirmed' | 'cancelled';
+
+export interface ChatProposalPayload {
+  amount: number;
+  type: 1 | 2;
+  description: string;
+  accountId: number;
+  accountName: string;
+  categoryId: number;
+  categoryName: string;
+  date: string;
+  photos: string[];
+  transactionId?: number;
+}
+
 export interface ChatMessageResponse {
   id: number;
   role: 'user' | 'assistant';
   content: string;
   imageUrl: string | null;
   createdAt: string;
+  kind: ChatMessageKind;
+  payload: ChatProposalPayload | null;
+  status: ChatMessageStatus | null;
 }
 
 export interface ChatActionTaken {
@@ -19,4 +38,10 @@ export interface SendMessageResponse {
 
 export interface ConversationResponse {
   messages: ChatMessageResponse[];
+}
+
+export interface ResolveProposalResponse {
+  proposal: ChatMessageResponse;
+  followUp: ChatMessageResponse;
+  actionsTaken: ChatActionTaken[];
 }

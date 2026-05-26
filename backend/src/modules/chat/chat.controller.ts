@@ -4,6 +4,8 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   UploadedFile,
   UseGuards,
@@ -16,6 +18,7 @@ import { ChatService } from './chat.service';
 import { SendMessageRequest } from './dto/send-message.dto';
 import {
   ConversationResponse,
+  ResolveProposalResponse,
   SendMessageResponse,
 } from './models/chat-response.model';
 import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
@@ -76,5 +79,21 @@ export class ChatController {
     @UploadedFile() image?: Express.Multer.File,
   ): Promise<SendMessageResponse> {
     return this.chatService.sendMessage(userId, body.content, image);
+  }
+
+  @Post('messages/:id/confirm')
+  async confirmProposal(
+    @User('id') userId: number,
+    @Param('id', ParseIntPipe) messageId: number,
+  ): Promise<ResolveProposalResponse> {
+    return this.chatService.confirmProposal(userId, messageId);
+  }
+
+  @Post('messages/:id/cancel')
+  async cancelProposal(
+    @User('id') userId: number,
+    @Param('id', ParseIntPipe) messageId: number,
+  ): Promise<ResolveProposalResponse> {
+    return this.chatService.cancelProposal(userId, messageId);
   }
 }

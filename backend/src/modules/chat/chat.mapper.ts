@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ChatMessage } from '@Entities';
-import { ChatMessageResponse } from './models/chat-response.model';
+import {
+  ChatMessageResponse,
+  ChatProposalPayload,
+} from './models/chat-response.model';
 
 @Injectable()
 export class ChatMapper {
@@ -10,6 +13,9 @@ export class ChatMapper {
       role: message.role,
       content: message.content,
       imageUrl: message.imageUrl,
+      kind: message.kind,
+      payload: (message.payload as ChatProposalPayload | null) ?? null,
+      status: message.status,
       createdAt:
         message.createdAt instanceof Date
           ? message.createdAt.toISOString()

@@ -3,9 +3,10 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { readFile } from 'fs/promises';
-import { IsNull } from 'typeorm';
+import { In, IsNull } from 'typeorm';
 import {
   AccountRepository,
   CategoryRepository,
@@ -24,14 +25,33 @@ import {
 import type { LLMProvider } from '../ai/providers/llm.provider';
 import { CHAT_TOOLS, ChatToolsService } from './services/chat-tools.service';
 import { ChatMapper } from './chat.mapper';
+import { TransactionsService } from '../transactions/transactions.service';
 import {
-  ChatActionTaken,
+  ChatProposalPayload,
   ConversationResponse,
+  ResolveProposalResponse,
   SendMessageResponse,
 } from './models/chat-response.model';
 
 const HISTORY_LIMIT = 20;
 const MAX_TOOL_ITERATIONS = 5;
+
+// Detecta mensajes con intencion clara de registrar un movimiento (numero +
+// verbo de gasto/ingreso, sin palabras interrogativas). Cuando matchea forzamos
+// tool_choice='propose_transaction' para evitar que gpt-4o-mini responda con
+// texto pidiendo confirmacion.
+const TRANSACTION_VERBS =
+  /\b(gast[eé]|pagu[eé]|compr[eé]|recib[ií]|cobr[eé]|ingres[eé]|deposit[eé]|retir[eé]|transfer[ií])\b/i;
+const QUERY_WORDS =
+  /\b(cu[aá]nt[oa]s?|qu[eé]|c[oó]mo|cu[aá]l(?:es)?|cu[aá]ndo|d[oó]nde|mu[eé]stra(?:me)?|mostrar|lista(?:r|me)?|dame|ver)\b/i;
+
+function isTransactionIntent(text: string): boolean {
+  if (!text) return false;
+  if (text.includes('?')) return false;
+  if (QUERY_WORDS.test(text)) return false;
+  if (!/\d/.test(text)) return false;
+  return TRANSACTION_VERBS.test(text);
+}
 
 @Injectable()
 export class ChatService {
@@ -45,6 +65,7 @@ export class ChatService {
     private readonly accountRepo: AccountRepository,
     private readonly categoryRepo: CategoryRepository,
     private readonly chatTools: ChatToolsService,
+    private readonly transactionsService: TransactionsService,
     private readonly mapper: ChatMapper,
   ) {}
 
@@ -90,12 +111,17 @@ export class ChatService {
 
     const conversation = await this.getOrCreateConversation(userId);
 
+    await this.autoCancelPendingProposals(conversation.id);
+
     const userMessage = await this.messageRepo.save(
       this.messageRepo.create({
         conversation: { id: conversation.id },
         role: 'user',
         content: trimmed,
         imageUrl,
+        kind: 'text',
+        payload: null,
+        status: null,
       }),
     );
 
@@ -108,8 +134,9 @@ export class ChatService {
     ];
 
     const photos = imageUrl ? [imageUrl] : [];
-    const actionsTaken: ChatActionTaken[] = [];
+    const forceProposeTool = isTransactionIntent(trimmed) || Boolean(image);
     let assistantText = '';
+    let proposalPayload: ChatProposalPayload | null = null;
 
     for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
       const response = await this.llm.generate({
@@ -117,6 +144,10 @@ export class ChatService {
         messages: localMessages,
         tools: CHAT_TOOLS,
         maxTokens: 1024,
+        toolChoice:
+          forceProposeTool && i === 0
+            ? { type: 'tool', name: 'propose_transaction' }
+            : undefined,
       });
 
       if (!response.toolUse) {
@@ -131,15 +162,10 @@ export class ChatService {
         photos,
       );
 
-      if (
-        response.toolUse.name === 'create_transaction' &&
-        toolResult.ok &&
-        toolResult.transactionId
-      ) {
-        actionsTaken.push({
-          type: 'create_transaction',
-          transactionId: toolResult.transactionId,
-        });
+      if (response.toolUse.name === 'propose_transaction' && toolResult.ok) {
+        proposalPayload = toolResult.proposal ?? null;
+        assistantText = response.text?.trim() ?? '';
+        break;
       }
 
       const assistantBlocks: LLMContentBlock[] = [];
@@ -170,11 +196,32 @@ export class ChatService {
       });
     }
 
+    if (proposalPayload) {
+      const assistantMessage = await this.messageRepo.save(
+        this.messageRepo.create({
+          conversation: { id: conversation.id },
+          role: 'assistant',
+          content: assistantText,
+          imageUrl: null,
+          kind: 'proposal',
+          payload: proposalPayload as unknown as Record<string, unknown>,
+          status: 'pending',
+        }),
+      );
+
+      await this.conversationRepo.update(conversation.id, {
+        updatedAt: new Date(),
+      });
+
+      return {
+        userMessage: this.mapper.toResponse(userMessage),
+        assistantMessage: this.mapper.toResponse(assistantMessage),
+        actionsTaken: [],
+      };
+    }
+
     if (!assistantText) {
-      assistantText =
-        actionsTaken.length > 0
-          ? 'Listo, lo registre.'
-          : 'No pude completar la accion, intenta de nuevo.';
+      assistantText = 'No pude completar la accion, intenta de nuevo.';
     }
 
     const assistantMessage = await this.messageRepo.save(
@@ -183,6 +230,9 @@ export class ChatService {
         role: 'assistant',
         content: assistantText,
         imageUrl: null,
+        kind: 'text',
+        payload: null,
+        status: null,
       }),
     );
 
@@ -193,8 +243,123 @@ export class ChatService {
     return {
       userMessage: this.mapper.toResponse(userMessage),
       assistantMessage: this.mapper.toResponse(assistantMessage),
-      actionsTaken,
+      actionsTaken: [],
     };
+  }
+
+  async confirmProposal(
+    userId: number,
+    messageId: number,
+  ): Promise<ResolveProposalResponse> {
+    const message = await this.getPendingProposal(userId, messageId);
+    const payload = message.payload as unknown as ChatProposalPayload;
+
+    const result = await this.transactionsService.create(userId, {
+      amount: payload.amount,
+      type: payload.type,
+      description: payload.description ?? '',
+      accountId: payload.accountId,
+      categoryId: payload.categoryId,
+      date: payload.date,
+      photos: payload.photos ?? [],
+    });
+
+    const transactionId = result.data?.id;
+    if (!transactionId) {
+      throw new BadRequestException({
+        message: 'No se pudo crear el movimiento.',
+      });
+    }
+
+    message.status = 'confirmed';
+    message.payload = {
+      ...payload,
+      transactionId,
+    } as unknown as Record<string, unknown>;
+    const updatedProposal = await this.messageRepo.save(message);
+
+    const followUp = await this.messageRepo.save(
+      this.messageRepo.create({
+        conversation: { id: message.conversationId },
+        role: 'assistant',
+        content: 'Listo, ya lo registre. ¿Algo mas?',
+        imageUrl: null,
+        kind: 'text',
+        payload: null,
+        status: null,
+      }),
+    );
+
+    await this.conversationRepo.update(message.conversationId, {
+      updatedAt: new Date(),
+    });
+
+    return {
+      proposal: this.mapper.toResponse(updatedProposal),
+      followUp: this.mapper.toResponse(followUp),
+      actionsTaken: [{ type: 'create_transaction', transactionId }],
+    };
+  }
+
+  async cancelProposal(
+    userId: number,
+    messageId: number,
+  ): Promise<ResolveProposalResponse> {
+    const message = await this.getPendingProposal(userId, messageId);
+
+    message.status = 'cancelled';
+    const updatedProposal = await this.messageRepo.save(message);
+
+    const followUp = await this.messageRepo.save(
+      this.messageRepo.create({
+        conversation: { id: message.conversationId },
+        role: 'assistant',
+        content: 'Cancelado. Decime si necesitas algo mas.',
+        imageUrl: null,
+        kind: 'text',
+        payload: null,
+        status: null,
+      }),
+    );
+
+    await this.conversationRepo.update(message.conversationId, {
+      updatedAt: new Date(),
+    });
+
+    return {
+      proposal: this.mapper.toResponse(updatedProposal),
+      followUp: this.mapper.toResponse(followUp),
+      actionsTaken: [],
+    };
+  }
+
+  private async getPendingProposal(userId: number, messageId: number) {
+    const message = await this.messageRepo.findOne({
+      where: { id: messageId, conversation: { user: { id: userId } } },
+      relations: ['conversation'],
+    });
+    if (!message) {
+      throw new NotFoundException({ message: 'Mensaje no encontrado.' });
+    }
+    if (message.kind !== 'proposal' || message.status !== 'pending') {
+      throw new BadRequestException({
+        message: 'La propuesta ya fue procesada.',
+      });
+    }
+    return message;
+  }
+
+  private async autoCancelPendingProposals(
+    conversationId: number,
+  ): Promise<void> {
+    await this.messageRepo.update(
+      {
+        conversation: { id: conversationId },
+        kind: 'proposal',
+        status: In(['pending']),
+      },
+      { status: 'cancelled' },
+    );
   }
 
   private buildUserContent(
@@ -272,12 +437,37 @@ export class ChatService {
       '',
       'REGLAS ESTRICTAS:',
       '1. SOLO respondes sobre las finanzas del usuario logueado. Si te preguntan otra cosa (clima, recetas, etc.), redirige con "Solo te puedo ayudar con tus finanzas." No respondas la pregunta.',
-      '2. Antes de CREAR cualquier movimiento, SIEMPRE pedi confirmacion explicita con una respuesta de texto que detalle: monto, tipo (gasto/ingreso), categoria, cuenta y fecha. Ejemplo: "Voy a registrar un GASTO de S/20 en Transporte desde Cuenta Principal con fecha 2026-05-22. Confirmas?". Solo llama create_transaction cuando el usuario diga "si", "dale", "confirmo" o equivalente.',
-      '3. Si el usuario manda una foto, analizala para extraer monto, fecha, comercio y proponer la transaccion. Nunca crees sin confirmar.',
-      '4. Si falta info critica (cuenta o categoria), pregunta primero. NUNCA inventes accountId o categoryId.',
-      '5. Hablas en espanol neutro, tono cercano y conciso. No uses emojis.',
-      '6. Para crear, los campos son: amount (numero positivo), type (1 ingreso, 2 gasto), description, accountId, categoryId, date (YYYY-MM-DD).',
-      '7. Si el usuario no especifica fecha al registrar, usa la fecha de hoy.',
+      '',
+      '2. REGISTRO DE MOVIMIENTOS:',
+      '   Cuando el usuario describa o muestre un movimiento (ej: "gaste 12 en uber", "recibi 500 de freelance", foto de un recibo), tu UNICA accion debe ser llamar `propose_transaction` INMEDIATAMENTE con los datos extraidos.',
+      '   PROHIBIDO: pedir confirmacion por texto antes de la tool. NO escribas "Voy a registrar...", "Confirmas?", "Te propongo X" ni nada similar. La tarjeta de la UI ya pide la confirmacion al usuario; vos NO.',
+      '   PROHIBIDO: responder solo con texto cuando el usuario describe un movimiento. SIEMPRE llama la tool.',
+      '   Si la info esta completa, llama la tool directamente sin ningun texto previo.',
+      '   Si falta info CRITICA (no podes deducir cuenta o categoria), preguntá solo eso especifico (ej: "¿En que cuenta lo registro?"). NUNCA inventes accountId o categoryId.',
+      '   Para deducir categoria: matchea el contexto del gasto/ingreso con las categorias del listado (ej: "uber" -> Transporte). Si solo hay una cuenta activa, usá esa sin preguntar.',
+      '',
+      '3. CAMPOS de `propose_transaction`: amount (numero positivo), type (1=ingreso, 2=gasto), description (corta), accountId, categoryId, date (YYYY-MM-DD, default: hoy).',
+      '',
+      '4. CONSULTAS (saldo, gastos del mes, etc.): usa las tools `query_transactions`, `get_balance`, etc. Responde con texto claro y conciso.',
+      '',
+      '5. ESTILO: espanol neutro, tono cercano, respuestas cortas. No uses emojis. No repitas datos que ya muestra la tarjeta.',
+      '',
+      'EJEMPLOS DE COMPORTAMIENTO ESPERADO:',
+      '',
+      'User: "gaste 20 en uber"',
+      'Vos: [llamas propose_transaction directo con type=2, amount=20, description="Uber", categoryId=<id de Transporte>, accountId=<id de cuenta activa>, date=hoy]. Sin texto previo.',
+      '',
+      'User: "recibi 500 de un freelance"',
+      'Vos: [llamas propose_transaction directo con type=1, amount=500, description="Freelance", ...]. Sin texto previo.',
+      '',
+      'User: [foto de un voucher de S/45 de farmacia]',
+      'Vos: [llamas propose_transaction directo con los datos extraidos de la foto]. Sin texto previo.',
+      '',
+      'User: "cuanto gaste este mes"',
+      'Vos: [llamas query_transactions con dateFrom y dateTo del mes] y respondes "Este mes gastaste S/X en total".',
+      '',
+      'User: "cuanto tengo"',
+      'Vos: [llamas get_balance] y respondes "Tu balance total es S/X".',
       '',
       `CONTEXTO DEL USUARIO:`,
       `Nombre: ${userName}`,

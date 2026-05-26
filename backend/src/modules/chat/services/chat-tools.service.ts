@@ -6,14 +6,14 @@ import {
   TransactionRepository,
 } from '@Repositories';
 import { TransactionTypeEnum } from '@Enums';
-import { TransactionsService } from '../../transactions/transactions.service';
 import { LLMTool } from '../../ai/providers/llm.provider';
+import { ChatProposalPayload } from '../models/chat-response.model';
 
 export interface ToolExecutionResult {
   ok: boolean;
   data?: unknown;
   error?: string;
-  transactionId?: number;
+  proposal?: ChatProposalPayload;
 }
 
 export const CHAT_TOOLS: LLMTool[] = [
@@ -85,9 +85,9 @@ export const CHAT_TOOLS: LLMTool[] = [
     },
   },
   {
-    name: 'create_transaction',
+    name: 'propose_transaction',
     description:
-      'Crea un movimiento (gasto o ingreso) para el usuario. SOLO llamar esta tool cuando el usuario haya confirmado explicitamente la creacion (dijo "si", "dale", "confirmo" o equivalente).',
+      'OBLIGATORIO usar esta tool apenas el usuario describa un movimiento (gasto o ingreso), incluyendo desde foto. NO pidas confirmacion por texto antes de llamarla: la UI muestra una tarjeta con botones Confirmar/Cancelar al ejecutarse la tool. El movimiento se crea solo si el usuario presiona Confirmar.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -133,7 +133,6 @@ export class ChatToolsService {
     private readonly accountRepository: AccountRepository,
     private readonly categoryRepository: CategoryRepository,
     private readonly transactionRepository: TransactionRepository,
-    private readonly transactionsService: TransactionsService,
   ) {}
 
   async execute(
@@ -152,8 +151,8 @@ export class ChatToolsService {
           return await this.queryTransactions(userId, input);
         case 'get_balance':
           return await this.getBalance(userId);
-        case 'create_transaction':
-          return await this.createTransaction(userId, input, photos);
+        case 'propose_transaction':
+          return await this.proposeTransaction(userId, input, photos);
         default:
           return { ok: false, error: `Tool desconocida: ${toolName}` };
       }
@@ -268,7 +267,7 @@ export class ChatToolsService {
     };
   }
 
-  private async createTransaction(
+  private async proposeTransaction(
     userId: number,
     input: Record<string, unknown>,
     photos: string[],
@@ -294,21 +293,36 @@ export class ChatToolsService {
       };
     }
 
-    const result = await this.transactionsService.create(userId, {
+    const account = await this.accountRepository.findOne({
+      where: { id: accountId, user: { id: userId }, archivedAt: IsNull() },
+    });
+    if (!account) {
+      return { ok: false, error: `Cuenta ${accountId} no encontrada.` };
+    }
+
+    const category = await this.categoryRepository
+      .createQueryBuilder('cat')
+      .where('cat.id = :categoryId', { categoryId })
+      .andWhere('cat.archived_at IS NULL')
+      .andWhere('(cat.user_id = :userId OR cat.user_id IS NULL)', { userId })
+      .getOne();
+    if (!category) {
+      return { ok: false, error: `Categoria ${categoryId} no encontrada.` };
+    }
+
+    const proposal: ChatProposalPayload = {
       amount,
-      type,
+      type: type as 1 | 2,
       description,
       accountId,
+      accountName: account.name,
       categoryId,
+      categoryName: category.name,
       date,
       photos,
-    });
-
-    return {
-      ok: true,
-      data: result.data,
-      transactionId: result.data?.id,
     };
+
+    return { ok: true, data: proposal, proposal };
   }
 
   private parseType(value: unknown): TransactionTypeEnum | undefined {
