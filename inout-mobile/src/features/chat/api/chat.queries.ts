@@ -1,11 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { accountKeys } from "@/features/accounts";
 import { transactionKeys } from "@/features/transactions";
 import * as chatApi from "./chat.api";
 import { chatKeys } from "./chat.keys";
 import type {
+  ChatActionTaken,
   ChatMessage,
   Conversation,
+  ResolveProposalResult,
   SendMessageInput,
   SendMessageResult,
 } from "../model";
@@ -26,7 +33,12 @@ export function useSendMessage() {
       queryClient.setQueryData<Conversation>(
         chatKeys.conversation(),
         (prev) => {
-          const previousMessages: ChatMessage[] = prev?.messages ?? [];
+          const previousMessages: ChatMessage[] = (prev?.messages ?? []).map(
+            (m) =>
+              m.kind === "proposal" && m.status === "pending"
+                ? { ...m, status: "cancelled" }
+                : m,
+          );
           return {
             messages: [
               ...previousMessages,
@@ -37,13 +49,7 @@ export function useSendMessage() {
         },
       );
 
-      const createdTx = result.actionsTaken.some(
-        (a) => a.type === "create_transaction",
-      );
-      if (createdTx) {
-        queryClient.invalidateQueries({ queryKey: transactionKeys.all });
-        queryClient.invalidateQueries({ queryKey: accountKeys.all });
-      }
+      invalidateOnTransactionCreated(queryClient, result.actionsTaken);
     },
   });
 }
@@ -58,4 +64,45 @@ export function useDeleteConversation() {
       });
     },
   });
+}
+
+export function useConfirmProposal() {
+  const queryClient = useQueryClient();
+  return useMutation<ResolveProposalResult, Error, number>({
+    mutationFn: chatApi.confirmProposal,
+    onSuccess: (result) => applyResolveResult(queryClient, result),
+  });
+}
+
+export function useCancelProposal() {
+  const queryClient = useQueryClient();
+  return useMutation<ResolveProposalResult, Error, number>({
+    mutationFn: chatApi.cancelProposal,
+    onSuccess: (result) => applyResolveResult(queryClient, result),
+  });
+}
+
+function applyResolveResult(
+  queryClient: QueryClient,
+  result: ResolveProposalResult,
+) {
+  queryClient.setQueryData<Conversation>(chatKeys.conversation(), (prev) => {
+    const previousMessages = prev?.messages ?? [];
+    const updated = previousMessages.map((m) =>
+      m.id === result.proposal.id ? result.proposal : m,
+    );
+    return { messages: [...updated, result.followUp] };
+  });
+  invalidateOnTransactionCreated(queryClient, result.actionsTaken);
+}
+
+function invalidateOnTransactionCreated(
+  queryClient: QueryClient,
+  actions: ChatActionTaken[],
+) {
+  const createdTx = actions.some((a) => a.type === "create_transaction");
+  if (createdTx) {
+    queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+    queryClient.invalidateQueries({ queryKey: accountKeys.all });
+  }
 }

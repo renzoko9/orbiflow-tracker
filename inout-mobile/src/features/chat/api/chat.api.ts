@@ -1,6 +1,7 @@
 import { httpClient } from "@/shared/api";
 import type {
   Conversation,
+  ResolveProposalResult,
   SendMessageInput,
   SendMessageResult,
 } from "../model";
@@ -40,6 +41,24 @@ export async function sendMessage(
     {
       headers: { "Content-Type": "multipart/form-data" },
     },
+  );
+  return data;
+}
+
+export async function confirmProposal(
+  messageId: number,
+): Promise<ResolveProposalResult> {
+  const { data } = await httpClient.post<ResolveProposalResult>(
+    `${PATHS.messages}/${messageId}/confirm`,
+  );
+  return data;
+}
+
+export async function cancelProposal(
+  messageId: number,
+): Promise<ResolveProposalResult> {
+  const { data } = await httpClient.post<ResolveProposalResult>(
+    `${PATHS.messages}/${messageId}/cancel`,
   );
   return data;
 }
