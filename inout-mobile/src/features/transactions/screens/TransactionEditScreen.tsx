@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ApiError } from "@/shared/api";
 import { Alert, Loading, ScreenHeader, showToast } from "@/shared/ui";
+import { ImageViewer } from "@/features/chat";
 import { TransactionForm } from "../components";
 import { useTransaction, useUpdateTransaction } from "../api";
 
@@ -17,6 +19,7 @@ export function TransactionEditScreen() {
     error,
   } = useTransaction(transactionId);
   const updateTransaction = useUpdateTransaction();
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -54,8 +57,10 @@ export function TransactionEditScreen() {
           accountId: transaction.account.id,
           categoryId: transaction.category?.id,
           description: transaction.description,
+          photos: transaction.photos,
         }}
         isSubmitting={updateTransaction.isPending}
+        onPressPhoto={setViewerUri}
         onSubmit={(data) => {
           if (data.kind !== "movement") return;
           updateTransaction.mutate(
@@ -68,6 +73,10 @@ export function TransactionEditScreen() {
                 date: data.date,
                 categoryId: data.categoryId,
                 accountId: data.accountId,
+                ...(data.photosTouched && {
+                  existingPhotos: data.existingPhotos,
+                  newPhotos: data.newPhotos,
+                }),
               },
             },
             {
@@ -95,6 +104,7 @@ export function TransactionEditScreen() {
           );
         }}
       />
+      <ImageViewer uri={viewerUri} onClose={() => setViewerUri(null)} />
     </SafeAreaView>
   );
 }

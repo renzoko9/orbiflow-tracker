@@ -79,6 +79,7 @@ export interface TransactionDetailDto {
   category: TransactionCategoryEmbed | null;
   account: TransactionAccountEmbed;
   transferGroupId: string | null;
+  photos: string[];
   createdAt: string;
 }
 
@@ -100,6 +101,13 @@ export interface TransactionMutationDto {
   date: string;
   categoryName: string | null;
   accountName: string;
+  photos: string[];
+}
+
+export interface LocalPhoto {
+  uri: string;
+  mimeType: string;
+  fileName: string;
 }
 
 export interface CreateTransactionInput {
@@ -109,6 +117,7 @@ export interface CreateTransactionInput {
   date: string;
   categoryId?: number;
   accountId: number;
+  newPhotos?: LocalPhoto[];
 }
 
 export interface UpdateTransactionInput {
@@ -118,6 +127,8 @@ export interface UpdateTransactionInput {
   date?: string;
   categoryId?: number;
   accountId?: number;
+  existingPhotos?: string[];
+  newPhotos?: LocalPhoto[];
 }
 
 export interface CreateTransferInput {

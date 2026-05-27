@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -33,9 +33,11 @@ import {
 } from "@/features/categories";
 import {
   transactionFormSchema,
+  type LocalPhoto,
   type TransactionFormValues,
 } from "../model";
 import { AccountSelectField } from "./AccountSelectField";
+import { PhotosField } from "./PhotosField";
 
 export type TransactionFormMode = "create" | "edit";
 
@@ -50,6 +52,9 @@ export type TransactionFormSubmitValues =
       date: string;
       categoryId?: number;
       accountId: number;
+      existingPhotos: string[];
+      newPhotos: LocalPhoto[];
+      photosTouched: boolean;
     }
   | {
       kind: "transfer";
@@ -70,6 +75,7 @@ interface TransactionFormInitialValues {
   accountId?: number;
   sourceAccountId?: number;
   destinationAccountId?: number;
+  photos?: string[];
 }
 
 interface TransactionFormProps {
@@ -77,6 +83,7 @@ interface TransactionFormProps {
   initialValues?: TransactionFormInitialValues;
   isSubmitting: boolean;
   onSubmit: (data: TransactionFormSubmitValues) => void;
+  onPressPhoto?: (uri: string) => void;
 }
 
 function mapCategoriesToItems(categories: Category[]): IconSelectorItem[] {
@@ -93,6 +100,7 @@ export function TransactionForm({
   initialValues,
   isSubmitting,
   onSubmit,
+  onPressPhoto,
 }: TransactionFormProps) {
   const router = useRouter();
   const tokens = useThemeTokens();
@@ -124,6 +132,25 @@ export function TransactionForm({
   const kind = watch("kind");
   const type = watch("type");
   const isMovement = kind === "movement";
+
+  const [existingPhotos, setExistingPhotos] = useState<string[]>(
+    initialValues?.photos ?? [],
+  );
+  const [newPhotos, setNewPhotos] = useState<LocalPhoto[]>([]);
+  const [photosTouched, setPhotosTouched] = useState(false);
+
+  const handleRemoveExisting = (url: string) => {
+    setExistingPhotos((prev) => prev.filter((u) => u !== url));
+    setPhotosTouched(true);
+  };
+  const handleRemoveNew = (index: number) => {
+    setNewPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotosTouched(true);
+  };
+  const handleAddNew = (photo: LocalPhoto) => {
+    setNewPhotos((prev) => [...prev, photo]);
+    setPhotosTouched(true);
+  };
 
   const {
     data: categories = [],
@@ -157,6 +184,9 @@ export function TransactionForm({
         date: data.date,
         categoryId: data.categoryId,
         accountId: data.accountId as number,
+        existingPhotos,
+        newPhotos,
+        photosTouched,
       });
       return;
     }
@@ -446,6 +476,24 @@ export function TransactionForm({
             </View>
           </View>
         </View>
+
+        {isMovement && (
+          <>
+            <View className="h-px bg-border mx-5 mt-6" />
+            <View className="px-5 pt-6">
+              <SectionEyebrow label="Adjuntos" />
+              <PhotosField
+                existingPhotos={existingPhotos}
+                newPhotos={newPhotos}
+                onRemoveExisting={handleRemoveExisting}
+                onRemoveNew={handleRemoveNew}
+                onAddNew={handleAddNew}
+                onPressPhoto={onPressPhoto}
+                disabled={isSubmitting}
+              />
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <View className="px-5 pt-4 pb-6 border-t border-border bg-background">

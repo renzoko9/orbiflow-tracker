@@ -1,18 +1,22 @@
+import { useState } from "react";
 import {
   Alert as RNAlert,
+  Pressable,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pencil, Trash2 } from "lucide-react-native";
 import { Alert, Loading, ScreenHeader, showToast } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { formatCurrency, formatDate } from "@/shared/i18n";
-import { getIconComponent } from "@/shared/utils";
+import { getIconComponent, resolveAvatarUrl } from "@/shared/utils";
 import { TransactionType } from "@/features/categories";
+import { ImageViewer } from "@/features/chat";
 import { useDeleteTransaction, useTransaction } from "../api";
 
 const tabular = { fontVariant: ["tabular-nums" as const] };
@@ -29,6 +33,7 @@ export function TransactionDetailScreen() {
     error,
   } = useTransaction(transactionId);
   const deleteTransaction = useDeleteTransaction();
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
 
   const handleEdit = () => {
     router.push({
@@ -182,6 +187,42 @@ export function TransactionDetailScreen() {
             </Text>
           </View>
         </View>
+
+        {transaction.photos.length > 0 && (
+          <>
+            <View className="h-px bg-border mx-5" />
+            <View className="px-5 py-6">
+              <Text
+                className="text-[10px] font-sans-bold uppercase text-textTertiary mb-3"
+                style={{ letterSpacing: 0.5 }}
+              >
+                Adjuntos
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {transaction.photos.map((url) => {
+                  const resolved = resolveAvatarUrl(url) ?? url;
+                  return (
+                    <Pressable
+                      key={url}
+                      onPress={() => setViewerUri(resolved)}
+                    >
+                      <Image
+                        source={{ uri: resolved }}
+                        style={{
+                          width: 96,
+                          height: 96,
+                          borderRadius: 12,
+                          backgroundColor: tokens.surfaceMuted,
+                        }}
+                        contentFit="cover"
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <View className="px-5 pt-4 pb-6 border-t border-border bg-background">
@@ -198,6 +239,7 @@ export function TransactionDetailScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+      <ImageViewer uri={viewerUri} onClose={() => setViewerUri(null)} />
     </SafeAreaView>
   );
 }

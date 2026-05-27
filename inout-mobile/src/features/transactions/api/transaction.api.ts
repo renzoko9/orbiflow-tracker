@@ -4,6 +4,7 @@ import type {
   CreateTransactionInput,
   CreateTransferInput,
   FilterTransactionsParams,
+  LocalPhoto,
   TransactionDetail,
   TransactionListItem,
   TransactionMutationDto,
@@ -19,6 +20,26 @@ const PATHS = {
   transfer: "/transactions/transfer",
   transferById: (groupId: string) => `/transactions/transfer/${groupId}`,
 } as const;
+
+function appendPhotoFiles(form: FormData, photos: LocalPhoto[] | undefined) {
+  if (!photos) return;
+  for (const photo of photos) {
+    form.append("photos", {
+      uri: photo.uri,
+      name: photo.fileName,
+      type: photo.mimeType,
+    } as unknown as Blob);
+  }
+}
+
+function appendStringField(
+  form: FormData,
+  key: string,
+  value: string | number | undefined,
+) {
+  if (value === undefined || value === null) return;
+  form.append(key, String(value));
+}
 
 export async function listTransactions(
   filters?: FilterTransactionsParams,
@@ -46,9 +67,19 @@ export async function getTransaction(id: number): Promise<TransactionDetail> {
 export async function createTransaction(
   input: CreateTransactionInput,
 ): Promise<ResponseAPI<TransactionMutationDto>> {
+  const form = new FormData();
+  appendStringField(form, "amount", input.amount);
+  appendStringField(form, "description", input.description);
+  appendStringField(form, "type", input.type);
+  appendStringField(form, "date", input.date);
+  appendStringField(form, "categoryId", input.categoryId);
+  appendStringField(form, "accountId", input.accountId);
+  appendPhotoFiles(form, input.newPhotos);
+
   const { data } = await httpClient.post<ResponseAPI<TransactionMutationDto>>(
     PATHS.base,
-    input,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } },
   );
   return data;
 }
@@ -57,9 +88,28 @@ export async function updateTransaction(
   id: number,
   input: UpdateTransactionInput,
 ): Promise<ResponseAPI<TransactionMutationDto>> {
+  const form = new FormData();
+  appendStringField(form, "amount", input.amount);
+  appendStringField(form, "description", input.description);
+  appendStringField(form, "type", input.type);
+  appendStringField(form, "date", input.date);
+  appendStringField(form, "categoryId", input.categoryId);
+  appendStringField(form, "accountId", input.accountId);
+  if (input.existingPhotos !== undefined) {
+    if (input.existingPhotos.length === 0) {
+      form.append("existingPhotos", "");
+    } else {
+      for (const url of input.existingPhotos) {
+        form.append("existingPhotos", url);
+      }
+    }
+  }
+  appendPhotoFiles(form, input.newPhotos);
+
   const { data } = await httpClient.put<ResponseAPI<TransactionMutationDto>>(
     PATHS.byId(id),
-    input,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } },
   );
   return data;
 }

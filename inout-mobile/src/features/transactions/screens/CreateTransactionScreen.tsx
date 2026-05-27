@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ApiError } from "@/shared/api";
 import { ScreenHeader, showToast } from "@/shared/ui";
+import { ImageViewer } from "@/features/chat";
 import { TransactionForm } from "../components";
 import { useCreateTransaction, useCreateTransfer } from "../api";
 
@@ -9,6 +11,7 @@ export function CreateTransactionScreen() {
   const router = useRouter();
   const createTransaction = useCreateTransaction();
   const createTransfer = useCreateTransfer();
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
 
   const isSubmitting =
     createTransaction.isPending || createTransfer.isPending;
@@ -28,6 +31,7 @@ export function CreateTransactionScreen() {
       <TransactionForm
         mode="create"
         isSubmitting={isSubmitting}
+        onPressPhoto={setViewerUri}
         onSubmit={(data) => {
           if (data.kind === "movement") {
             createTransaction.mutate(
@@ -38,6 +42,7 @@ export function CreateTransactionScreen() {
                 date: data.date,
                 categoryId: data.categoryId,
                 accountId: data.accountId,
+                newPhotos: data.newPhotos,
               },
               {
                 onSuccess: (response) => {
@@ -75,6 +80,7 @@ export function CreateTransactionScreen() {
           );
         }}
       />
+      <ImageViewer uri={viewerUri} onClose={() => setViewerUri(null)} />
     </SafeAreaView>
   );
 }

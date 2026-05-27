@@ -3,6 +3,7 @@ export { TransferItem } from "./TransferItem";
 export { TransactionSectionHeader } from "./TransactionSectionHeader";
 export { TransactionList } from "./TransactionList";
 export { AccountSelectField } from "./AccountSelectField";
+export { PhotosField } from "./PhotosField";
 export {
   TransactionForm,
   type TransactionFormKind,
