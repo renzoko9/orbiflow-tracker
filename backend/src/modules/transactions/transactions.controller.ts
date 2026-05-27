@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -10,8 +11,13 @@ import {
   Post,
   Put,
   Query,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
 import { Throttle } from '@nestjs/throttler';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionRequest } from './dto/create-transaction.dto';
@@ -30,17 +36,68 @@ import {
   TransferDetailResponse,
 } from './models/transaction-response.model';
 
+const MAX_PHOTOS_PER_TRANSACTION = 5;
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
+const ALLOWED_PHOTO_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+
+const transactionPhotoStorage = diskStorage({
+  destination: join(process.cwd(), 'uploads', 'transactions'),
+  filename: (_req, file, cb) => {
+    const ts = Date.now();
+    const rand = Math.round(Math.random() * 1e9);
+    const ext = extname(file.originalname).toLowerCase() || '.jpg';
+    cb(null, `transaction-${ts}-${rand}${ext}`);
+  },
+});
+
+const photoFileFilter = (
+  _req: unknown,
+  file: Express.Multer.File,
+  cb: (error: Error | null, acceptFile: boolean) => void,
+): void => {
+  if (ALLOWED_PHOTO_MIMES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(
+      new BadRequestException({
+        message: 'Formato no soportado. Usa JPG, PNG o WEBP.',
+      }),
+      false,
+    );
+  }
+};
+
+const photosInterceptor = FilesInterceptor(
+  'photos',
+  MAX_PHOTOS_PER_TRANSACTION,
+  {
+    storage: transactionPhotoStorage,
+    limits: { fileSize: MAX_PHOTO_SIZE },
+    fileFilter: photoFileFilter,
+  },
+);
+
+function buildPhotoUrls(files: Express.Multer.File[] | undefined): string[] {
+  if (!files || files.length === 0) return [];
+  return files.map((file) => `/uploads/transactions/${file.filename}`);
+}
+
 @Controller('transactions')
 @UseGuards(JwtAccessGuard)
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Post()
+  @UseInterceptors(photosInterceptor)
   create(
     @User('id') userId: number,
     @Body() createTransactionRequest: CreateTransactionRequest,
+    @UploadedFiles() photos?: Express.Multer.File[],
   ): Promise<ResponseAPI<TransactionResponse>> {
-    return this.transactionsService.create(userId, createTransactionRequest);
+    return this.transactionsService.create(userId, {
+      ...createTransactionRequest,
+      photos: buildPhotoUrls(photos),
+    });
   }
 
   @Post('transfer')
@@ -103,16 +160,21 @@ export class TransactionsController {
   }
 
   @Put(':id')
+  @UseInterceptors(photosInterceptor)
   update(
     @Param('id') id: number,
     @User('id') userId: number,
     @Body() updateTransactionRequest: UpdateTransactionRequest,
+    @UploadedFiles() photos?: Express.Multer.File[],
   ): Promise<ResponseAPI<TransactionResponse>> {
-    return this.transactionsService.update(
-      id,
-      userId,
-      updateTransactionRequest,
-    );
+    const { existingPhotos, ...rest } = updateTransactionRequest;
+    const newPhotoUrls = buildPhotoUrls(photos);
+    const photosCmd =
+      existingPhotos !== undefined || newPhotoUrls.length > 0
+        ? { retain: existingPhotos ?? [], added: newPhotoUrls }
+        : undefined;
+
+    return this.transactionsService.update(id, userId, rest, photosCmd);
   }
 
   @Delete(':id')

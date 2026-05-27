@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsDateString,
@@ -66,13 +67,19 @@ export class UpdateTransactionRequest {
   accountId?: number;
 
   @ApiProperty({
-    description: 'URLs de fotos adjuntas al movimiento (evidencia)',
-    example: ['/uploads/chat/recibo-123.jpg'],
+    description:
+      'URLs de fotos existentes que se conservan. Las URLs no incluidas se eliminan; los archivos nuevos se suben como multipart en el campo "photos".',
+    example: ['/uploads/transactions/transaction-123.jpg'],
     required: false,
     type: [String],
   })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  photos?: string[];
+  @Transform(({ value }: { value: unknown }): unknown => {
+    if (value === undefined || value === null) return value;
+    const arr = Array.isArray(value) ? value : [value];
+    return arr.filter((v): v is string => typeof v === 'string' && v.length > 0);
+  })
+  existingPhotos?: string[];
 }

@@ -21,6 +21,7 @@ export class TransactionsMapper {
       date: this.formatDate(transaction.date),
       categoryName: transaction.category?.name || null,
       accountName: transaction.account.name,
+      photos: transaction.photos ?? [],
     };
   }
 

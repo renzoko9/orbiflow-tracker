@@ -63,8 +63,9 @@ export class CreateTransactionRequest {
   accountId: number;
 
   @ApiProperty({
-    description: 'URLs de fotos adjuntas al movimiento (evidencia)',
-    example: ['/uploads/chat/recibo-123.jpg'],
+    description:
+      'URLs de fotos adjuntas (uso interno). Los clientes HTTP suben archivos en el campo multipart "photos"; el controller construye estas URLs.',
+    example: ['/uploads/transactions/transaction-123.jpg'],
     required: false,
     type: [String],
   })

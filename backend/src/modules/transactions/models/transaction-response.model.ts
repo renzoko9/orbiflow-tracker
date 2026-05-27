@@ -8,6 +8,7 @@ export class TransactionResponse {
   date: string;
   categoryName: string | null;
   accountName: string;
+  photos: string[];
 }
 
 export class TransactionDetailResponse {

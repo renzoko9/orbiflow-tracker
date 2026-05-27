@@ -6,6 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { unlink } from 'fs/promises';
+import { join } from 'path';
 import {
   DataSource,
   EntityManager,
@@ -43,6 +45,13 @@ interface TransferLegs {
   destination: Transaction;
 }
 
+interface PhotosUpdateCommand {
+  retain: string[];
+  added: string[];
+}
+
+const TRANSACTION_UPLOAD_PREFIX = '/uploads/transactions/';
+
 @Injectable()
 export class TransactionsService {
   private readonly logger = new Logger(TransactionsService.name);
@@ -60,57 +69,70 @@ export class TransactionsService {
   ): Promise<ResponseAPI<TransactionResponse>> {
     this.logger.log(`Creando transacción para usuario ${userId}`);
 
-    const account = await this.accountRepository.findOne({
-      where: { id: createTransactionRequest.accountId, user: { id: userId } },
-    });
-
-    if (!account) {
-      throw new NotFoundException({
-        message: `Account with id ${createTransactionRequest.accountId} not found`,
-        errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
-      });
-    }
-
-    if (account.archivedAt !== null) {
+    const uploadedPhotos = createTransactionRequest.photos ?? [];
+    if (uploadedPhotos.length > 5) {
+      await this.cleanupUploadedPhotos(uploadedPhotos);
       throw new BadRequestException({
-        message: 'No se pueden registrar movimientos en una cuenta archivada',
-        errorCode: ErrorCodeEnum.ACCOUNT_ARCHIVED,
+        message: 'No se pueden adjuntar mas de 5 fotos por movimiento',
       });
     }
 
-    const newTransaction = this.transactionRepository.create({
-      amount: createTransactionRequest.amount,
-      description: createTransactionRequest.description,
-      type: createTransactionRequest.type,
-      date: createTransactionRequest.date.split('T')[0] as unknown as Date,
-      user: { id: userId },
-      account: { id: createTransactionRequest.accountId },
-      category: { id: createTransactionRequest.categoryId },
-      photos: createTransactionRequest.photos ?? [],
-    });
+    try {
+      const account = await this.accountRepository.findOne({
+        where: { id: createTransactionRequest.accountId, user: { id: userId } },
+      });
 
-    const savedTransaction =
-      await this.transactionRepository.save(newTransaction);
+      if (!account) {
+        throw new NotFoundException({
+          message: `Account with id ${createTransactionRequest.accountId} not found`,
+          errorCode: ErrorCodeEnum.ACCOUNT_NOT_FOUND,
+        });
+      }
 
-    await this.updateAccountBalance(
-      createTransactionRequest.accountId,
-      createTransactionRequest.amount,
-      createTransactionRequest.type,
-    );
+      if (account.archivedAt !== null) {
+        throw new BadRequestException({
+          message: 'No se pueden registrar movimientos en una cuenta archivada',
+          errorCode: ErrorCodeEnum.ACCOUNT_ARCHIVED,
+        });
+      }
 
-    const full = await this.transactionRepository.findOne({
-      where: { id: savedTransaction.id },
-      relations: ['category', 'account'],
-    });
+      const newTransaction = this.transactionRepository.create({
+        amount: createTransactionRequest.amount,
+        description: createTransactionRequest.description,
+        type: createTransactionRequest.type,
+        date: createTransactionRequest.date.split('T')[0] as unknown as Date,
+        user: { id: userId },
+        account: { id: createTransactionRequest.accountId },
+        category: { id: createTransactionRequest.categoryId },
+        photos: uploadedPhotos,
+      });
 
-    this.logger.log(`Transacción ${savedTransaction.id} creada exitosamente`);
+      const savedTransaction =
+        await this.transactionRepository.save(newTransaction);
 
-    return {
-      responseType: ResponseTypeEnum.Success,
-      title: 'Transacción registrada',
-      message: 'El movimiento se guardó correctamente',
-      data: this.transactionsMapper.toResponse(full!),
-    };
+      await this.updateAccountBalance(
+        createTransactionRequest.accountId,
+        createTransactionRequest.amount,
+        createTransactionRequest.type,
+      );
+
+      const full = await this.transactionRepository.findOne({
+        where: { id: savedTransaction.id },
+        relations: ['category', 'account'],
+      });
+
+      this.logger.log(`Transacción ${savedTransaction.id} creada exitosamente`);
+
+      return {
+        responseType: ResponseTypeEnum.Success,
+        title: 'Transacción registrada',
+        message: 'El movimiento se guardó correctamente',
+        data: this.transactionsMapper.toResponse(full!),
+      };
+    } catch (err) {
+      await this.cleanupUploadedPhotos(uploadedPhotos);
+      throw err;
+    }
   }
 
   async findAll(
@@ -265,7 +287,8 @@ export class TransactionsService {
   async update(
     id: number,
     userId: number,
-    updateTransactionDto: UpdateTransactionRequest,
+    updateTransactionDto: Omit<UpdateTransactionRequest, 'existingPhotos'>,
+    photosCmd?: PhotosUpdateCommand,
   ): Promise<ResponseAPI<TransactionResponse>> {
     this.logger.log(`Actualizando transacción ${id} para usuario ${userId}`);
 
@@ -275,6 +298,7 @@ export class TransactionsService {
     });
 
     if (!transaction) {
+      if (photosCmd) await this.cleanupUploadedPhotos(photosCmd.added);
       throw new NotFoundException({
         message: `Transaction with id ${id} not found`,
         errorCode: ErrorCodeEnum.TRANSACTION_NOT_FOUND,
@@ -282,6 +306,7 @@ export class TransactionsService {
     }
 
     if (transaction.user.id !== userId) {
+      if (photosCmd) await this.cleanupUploadedPhotos(photosCmd.added);
       throw new ForbiddenException({
         message: 'You can only update your own transactions',
         errorCode: ErrorCodeEnum.FORBIDDEN_RESOURCE,
@@ -289,11 +314,36 @@ export class TransactionsService {
     }
 
     if (transaction.transferGroupId !== null) {
+      if (photosCmd) await this.cleanupUploadedPhotos(photosCmd.added);
       throw new BadRequestException({
         message:
           'Esta transaccion forma parte de una transferencia. Usa /transactions/transfer/:groupId.',
         errorCode: ErrorCodeEnum.TRANSFER_USE_TRANSFER_ENDPOINT,
       });
+    }
+
+    let nextPhotos: string[] | undefined;
+    let photosToRemove: string[] = [];
+    if (photosCmd) {
+      const currentSet = new Set(transaction.photos);
+      for (const url of photosCmd.retain) {
+        if (!currentSet.has(url)) {
+          await this.cleanupUploadedPhotos(photosCmd.added);
+          throw new BadRequestException({
+            message:
+              'Una de las fotos referenciadas no pertenece a este movimiento',
+          });
+        }
+      }
+      if (photosCmd.retain.length + photosCmd.added.length > 5) {
+        await this.cleanupUploadedPhotos(photosCmd.added);
+        throw new BadRequestException({
+          message: 'No se pueden adjuntar mas de 5 fotos por movimiento',
+        });
+      }
+      nextPhotos = [...photosCmd.retain, ...photosCmd.added];
+      const finalSet = new Set(nextPhotos);
+      photosToRemove = transaction.photos.filter((url) => !finalSet.has(url));
     }
 
     if (
@@ -359,9 +409,14 @@ export class TransactionsService {
       account: updateTransactionDto.accountId
         ? { id: updateTransactionDto.accountId }
         : transaction.account,
+      ...(nextPhotos !== undefined && { photos: nextPhotos }),
     });
 
     await this.transactionRepository.save(transaction);
+
+    if (photosToRemove.length > 0) {
+      await this.cleanupUploadedPhotos(photosToRemove);
+    }
 
     this.logger.log(`Transacción ${id} actualizada exitosamente`);
 
@@ -415,7 +470,9 @@ export class TransactionsService {
       true,
     );
 
+    const photosToRemove = [...transaction.photos];
     await this.transactionRepository.remove(transaction);
+    await this.cleanupUploadedPhotos(photosToRemove);
 
     this.logger.log(`Transacción ${id} eliminada exitosamente`);
   }
@@ -809,6 +866,17 @@ export class TransactionsService {
     }
 
     return map;
+  }
+
+  private async cleanupUploadedPhotos(urls: string[]): Promise<void> {
+    for (const url of urls) {
+      if (!url.startsWith(TRANSACTION_UPLOAD_PREFIX)) continue;
+      try {
+        await unlink(join(process.cwd(), url));
+      } catch {
+        // archivo no existe o no se pudo borrar; no es critico
+      }
+    }
   }
 
   private async updateAccountBalance(
