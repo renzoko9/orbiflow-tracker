@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Check, X } from "lucide-react-native";
@@ -65,7 +66,8 @@ function PendingProposal({
   const busy = isConfirming || isCancelling;
 
   return (
-    <View
+    <Animated.View
+      entering={ZoomIn.duration(220)}
       className="bg-surface rounded-2xl overflow-hidden"
       style={{
         borderWidth: 1,
@@ -150,7 +152,7 @@ function PendingProposal({
           )}
         </Pressable>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -180,42 +182,46 @@ function ResolvedProposalChip({
   };
 
   return (
-    <Pressable
-      onPress={goToDetail}
-      disabled={!isConfirmed || !payload.transactionId}
-      className="flex-row items-center gap-2 rounded-xl px-3 py-2 bg-surface"
-      style={{
-        borderWidth: 1,
-        borderColor: tokens.border,
-        borderTopLeftRadius: 4,
-        opacity: isConfirmed ? 1 : 0.7,
-      }}
-    >
-      <View
-        className="items-center justify-center rounded-full"
+    <Animated.View entering={FadeIn.duration(220)}>
+      <Pressable
+        onPress={goToDetail}
+        disabled={!isConfirmed || !payload.transactionId}
+        className="flex-row items-center gap-2 rounded-xl px-3 py-2 bg-surface"
         style={{
-          width: 22,
-          height: 22,
-          backgroundColor: isConfirmed ? tokens.successSoft : tokens.surfaceMuted,
+          borderWidth: 1,
+          borderColor: tokens.border,
+          borderTopLeftRadius: 4,
+          opacity: isConfirmed ? 1 : 0.7,
         }}
       >
-        {isConfirmed ? (
-          <Check size={14} color={accentColor} strokeWidth={3} />
-        ) : (
-          <X size={14} color={accentColor} strokeWidth={3} />
-        )}
-      </View>
-      <Text
-        className="text-xs font-sans-semibold uppercase"
-        style={{ color: accentColor }}
-      >
-        {label}
-      </Text>
-      <Text className="text-sm text-textPrimary" numberOfLines={1}>
-        {sign} {formatCurrency(payload.amount)}
-        {payload.description ? ` · ${payload.description}` : ""}
-      </Text>
-    </Pressable>
+        <View
+          className="items-center justify-center rounded-full"
+          style={{
+            width: 22,
+            height: 22,
+            backgroundColor: isConfirmed
+              ? tokens.successSoft
+              : tokens.surfaceMuted,
+          }}
+        >
+          {isConfirmed ? (
+            <Check size={14} color={accentColor} strokeWidth={3} />
+          ) : (
+            <X size={14} color={accentColor} strokeWidth={3} />
+          )}
+        </View>
+        <Text
+          className="text-xs font-sans-semibold uppercase"
+          style={{ color: accentColor }}
+        >
+          {label}
+        </Text>
+        <Text className="text-sm text-textPrimary" numberOfLines={1}>
+          {sign} {formatCurrency(payload.amount)}
+          {payload.description ? ` · ${payload.description}` : ""}
+        </Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -10,16 +9,20 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, Image as ImageIcon, Send, Sparkles, X } from "lucide-react-native";
-import { ScreenHeader, showToast } from "@/shared/ui";
+import * as Haptics from "expo-haptics";
+import { Plus, Send, Sparkles, X } from "lucide-react-native";
+import { ScreenHeader, showToast, type BottomSheetModal } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { resolveAvatarUrl } from "@/shared/utils";
 import { ApiError } from "@/shared/api";
 import {
+  AttachMenu,
   ProposalCard,
+  TypingBubble,
   useCancelProposal,
   useConfirmProposal,
   useConversation,
@@ -45,6 +48,7 @@ export function ChatScreen() {
   const [text, setText] = useState("");
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+  const attachMenuRef = useRef<BottomSheetModal>(null);
 
   const { data: conversation } = useConversation();
   const sendMessage = useSendMessage();
@@ -117,21 +121,31 @@ export function ChatScreen() {
 
     setText("");
     setPendingImage(null);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     sendMessage.mutate(payload, { onError: showError });
   }
 
   function handleSuggestion(suggestion: string) {
     if (sendMessage.isPending) return;
+    void Haptics.selectionAsync();
     setText(suggestion);
   }
 
   function handleConfirmProposal(id: number) {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     confirmProposal.mutate(id, { onError: showError });
   }
 
   function handleCancelProposal(id: number) {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     cancelProposal.mutate(id, { onError: showError });
+  }
+
+  function handleOpenAttachMenu() {
+    if (sendMessage.isPending) return;
+    void Haptics.selectionAsync();
+    attachMenuRef.current?.present();
   }
 
   const confirmingId =
@@ -183,21 +197,23 @@ export function ChatScreen() {
           ref={listRef}
           data={messages}
           keyExtractor={(m) => String(m.id)}
-          renderItem={({ item }) =>
-            item.kind === "proposal" && item.payload ? (
-              <View className="self-start max-w-[85%]">
-                <ProposalCard
-                  message={item}
-                  isConfirming={confirmingId === item.id}
-                  isCancelling={cancellingId === item.id}
-                  onConfirm={handleConfirmProposal}
-                  onCancel={handleCancelProposal}
-                />
-              </View>
-            ) : (
-              <Bubble message={item} />
-            )
-          }
+          renderItem={({ item }) => (
+            <Animated.View entering={FadeInDown.duration(180)}>
+              {item.kind === "proposal" && item.payload ? (
+                <View className="self-start max-w-[85%]">
+                  <ProposalCard
+                    message={item}
+                    isConfirming={confirmingId === item.id}
+                    isCancelling={cancellingId === item.id}
+                    onConfirm={handleConfirmProposal}
+                    onCancel={handleCancelProposal}
+                  />
+                </View>
+              ) : (
+                <Bubble message={item} />
+              )}
+            </Animated.View>
+          )}
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingTop: 20,
@@ -245,24 +261,12 @@ export function ChatScreen() {
           style={{ borderTopWidth: 1, borderColor: tokens.border }}
         >
           <Pressable
-            onPress={() => handlePickImage("camera")}
-            className="items-center justify-center rounded-full"
+            onPress={handleOpenAttachMenu}
+            className="items-center justify-center rounded-full bg-surfaceMuted"
             style={{ width: 40, height: 40 }}
             disabled={sendMessage.isPending}
           >
-            <Camera size={22} color={tokens.textSecondary} strokeWidth={2.2} />
-          </Pressable>
-          <Pressable
-            onPress={() => handlePickImage("gallery")}
-            className="items-center justify-center rounded-full"
-            style={{ width: 40, height: 40 }}
-            disabled={sendMessage.isPending}
-          >
-            <ImageIcon
-              size={22}
-              color={tokens.textSecondary}
-              strokeWidth={2.2}
-            />
+            <Plus size={22} color={tokens.textSecondary} strokeWidth={2.2} />
           </Pressable>
           <View className="flex-1 px-4 py-2 rounded-2xl bg-surfaceMuted">
             <TextInput
@@ -294,6 +298,12 @@ export function ChatScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      <AttachMenu
+        ref={attachMenuRef}
+        onCamera={() => handlePickImage("camera")}
+        onGallery={() => handlePickImage("gallery")}
+      />
     </SafeAreaView>
   );
 }
@@ -344,23 +354,6 @@ function Bubble({ message }: { message: ChatMessage }) {
           </Text>
         </View>
       ) : null}
-    </View>
-  );
-}
-
-function TypingBubble() {
-  const tokens = useThemeTokens();
-  return (
-    <View
-      className="self-start rounded-2xl bg-surface px-4 py-3 flex-row items-center gap-2"
-      style={{
-        borderTopLeftRadius: 4,
-        borderWidth: 1,
-        borderColor: tokens.border,
-      }}
-    >
-      <ActivityIndicator size="small" color={tokens.textTertiary} />
-      <Text className="text-sm text-textTertiary">Otto esta pensando</Text>
     </View>
   );
 }
