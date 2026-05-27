@@ -21,6 +21,7 @@ import { resolveAvatarUrl } from "@/shared/utils";
 import { ApiError } from "@/shared/api";
 import {
   AttachMenu,
+  ImageViewer,
   ProposalCard,
   TypingBubble,
   useCancelProposal,
@@ -47,6 +48,7 @@ export function ChatScreen() {
   const tokens = useThemeTokens();
   const [text, setText] = useState("");
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const attachMenuRef = useRef<BottomSheetModal>(null);
 
@@ -207,10 +209,11 @@ export function ChatScreen() {
                     isCancelling={cancellingId === item.id}
                     onConfirm={handleConfirmProposal}
                     onCancel={handleCancelProposal}
+                    onPressImage={setViewerUri}
                   />
                 </View>
               ) : (
-                <Bubble message={item} />
+                <Bubble message={item} onPressImage={setViewerUri} />
               )}
             </Animated.View>
           )}
@@ -304,11 +307,19 @@ export function ChatScreen() {
         onCamera={() => handlePickImage("camera")}
         onGallery={() => handlePickImage("gallery")}
       />
+
+      <ImageViewer uri={viewerUri} onClose={() => setViewerUri(null)} />
     </SafeAreaView>
   );
 }
 
-function Bubble({ message }: { message: ChatMessage }) {
+function Bubble({
+  message,
+  onPressImage,
+}: {
+  message: ChatMessage;
+  onPressImage: (uri: string) => void;
+}) {
   const tokens = useThemeTokens();
   const isUser = message.role === "user";
   const imageUrl = resolveAvatarUrl(message.imageUrl);
@@ -319,16 +330,18 @@ function Bubble({ message }: { message: ChatMessage }) {
       style={{ gap: 6 }}
     >
       {imageUrl && (
-        <Image
-          source={{ uri: imageUrl }}
-          style={{
-            width: 220,
-            height: 220,
-            borderRadius: 16,
-            backgroundColor: tokens.surfaceMuted,
-          }}
-          contentFit="cover"
-        />
+        <Pressable onPress={() => onPressImage(imageUrl)}>
+          <Image
+            source={{ uri: imageUrl }}
+            style={{
+              width: 220,
+              height: 220,
+              borderRadius: 16,
+              backgroundColor: tokens.surfaceMuted,
+            }}
+            contentFit="cover"
+          />
+        </Pressable>
       )}
       {message.content ? (
         <View

@@ -14,6 +14,7 @@ interface ProposalCardProps {
   isCancelling: boolean;
   onConfirm: (id: number) => void;
   onCancel: (id: number) => void;
+  onPressImage?: (uri: string) => void;
 }
 
 export function ProposalCard({
@@ -22,6 +23,7 @@ export function ProposalCard({
   isCancelling,
   onConfirm,
   onCancel,
+  onPressImage,
 }: ProposalCardProps) {
   if (!message.payload) return null;
 
@@ -33,6 +35,7 @@ export function ProposalCard({
         isCancelling={isCancelling}
         onConfirm={() => onConfirm(message.id)}
         onCancel={() => onCancel(message.id)}
+        onPressImage={onPressImage}
       />
     );
   }
@@ -51,12 +54,14 @@ function PendingProposal({
   isCancelling,
   onConfirm,
   onCancel,
+  onPressImage,
 }: {
   payload: ChatProposalPayload;
   isConfirming: boolean;
   isCancelling: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  onPressImage?: (uri: string) => void;
 }) {
   const tokens = useThemeTokens();
   const isIncome = payload.type === 1;
@@ -106,16 +111,21 @@ function PendingProposal({
 
       {photo && (
         <View className="px-4 pb-3">
-          <Image
-            source={{ uri: photo }}
-            style={{
-              width: "100%",
-              height: 140,
-              borderRadius: 12,
-              backgroundColor: tokens.surfaceMuted,
-            }}
-            contentFit="cover"
-          />
+          <Pressable
+            onPress={onPressImage ? () => onPressImage(photo) : undefined}
+            disabled={!onPressImage}
+          >
+            <Image
+              source={{ uri: photo }}
+              style={{
+                width: "100%",
+                height: 140,
+                borderRadius: 12,
+                backgroundColor: tokens.surfaceMuted,
+              }}
+              contentFit="cover"
+            />
+          </Pressable>
         </View>
       )}
 
