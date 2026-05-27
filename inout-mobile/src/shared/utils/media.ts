@@ -9,6 +9,6 @@ export function resolveAvatarUrl(
   relativeUrl: string | null | undefined,
 ): string | null {
   if (!relativeUrl) return null;
-  if (/^https?:\/\//.test(relativeUrl)) return relativeUrl;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(relativeUrl)) return relativeUrl;
   return `${getMediaBaseUrl()}${relativeUrl}`;
 }

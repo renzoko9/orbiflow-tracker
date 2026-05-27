@@ -27,9 +27,25 @@ export function useConversation() {
 
 export function useSendMessage() {
   const queryClient = useQueryClient();
-  return useMutation<SendMessageResult, Error, SendMessageInput>({
+  return useMutation<
+    SendMessageResult,
+    Error,
+    SendMessageInput,
+    { tempId: number }
+  >({
     mutationFn: chatApi.sendMessage,
-    onSuccess: (result) => {
+    onMutate: (input) => {
+      const tempId = -Date.now();
+      const tempMessage: ChatMessage = {
+        id: tempId,
+        role: "user",
+        content: input.content ?? "",
+        imageUrl: input.imageUri ?? null,
+        createdAt: new Date().toISOString(),
+        kind: "text",
+        payload: null,
+        status: null,
+      };
       queryClient.setQueryData<Conversation>(
         chatKeys.conversation(),
         (prev) => {
@@ -39,13 +55,34 @@ export function useSendMessage() {
                 ? { ...m, status: "cancelled" }
                 : m,
           );
+          return { messages: [...previousMessages, tempMessage] };
+        },
+      );
+      return { tempId };
+    },
+    onError: (_err, _input, context) => {
+      if (!context) return;
+      queryClient.setQueryData<Conversation>(
+        chatKeys.conversation(),
+        (prev) => {
+          if (!prev) return prev;
           return {
-            messages: [
-              ...previousMessages,
-              result.userMessage,
-              result.assistantMessage,
-            ],
+            messages: prev.messages.filter((m) => m.id !== context.tempId),
           };
+        },
+      );
+    },
+    onSuccess: (result, _input, context) => {
+      queryClient.setQueryData<Conversation>(
+        chatKeys.conversation(),
+        (prev) => {
+          const previousMessages = prev?.messages ?? [];
+          const replaced = previousMessages.map((m) =>
+            m.id === context?.tempId
+              ? { ...result.userMessage, id: m.id }
+              : m,
+          );
+          return { messages: [...replaced, result.assistantMessage] };
         },
       );
 
