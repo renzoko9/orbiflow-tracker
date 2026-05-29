@@ -17,7 +17,7 @@ import * as Haptics from "expo-haptics";
 import { Plus, Send, Sparkles, X } from "lucide-react-native";
 import { ScreenHeader, showToast, type BottomSheetModal } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
-import { resolveAvatarUrl } from "@/shared/utils";
+import { normalizeImageToJpeg, resolveAvatarUrl } from "@/shared/utils";
 import { ApiError } from "@/shared/api";
 import {
   AttachMenu,
@@ -102,11 +102,16 @@ export function ChatScreen() {
           });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
-    setPendingImage({
-      uri: asset.uri,
-      mimeType: asset.mimeType ?? "image/jpeg",
-      fileName: asset.fileName ?? `recibo-${Date.now()}.jpg`,
-    });
+    try {
+      const normalized = await normalizeImageToJpeg(asset.uri);
+      setPendingImage(normalized);
+    } catch {
+      showToast({
+        type: "error",
+        text1: "Error",
+        text2: "No se pudo procesar la imagen",
+      });
+    }
   }
 
   function handleSend() {

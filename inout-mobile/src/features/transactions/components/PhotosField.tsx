@@ -11,7 +11,7 @@ import {
 } from "@/shared/ui";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import { useThemeTokens } from "@/shared/theme";
-import { resolveAvatarUrl } from "@/shared/utils";
+import { normalizeImageToJpeg, resolveAvatarUrl } from "@/shared/utils";
 import type { LocalPhoto } from "../model";
 
 const MAX_PHOTOS = 5;
@@ -69,11 +69,16 @@ export function PhotosField({
           });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
-    onAddNew({
-      uri: asset.uri,
-      mimeType: asset.mimeType ?? "image/jpeg",
-      fileName: asset.fileName ?? `transaction-${Date.now()}.jpg`,
-    });
+    try {
+      const normalized = await normalizeImageToJpeg(asset.uri);
+      onAddNew(normalized);
+    } catch {
+      showToast({
+        type: "error",
+        text1: "Error",
+        text2: "No se pudo procesar la imagen",
+      });
+    }
   };
 
   return (

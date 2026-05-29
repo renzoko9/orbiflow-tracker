@@ -1,5 +1,9 @@
 export { getIconComponent, AVAILABLE_ICONS } from "./icon-map";
-export { resolveAvatarUrl } from "./media";
+export {
+  resolveAvatarUrl,
+  normalizeImageToJpeg,
+  type NormalizedImage,
+} from "./media";
 export {
   toDateKey,
   getCurrentMonthRange,
