@@ -22,3 +22,16 @@ export function useAccountsInsight() {
     staleTime: INSIGHT_STALE,
   });
 }
+
+/**
+ * Stats deterministas (no IA): refrescan mas seguido que los insights.
+ */
+const STATS_STALE = 2 * 60 * 1000;
+
+export function useInsightStats() {
+  return useQuery({
+    queryKey: insightKeys.stats(),
+    queryFn: insightApi.getInsightStats,
+    staleTime: STATS_STALE,
+  });
+}

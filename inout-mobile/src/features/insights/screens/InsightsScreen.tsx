@@ -1,17 +1,28 @@
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { BarChart3, Sparkles } from "lucide-react-native";
+import { Sparkles } from "lucide-react-native";
 import { useThemeTokens } from "@/shared/theme";
-import { AIInsightsCard } from "../components";
-import { useMonthlyInsight } from "../api";
+import { Loading } from "@/shared/ui";
+import {
+  AIInsightsCard,
+  CategoryBreakdownCard,
+  SavingsRateCard,
+  StatTile,
+  TrendChart,
+} from "../components";
+import { useInsightStats, useMonthlyInsight } from "../api";
 
 export function InsightsScreen() {
   const tokens = useThemeTokens();
   const tabBarHeight = useBottomTabBarHeight();
-  const { data: insight, isLoading } = useMonthlyInsight();
+  const { data: insight, isLoading: insightLoading } = useMonthlyInsight();
+  const { data: stats, isLoading: statsLoading } = useInsightStats();
 
-  const showInsight = isLoading || insight?.available;
+  const showInsight = insightLoading || insight?.available;
+  const daysRemaining = stats
+    ? stats.daysInMonth - stats.daysElapsed
+    : 0;
 
   return (
     <SafeAreaView
@@ -41,11 +52,15 @@ export function InsightsScreen() {
       >
         {showInsight ? (
           <AIInsightsCard
-            isLoading={isLoading}
+            isLoading={insightLoading}
             title={insight?.title ?? ""}
             description={insight?.description ?? ""}
           />
-        ) : (
+        ) : null}
+
+        {statsLoading ? (
+          <Loading />
+        ) : !stats || !stats.hasData ? (
           <View className="bg-surface rounded-2xl p-5 border border-border">
             <View className="flex-row items-center gap-2 mb-2">
               <Sparkles size={14} color={tokens.textTertiary} />
@@ -53,45 +68,66 @@ export function InsightsScreen() {
                 className="text-[10px] font-sans-bold text-textTertiary uppercase"
                 style={{ letterSpacing: 1.5 }}
               >
-                Insight mensual
+                Sin datos este mes
               </Text>
             </View>
             <Text className="text-base font-sans-semibold text-textPrimary mb-1">
-              Aun no hay insights
+              Aun no hay movimientos
             </Text>
             <Text className="text-sm text-textSecondary leading-5">
-              Registra mas movimientos este mes para generar tu primer analisis.
+              Registra ingresos y gastos este mes para ver tus estadisticas y
+              tendencias.
             </Text>
           </View>
-        )}
+        ) : (
+          <>
+            <SavingsRateCard
+              savingsRate={stats.month.savingsRate}
+              net={stats.month.net}
+              projectedNet={stats.projection.net}
+              daysRemaining={daysRemaining}
+            />
 
-        <View className="bg-surface rounded-2xl p-5 border border-border">
-          <View className="flex-row items-center gap-3 mb-3">
-            <View
-              className="items-center justify-center rounded-xl"
-              style={{
-                width: 36,
-                height: 36,
-                backgroundColor: tokens.surfaceMuted,
-              }}
-            >
-              <BarChart3 size={18} color={tokens.brand} />
+            <View className="flex-row gap-3">
+              <StatTile
+                label="Ingresos"
+                amount={stats.month.income}
+                valueClassName="text-success"
+                deltaPercent={
+                  stats.previousMonth
+                    ? deltaOf(
+                        stats.month.income,
+                        stats.previousMonth.income,
+                      )
+                    : null
+                }
+                higherIsBetter
+              />
+              <StatTile
+                label="Gastos"
+                amount={stats.month.expense}
+                valueClassName="text-danger"
+                deltaPercent={stats.previousMonth?.expenseDeltaPercent ?? null}
+                higherIsBetter={false}
+              />
             </View>
-            <View className="flex-1">
-              <Text className="text-base font-sans-semibold text-textPrimary">
-                Mas metricas pronto
-              </Text>
-            </View>
-            <Text className="text-[10px] font-sans-bold text-textTertiary uppercase">
-              Proximamente
-            </Text>
-          </View>
-          <Text className="text-sm text-textSecondary leading-5">
-            Vamos a sumar comparativas por categoria, evolucion del balance y
-            tendencias mes a mes.
-          </Text>
-        </View>
+
+            <TrendChart data={stats.trend} />
+
+            {stats.topCategories.length > 0 && (
+              <CategoryBreakdownCard
+                categories={stats.topCategories}
+                totalExpense={stats.month.expense}
+              />
+            )}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function deltaOf(current: number, previous: number): number | null {
+  if (previous === 0) return null;
+  return ((current - previous) / Math.abs(previous)) * 100;
 }
