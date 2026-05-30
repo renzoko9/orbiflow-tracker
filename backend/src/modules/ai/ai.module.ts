@@ -7,6 +7,7 @@ import { TransactionsModule } from '../transactions/transactions.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { InsightsController } from './controllers/insights.controller';
 import { InsightsService } from './services/insights.service';
+import { InsightStatsService } from './services/insight-stats.service';
 import { AnthropicProvider } from './providers/anthropic.provider';
 import { OpenAIProvider } from './providers/openai.provider';
 import { LLM_PROVIDER } from './providers/llm.provider';
@@ -21,6 +22,7 @@ import { LLM_PROVIDER } from './providers/llm.provider';
   controllers: [InsightsController],
   providers: [
     InsightsService,
+    InsightStatsService,
     AIInsightRepository,
     AnthropicProvider,
     OpenAIProvider,
