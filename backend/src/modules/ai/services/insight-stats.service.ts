@@ -6,11 +6,13 @@ import { TransactionTypeEnum } from '@Enums';
 import {
   CategoryStat,
   InsightStatsResponse,
+  PeriodSummary,
+  PreviousPeriod,
   TrendPoint,
 } from '../dto/insight-stats.dto';
+import { InsightStatsQuery } from '../dto/insight-stats.query';
 
 const TREND_MONTHS = 6;
-const TOP_CATEGORIES_LIMIT = 5;
 const MONTH_LABELS = [
   'ene',
   'feb',
@@ -25,111 +27,142 @@ const MONTH_LABELS = [
   'nov',
   'dic',
 ];
+const MONTH_NAMES = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
+];
 
 interface CategoryAccumulator {
   name: string;
   color: string;
   icon: string | null;
   amount: number;
+  count: number;
 }
 
 @Injectable()
 export class InsightStatsService {
   constructor(private readonly transactionRepo: TransactionRepository) {}
 
-  async getStats(userId: number): Promise<InsightStatsResponse> {
+  async getStats(
+    userId: number,
+    query: InsightStatsQuery = {},
+  ): Promise<InsightStatsResponse> {
     const now = new Date();
-    const currentPeriod = this.periodKey(now);
-    const { start: currentStart, end: currentEnd } =
-      this.periodRange(currentPeriod);
+    const year = query.year ?? now.getFullYear();
+    const month = query.month ?? null;
+    const granularity = month ? 'month' : 'year';
 
-    const daysInMonth = currentEnd.getDate();
-    const daysElapsed = Math.min(now.getDate(), daysInMonth);
+    const periodKeys = this.periodKeys(year, month);
+    const previousKeys = this.previousPeriodKeys(year, month);
 
-    // Una sola query: ventana de 6 meses hasta el fin del mes actual.
-    const trendStart = new Date(
-      currentStart.getFullYear(),
-      currentStart.getMonth() - (TREND_MONTHS - 1),
-      1,
+    const trendPeriods = month
+      ? this.lastMonthKeys(year, month, TREND_MONTHS)
+      : this.yearMonthKeys(year);
+
+    // Ventana que cubre el periodo, el periodo anterior y la tendencia.
+    const allKeys = [...periodKeys, ...previousKeys, ...trendPeriods];
+    const queryStart = this.startOfKey(
+      allKeys.reduce((a, b) => (a < b ? a : b)),
+    );
+    const queryEnd = this.endOfKey(
+      periodKeys.reduce((a, b) => (a > b ? a : b)),
     );
 
     const transactions = await this.transactionRepo.find({
       where: {
         user: { id: userId },
-        date: Between(trendStart, currentEnd),
+        date: Between(queryStart, queryEnd),
         transferGroupId: IsNull(),
       },
       relations: ['category'],
     });
 
-    const previousPeriod = this.previousPeriodKey(currentPeriod);
-
-    const trend = this.buildTrend(transactions, currentPeriod);
-    const currentTxs = transactions.filter(
-      (tx) => this.periodKey(new Date(tx.date)) === currentPeriod,
+    const periodSet = new Set(periodKeys);
+    const previousSet = new Set(previousKeys);
+    const periodTxs = transactions.filter((tx) =>
+      periodSet.has(this.keyOf(tx.date)),
     );
-    const previousTxs = transactions.filter(
-      (tx) => this.periodKey(new Date(tx.date)) === previousPeriod,
-    );
-
-    const currentTotals = this.sumTotals(currentTxs);
-    const previousTotals = this.sumTotals(previousTxs);
-
-    const net = currentTotals.income - currentTotals.expense;
-    const savingsRate =
-      currentTotals.income > 0 ? (net / currentTotals.income) * 100 : 0;
-
-    const projectionFactor = daysElapsed > 0 ? daysInMonth / daysElapsed : 1;
-    const projectedIncome = currentTotals.income * projectionFactor;
-    const projectedExpense = currentTotals.expense * projectionFactor;
-
-    const hasPrevious = previousTxs.length > 0;
-    const previousNet = previousTotals.income - previousTotals.expense;
-
-    const topCategories = this.buildTopCategories(
-      currentTxs,
-      previousTxs,
-      currentTotals.expense,
+    const previousTxs = transactions.filter((tx) =>
+      previousSet.has(this.keyOf(tx.date)),
     );
 
-    return {
-      period: currentPeriod,
-      daysElapsed,
-      daysInMonth,
-      hasData: currentTxs.length > 0,
-      month: {
-        income: currentTotals.income,
-        expense: currentTotals.expense,
-        net,
-        savingsRate,
-        transactionCount: currentTxs.length,
-      },
-      projection: {
+    const summary = this.buildSummary(periodTxs);
+    const previousSummary = this.buildSummary(previousTxs);
+
+    const earliest = await this.transactionRepo.findOne({
+      where: { user: { id: userId } },
+      order: { date: 'ASC' },
+    });
+    const availableYears = this.buildAvailableYears(earliest, year, now);
+
+    const isCurrentPeriod = month
+      ? year === now.getFullYear() && month === now.getMonth() + 1
+      : year === now.getFullYear();
+
+    let daysElapsed: number | null = null;
+    let daysInMonth: number | null = null;
+    let projection: InsightStatsResponse['projection'] = null;
+    if (month && isCurrentPeriod) {
+      daysInMonth = new Date(year, month, 0).getDate();
+      daysElapsed = Math.min(now.getDate(), daysInMonth);
+      const factor = daysElapsed > 0 ? daysInMonth / daysElapsed : 1;
+      const projectedIncome = summary.income * factor;
+      const projectedExpense = summary.expense * factor;
+      projection = {
         income: projectedIncome,
         expense: projectedExpense,
         net: projectedIncome - projectedExpense,
-      },
-      previousMonth: hasPrevious
-        ? {
-            income: previousTotals.income,
-            expense: previousTotals.expense,
-            net: previousNet,
-            netDeltaPercent: this.deltaPercent(net, previousNet),
-            expenseDeltaPercent: this.deltaPercent(
-              currentTotals.expense,
-              previousTotals.expense,
-            ),
-          }
-        : null,
-      trend,
-      topCategories,
+      };
+    }
+
+    return {
+      year,
+      month,
+      granularity,
+      label: month ? `${MONTH_NAMES[month - 1]} ${year}` : `${year}`,
+      hasData: periodTxs.length > 0,
+      hasHistory: earliest !== null,
+      isCurrentPeriod,
+      daysElapsed,
+      daysInMonth,
+      summary,
+      previous: this.buildPrevious(
+        summary,
+        previousSummary,
+        previousTxs,
+        year,
+        month,
+      ),
+      projection,
+      trend: this.buildTrend(transactions, trendPeriods),
+      expenseCategories: this.buildCategories(
+        periodTxs,
+        previousTxs,
+        TransactionTypeEnum.Expense,
+        summary.expense,
+      ),
+      incomeCategories: this.buildCategories(
+        periodTxs,
+        previousTxs,
+        TransactionTypeEnum.Income,
+        summary.income,
+      ),
+      availableYears,
     };
   }
 
-  private sumTotals(transactions: Transaction[]): {
-    income: number;
-    expense: number;
-  } {
+  private buildSummary(transactions: Transaction[]): PeriodSummary {
     let income = 0;
     let expense = 0;
     for (const tx of transactions) {
@@ -137,22 +170,47 @@ export class InsightStatsService {
       if (tx.type === TransactionTypeEnum.Expense) expense += amount;
       else income += amount;
     }
-    return { income, expense };
+    const net = income - expense;
+    return {
+      income,
+      expense,
+      net,
+      savingsRate: income > 0 ? (net / income) * 100 : 0,
+      transactionCount: transactions.length,
+    };
+  }
+
+  private buildPrevious(
+    current: PeriodSummary,
+    previous: PeriodSummary,
+    previousTxs: Transaction[],
+    year: number,
+    month: number | null,
+  ): PreviousPeriod | null {
+    if (previousTxs.length === 0) return null;
+    const label = month ? this.previousMonthLabel(year, month) : `${year - 1}`;
+    return {
+      label,
+      income: previous.income,
+      expense: previous.expense,
+      net: previous.net,
+      netDeltaPercent: this.deltaPercent(current.net, previous.net),
+      incomeDeltaPercent: this.deltaPercent(current.income, previous.income),
+      expenseDeltaPercent: this.deltaPercent(current.expense, previous.expense),
+    };
   }
 
   private buildTrend(
     transactions: Transaction[],
-    currentPeriod: string,
+    periods: string[],
   ): TrendPoint[] {
     const buckets = new Map<string, { income: number; expense: number }>();
-    const periods = this.lastPeriods(currentPeriod, TREND_MONTHS);
     for (const period of periods) {
       buckets.set(period, { income: 0, expense: 0 });
     }
 
     for (const tx of transactions) {
-      const period = this.periodKey(new Date(tx.date));
-      const bucket = buckets.get(period);
+      const bucket = buckets.get(this.keyOf(tx.date));
       if (!bucket) continue;
       const amount = Number(tx.amount);
       if (tx.type === TransactionTypeEnum.Expense) bucket.expense += amount;
@@ -161,27 +219,27 @@ export class InsightStatsService {
 
     return periods.map((period) => {
       const bucket = buckets.get(period) ?? { income: 0, expense: 0 };
-      const month = Number(period.split('-')[1]) - 1;
+      const monthIndex = Number(period.split('-')[1]) - 1;
       return {
         period,
-        label: MONTH_LABELS[month],
+        label: MONTH_LABELS[monthIndex],
         income: bucket.income,
         expense: bucket.expense,
       };
     });
   }
 
-  private buildTopCategories(
-    currentTxs: Transaction[],
+  private buildCategories(
+    periodTxs: Transaction[],
     previousTxs: Transaction[],
-    totalExpense: number,
+    type: TransactionTypeEnum,
+    total: number,
   ): CategoryStat[] {
-    const current = this.aggregateExpenseCategories(currentTxs);
-    const previous = this.aggregateExpenseCategories(previousTxs);
+    const current = this.aggregateCategories(periodTxs, type);
+    const previous = this.aggregateCategories(previousTxs, type);
 
     return Array.from(current.values())
       .sort((a, b) => b.amount - a.amount)
-      .slice(0, TOP_CATEGORIES_LIMIT)
       .map((cat) => {
         const prevAmount = previous.get(cat.name)?.amount ?? 0;
         return {
@@ -189,35 +247,52 @@ export class InsightStatsService {
           color: cat.color,
           icon: cat.icon,
           amount: cat.amount,
-          percentage: totalExpense > 0 ? (cat.amount / totalExpense) * 100 : 0,
-          deltaPercent:
-            prevAmount > 0
-              ? ((cat.amount - prevAmount) / prevAmount) * 100
-              : null,
+          count: cat.count,
+          percentage: total > 0 ? (cat.amount / total) * 100 : 0,
+          deltaPercent: this.deltaPercent(cat.amount, prevAmount),
         };
       });
   }
 
-  private aggregateExpenseCategories(
+  private aggregateCategories(
     transactions: Transaction[],
+    type: TransactionTypeEnum,
   ): Map<string, CategoryAccumulator> {
     const map = new Map<string, CategoryAccumulator>();
     for (const tx of transactions) {
-      if (tx.type !== TransactionTypeEnum.Expense) continue;
+      if (tx.type !== type) continue;
       const name = tx.category?.name ?? 'Sin categoria';
       const existing = map.get(name);
       if (existing) {
         existing.amount += Number(tx.amount);
+        existing.count += 1;
       } else {
         map.set(name, {
           name,
           color: tx.category?.color ?? '#a6a6a6',
           icon: tx.category?.icon ?? null,
           amount: Number(tx.amount),
+          count: 1,
         });
       }
     }
     return map;
+  }
+
+  private buildAvailableYears(
+    earliest: Transaction | null,
+    selectedYear: number,
+    now: Date,
+  ): number[] {
+    const currentYear = now.getFullYear();
+    const startYear = earliest
+      ? Number(this.keyOf(earliest.date).split('-')[0])
+      : currentYear;
+    const maxYear = Math.max(currentYear, selectedYear);
+    const minYear = Math.min(startYear, selectedYear);
+    const years: number[] = [];
+    for (let y = maxYear; y >= minYear; y--) years.push(y);
+    return years;
   }
 
   private deltaPercent(current: number, previous: number): number | null {
@@ -225,31 +300,57 @@ export class InsightStatsService {
     return ((current - previous) / Math.abs(previous)) * 100;
   }
 
-  private periodKey(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
+  /** 'YYYY-MM' a partir de la columna date (string o Date), sin sesgo de zona. */
+  private keyOf(raw: Date | string): string {
+    const s = typeof raw === 'string' ? raw : raw.toISOString();
+    return s.slice(0, 7);
   }
 
-  private periodRange(period: string): { start: Date; end: Date } {
-    const [year, month] = period.split('-').map(Number);
-    return {
-      start: new Date(year, month - 1, 1),
-      end: new Date(year, month, 0, 23, 59, 59),
-    };
+  private keyFor(year: number, month: number): string {
+    return `${year}-${String(month).padStart(2, '0')}`;
   }
 
-  private previousPeriodKey(period: string): string {
-    const [year, month] = period.split('-').map(Number);
-    return this.periodKey(new Date(year, month - 2, 1));
+  private startOfKey(key: string): Date {
+    const [year, month] = key.split('-').map(Number);
+    return new Date(year, month - 1, 1);
   }
 
-  private lastPeriods(currentPeriod: string, count: number): string[] {
-    const [year, month] = currentPeriod.split('-').map(Number);
-    const periods: string[] = [];
-    for (let i = count - 1; i >= 0; i--) {
-      periods.push(this.periodKey(new Date(year, month - 1 - i, 1)));
+  private endOfKey(key: string): Date {
+    const [year, month] = key.split('-').map(Number);
+    return new Date(year, month, 0, 23, 59, 59);
+  }
+
+  /** Claves de mes que componen el periodo seleccionado. */
+  private periodKeys(year: number, month: number | null): string[] {
+    if (month) return [this.keyFor(year, month)];
+    return this.yearMonthKeys(year);
+  }
+
+  private previousPeriodKeys(year: number, month: number | null): string[] {
+    if (month) {
+      const d = new Date(year, month - 2, 1);
+      return [this.keyFor(d.getFullYear(), d.getMonth() + 1)];
     }
-    return periods;
+    return this.yearMonthKeys(year - 1);
+  }
+
+  private yearMonthKeys(year: number): string[] {
+    const keys: string[] = [];
+    for (let m = 1; m <= 12; m++) keys.push(this.keyFor(year, m));
+    return keys;
+  }
+
+  private lastMonthKeys(year: number, month: number, count: number): string[] {
+    const keys: string[] = [];
+    for (let i = count - 1; i >= 0; i--) {
+      const d = new Date(year, month - 1 - i, 1);
+      keys.push(this.keyFor(d.getFullYear(), d.getMonth() + 1));
+    }
+    return keys;
+  }
+
+  private previousMonthLabel(year: number, month: number): string {
+    const d = new Date(year, month - 2, 1);
+    return `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
   }
 }
