@@ -1,14 +1,15 @@
+import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { Sparkles } from "lucide-react-native";
+import { CalendarOff, Sparkles } from "lucide-react-native";
 import { useThemeTokens } from "@/shared/theme";
 import { Loading } from "@/shared/ui";
 import {
   AIInsightsCard,
   CategoryBreakdownCard,
-  SavingsRateCard,
-  StatTile,
+  PeriodSelector,
+  PeriodSummaryCard,
   TrendChart,
 } from "../components";
 import { useInsightStats, useMonthlyInsight } from "../api";
@@ -16,20 +17,28 @@ import { useInsightStats, useMonthlyInsight } from "../api";
 export function InsightsScreen() {
   const tokens = useThemeTokens();
   const tabBarHeight = useBottomTabBarHeight();
-  const { data: insight, isLoading: insightLoading } = useMonthlyInsight();
-  const { data: stats, isLoading: statsLoading } = useInsightStats();
 
-  const showInsight = insightLoading || insight?.available;
-  const daysRemaining = stats
-    ? stats.daysInMonth - stats.daysElapsed
-    : 0;
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState<number | null>(now.getMonth() + 1);
+
+  const { data: stats, isLoading } = useInsightStats({ year, month });
+  const { data: insight, isLoading: insightLoading } = useMonthlyInsight();
+
+  const showOtto =
+    stats?.isCurrentPeriod && (insightLoading || insight?.available);
+
+  const trendLabel =
+    stats?.granularity === "year"
+      ? `Ingresos vs gastos · ${stats.year}`
+      : "Ingresos vs gastos · 6 meses";
 
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
       className="flex-1 bg-background"
     >
-      <View className="px-5 pt-6 pb-6">
+      <View className="px-5 pt-6 pb-4">
         <Text
           className="text-[11px] font-sans-bold uppercase text-textDisabled mb-1"
           style={{ letterSpacing: 0.4 }}
@@ -41,26 +50,24 @@ export function InsightsScreen() {
         </Text>
       </View>
 
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingBottom: tabBarHeight + 32,
-          gap: 16,
-        }}
-      >
-        {showInsight ? (
-          <AIInsightsCard
-            isLoading={insightLoading}
-            title={insight?.title ?? ""}
-            description={insight?.description ?? ""}
+      {stats ? (
+        <View className="px-5 pb-3">
+          <PeriodSelector
+            year={year}
+            month={month}
+            availableYears={stats.availableYears}
+            onChange={(y, m) => {
+              setYear(y);
+              setMonth(m);
+            }}
           />
-        ) : null}
+        </View>
+      ) : null}
 
-        {statsLoading ? (
-          <Loading />
-        ) : !stats || !stats.hasData ? (
+      {isLoading && !stats ? (
+        <Loading />
+      ) : !stats || !stats.hasHistory ? (
+        <View className="px-5">
           <View className="bg-surface rounded-2xl p-5 border border-border">
             <View className="flex-row items-center gap-2 mb-2">
               <Sparkles size={14} color={tokens.textTertiary} />
@@ -68,66 +75,63 @@ export function InsightsScreen() {
                 className="text-[10px] font-sans-bold text-textTertiary uppercase"
                 style={{ letterSpacing: 1.5 }}
               >
-                Sin datos este mes
+                Sin datos aun
               </Text>
             </View>
             <Text className="text-base font-sans-semibold text-textPrimary mb-1">
               Aun no hay movimientos
             </Text>
             <Text className="text-sm text-textSecondary leading-5">
-              Registra ingresos y gastos este mes para ver tus estadisticas y
-              tendencias.
+              Registra ingresos y gastos para ver tus estadisticas y tendencias.
             </Text>
           </View>
-        ) : (
-          <>
-            <SavingsRateCard
-              savingsRate={stats.month.savingsRate}
-              net={stats.month.net}
-              projectedNet={stats.projection.net}
-              daysRemaining={daysRemaining}
+        </View>
+      ) : (
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingBottom: tabBarHeight + 32,
+            gap: 16,
+          }}
+        >
+          {showOtto ? (
+            <AIInsightsCard
+              isLoading={insightLoading}
+              title={insight?.title ?? ""}
+              description={insight?.description ?? ""}
             />
+          ) : null}
 
-            <View className="flex-row gap-3">
-              <StatTile
-                label="Ingresos"
-                amount={stats.month.income}
-                valueClassName="text-success"
-                deltaPercent={
-                  stats.previousMonth
-                    ? deltaOf(
-                        stats.month.income,
-                        stats.previousMonth.income,
-                      )
-                    : null
-                }
-                higherIsBetter
-              />
-              <StatTile
-                label="Gastos"
-                amount={stats.month.expense}
-                valueClassName="text-danger"
-                deltaPercent={stats.previousMonth?.expenseDeltaPercent ?? null}
-                higherIsBetter={false}
-              />
+          {!stats.hasData ? (
+            <View className="bg-surface rounded-2xl p-4 border border-border flex-row items-center gap-3">
+              <CalendarOff size={18} color={tokens.textTertiary} />
+              <Text className="text-sm text-textSecondary flex-1 leading-5">
+                No hubo movimientos en {stats.label}.
+              </Text>
             </View>
+          ) : null}
 
-            <TrendChart data={stats.trend} />
+          <PeriodSummaryCard
+            label={stats.label}
+            summary={stats.summary}
+            previous={stats.previous}
+            projection={stats.projection}
+          />
 
-            {stats.topCategories.length > 0 && (
-              <CategoryBreakdownCard
-                categories={stats.topCategories}
-                totalExpense={stats.month.expense}
-              />
-            )}
-          </>
-        )}
-      </ScrollView>
+          <TrendChart data={stats.trend} label={trendLabel} />
+
+          {stats.hasData ? (
+            <CategoryBreakdownCard
+              expenseCategories={stats.expenseCategories}
+              incomeCategories={stats.incomeCategories}
+              expenseTotal={stats.summary.expense}
+              incomeTotal={stats.summary.income}
+            />
+          ) : null}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
-}
-
-function deltaOf(current: number, previous: number): number | null {
-  if (previous === 0) return null;
-  return ((current - previous) / Math.abs(previous)) * 100;
 }

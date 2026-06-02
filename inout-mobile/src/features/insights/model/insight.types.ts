@@ -26,10 +26,11 @@ export interface CategoryStat {
   icon: string | null;
   amount: number;
   percentage: number;
+  count: number;
   deltaPercent: number | null;
 }
 
-export interface MonthStats {
+export interface PeriodSummary {
   income: number;
   expense: number;
   net: number;
@@ -43,22 +44,31 @@ export interface ProjectionStats {
   net: number;
 }
 
-export interface PreviousMonthStats {
+export interface PreviousPeriod {
+  label: string;
   income: number;
   expense: number;
   net: number;
   netDeltaPercent: number | null;
+  incomeDeltaPercent: number | null;
   expenseDeltaPercent: number | null;
 }
 
 export interface InsightStats {
-  period: string;
-  daysElapsed: number;
-  daysInMonth: number;
+  year: number;
+  month: number | null;
+  granularity: "month" | "year";
+  label: string;
   hasData: boolean;
-  month: MonthStats;
-  projection: ProjectionStats;
-  previousMonth: PreviousMonthStats | null;
+  hasHistory: boolean;
+  isCurrentPeriod: boolean;
+  daysElapsed: number | null;
+  daysInMonth: number | null;
+  summary: PeriodSummary;
+  previous: PreviousPeriod | null;
+  projection: ProjectionStats | null;
   trend: TrendPoint[];
-  topCategories: CategoryStat[];
+  expenseCategories: CategoryStat[];
+  incomeCategories: CategoryStat[];
+  availableYears: number[];
 }

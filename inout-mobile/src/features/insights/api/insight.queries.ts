@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import * as insightApi from "./insight.api";
 import { insightKeys } from "./insight.keys";
 
@@ -28,10 +28,11 @@ export function useAccountsInsight() {
  */
 const STATS_STALE = 2 * 60 * 1000;
 
-export function useInsightStats() {
+export function useInsightStats(params: insightApi.InsightStatsParams = {}) {
   return useQuery({
-    queryKey: insightKeys.stats(),
-    queryFn: insightApi.getInsightStats,
+    queryKey: insightKeys.stats(params.year, params.month),
+    queryFn: () => insightApi.getInsightStats(params),
     staleTime: STATS_STALE,
+    placeholderData: keepPreviousData,
   });
 }

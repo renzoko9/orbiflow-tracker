@@ -7,6 +7,7 @@ import type { TrendPoint } from "../model";
 
 interface TrendChartProps {
   data: TrendPoint[];
+  label?: string;
 }
 
 const CHART_HEIGHT = 150;
@@ -14,10 +15,13 @@ const LABEL_AREA = 22;
 const BAR_GAP = 3;
 
 /**
- * Tendencia de 6 meses: barras agrupadas de ingreso vs gasto por mes.
+ * Tendencia de ingresos vs gastos por mes (6 o 12 barras agrupadas).
  * El ancho se mide con onLayout para escalar bien en cualquier pantalla.
  */
-export function TrendChart({ data }: TrendChartProps) {
+export function TrendChart({
+  data,
+  label = "Ingresos vs gastos",
+}: TrendChartProps) {
   const tokens = useThemeTokens();
   const [width, setWidth] = useState(0);
 
@@ -31,11 +35,12 @@ export function TrendChart({ data }: TrendChartProps) {
   );
   const plotHeight = CHART_HEIGHT - LABEL_AREA;
   const groupWidth = width > 0 ? width / data.length : 0;
-  const barWidth = Math.max(6, (groupWidth - BAR_GAP) / 2 - 4);
+  const barWidth = Math.max(4, (groupWidth - BAR_GAP) / 2 - 3);
+  const labelFontSize = data.length > 6 ? 9 : 10;
 
   return (
     <View className="bg-surface rounded-2xl p-5 border border-border">
-      <SectionEyebrow label="Ingresos vs gastos · 6 meses" />
+      <SectionEyebrow label={label} />
 
       <View className="flex-row items-center gap-4 mb-3">
         <Legend color={tokens.success} label="Ingresos" />
@@ -72,7 +77,7 @@ export function TrendChart({ data }: TrendChartProps) {
                   <SvgText
                     x={groupX}
                     y={CHART_HEIGHT - 6}
-                    fontSize={10}
+                    fontSize={labelFontSize}
                     fontWeight="600"
                     fill={tokens.textTertiary}
                     textAnchor="middle"
