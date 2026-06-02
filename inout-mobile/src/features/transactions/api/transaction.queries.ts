@@ -4,6 +4,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { accountKeys } from "@/features/accounts";
+import { insightKeys } from "@/features/insights";
 import * as transactionApi from "./transaction.api";
 import { transactionKeys } from "./transaction.keys";
 import type {
@@ -16,7 +17,7 @@ import type {
 
 /**
  * Hooks de transactions y transfers. Las mutaciones invalidan transactions +
- * accounts porque el balance de la cuenta cambia con cada movimiento.
+ * accounts (cambia el balance) + insights (cambian las estadisticas).
  */
 
 export function useTransactions(filters?: FilterTransactionsParams) {
@@ -54,6 +55,7 @@ export function useTransfer(groupId: string | undefined) {
 function invalidateAfterMutation(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: transactionKeys.all });
   qc.invalidateQueries({ queryKey: accountKeys.all });
+  qc.invalidateQueries({ queryKey: insightKeys.all });
 }
 
 export function useCreateTransaction() {
