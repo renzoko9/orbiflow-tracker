@@ -23,15 +23,16 @@
 
 # OrbiFlow Tracker
 
-App de finanzas personales (tracker de ingresos/gastos). Monorepo con backend y mobile.
+App de finanzas personales (tracker de ingresos/gastos) con asistente IA (Otto). Monorepo con backend, app movil y landing.
 
 ## Stack
 
 | Capa | Tecnologia |
 |------|-----------|
-| **Backend** | NestJS 11, TypeORM 0.3, PostgreSQL, Passport JWT, Nodemailer + Handlebars |
-| **Mobile** | React Native 0.81, Expo 54, Expo Router 6, NativeWind 4 (Tailwind), React Hook Form + Zod, Axios |
-| **Lenguaje** | TypeScript strict en ambos |
+| **Backend** | NestJS 11, TypeORM 0.3, PostgreSQL, Passport JWT, Nodemailer + Handlebars, @nestjs/throttler. IA via LLM provider (OpenAI activo) |
+| **Mobile** | React Native 0.81, Expo 54, Expo Router 6, NativeWind 4 (Tailwind), Zustand (estado), TanStack Query (data fetching), React Hook Form + Zod, Axios, react-native-reanimated, @gorhom/bottom-sheet |
+| **Landing** | `inout-landing/` (sitio web) |
+| **Lenguaje** | TypeScript strict en todos |
 
 ## Estructura del monorepo
 
@@ -41,36 +42,32 @@ orbiflow-tracker/
 │   └── src/
 │       ├── config/             # ORM, mail config
 │       ├── database/           # entities/, repositories/
-│       ├── modules/            # Feature modules (auth, users, accounts, categories, transactions)
+│       ├── modules/            # auth, users, accounts, categories, transactions, ai, chat
 │       │   └── [feature]/
-│       │       ├── feature.controller.ts
+│       │       ├── feature.controller.ts   # (controllers/ si hay varios)
 │       │       ├── feature.service.ts
 │       │       ├── feature.module.ts
 │       │       ├── dto/
 │       │       ├── models/
-│       │       └── services/   # Sub-servicios si aplica
+│       │       └── services/   # Sub-servicios si aplica (ai: providers/ para LLM)
 │       └── common/             # JWT guards/strategies, decorators, enums, exceptions, filters, providers (mail), utils
 │
-├── orbiflow-mobile-nativewind/ # Mobile app Expo
+├── inout-mobile/               # App movil Expo (ACTIVA)
 │   ├── app/                    # File-based routing (Expo Router)
-│   │   ├── (auth)/             # Stack: login, register, forgot-password, verify-email, reset-password
-│   │   ├── (tabs)/             # Tabs: home, transactions, new, accounts, settings
+│   │   ├── (auth)/             # login, register, forgot-password, verify-email, reset-password
+│   │   ├── (tabs)/             # home, transactions, new, chatbot, insights
+│   │   ├── chat.tsx, accounts/, categories/, transactions/, profile/, settings.tsx
+│   │   ├── index.tsx           # Splash: rehidrata sesion y redirige (route guard)
 │   │   └── _layout.tsx
-│   ├── src/
-│   │   ├── core/               # Logica de negocio y servicios
-│   │   │   ├── api/            # ApiError, ResponseAPI interface
-│   │   │   ├── config/         # Environment config
-│   │   │   ├── constants/      # ENDPOINTS, STORAGE_KEYS
-│   │   │   ├── dto/            # Interfaces de request/response
-│   │   │   ├── enums/          # CategoryType, ResponseType
-│   │   │   ├── schemas/        # Zod schemas (validacion)
-│   │   │   └── services/       # HttpService (base), AuthService, StorageService
-│   │   └── ui/
-│   │       ├── components/     # Atomic Design: atoms/, molecules/, organisms/, templates/
-│   │       ├── features/       # Componentes por feature: auth/, accounts/, categories/, transactions/
-│   │       ├── hooks/          # Custom hooks
-│   │       └── theme/          # Colores, design tokens
-│   └── environments/           # Configs por entorno (dev, testing, prod)
+│   └── src/
+│       ├── config/             # env, APP_CONSTANTS
+│       ├── providers/          # AppProviders (composicion de providers globales)
+│       ├── features/           # Feature-based: accounts, auth, categories, chat, home, insights, profile, transactions
+│       │   └── [feature]/      # api/ (queries + keys), components/, model/ (dto + zod), screens/, index.ts
+│       └── shared/             # api/ (http-client + refresh-mutex), auth/ (zustand store), i18n/, storage/ (secure-store), theme/, ui/, utils/
+│
+├── inout-landing/              # Landing web
+└── orbiflow-mobile-nativewind/ # (legacy, reemplazada por inout-mobile)
 ```
 
 ## Arquitectura
@@ -85,13 +82,13 @@ orbiflow-tracker/
 - Path aliases: `@/*`, `@Entities`, `@Repositories`
 
 ### Mobile
-- **Clean Architecture** (en transicion): core/ (negocio) + ui/ (presentacion)
-- Atomic Design para componentes: atoms > molecules > organisms > templates
-- Features separadas de design system
-- Servicios como singletons (HttpService base, AuthService extiende)
-- Axios interceptors para JWT injection y manejo de 401
+- **Feature-based**: cada feature en `src/features/[feature]` con `api/` (TanStack Query: queries + keys), `components/`, `model/` (DTOs + Zod), `screens/`, `index.ts` (barrel)
+- `src/shared/` para lo transversal: `ui/` (design system), `theme/`, `api/` (http-client), `auth/` (store), `i18n/`, `storage/`, `utils/`
+- Estado global con Zustand (`shared/auth/auth.store.ts`); data fetching y cache con TanStack Query
+- `shared/api/http-client.ts`: axios con interceptors. Request inyecta JWT (salvo rutas publicas). Response maneja 401 con refresh automatico via `refresh-mutex.ts` (encola requests concurrentes, un solo refresh, retry); ante fallo limpia tokens y dispara `onAuthFailure` -> reset del store
+- Route guard: `app/index.tsx` y `app/(tabs)/_layout.tsx` redirigen segun `isAuthenticated` tras hidratacion del store
 - expo-secure-store para tokens (Keychain/Keystore nativo)
-- Path alias: `@/*` apunta a raiz del proyecto mobile
+- Path alias: `@/*` apunta a `src/`
 
 ## Convenciones
 
@@ -119,9 +116,9 @@ Formato: `type(scope): mensaje en español`
 
 ### Styling (Mobile)
 - NativeWind (Tailwind classes en className)
-- Colores custom en `src/ui/theme/colors.ts` integrados en tailwind.config.js
-- Paleta principal: teal (primary-1 a primary-9)
-- No usar StyleSheet.create ni styled-components
+- Tokens semanticos en `src/shared/theme` (`tailwind-tokens.js`, `palette.ts`, `tokens.ts`): surface, border, accent/accentSoft/accentStrong, brand, success, danger, textPrimary/Secondary/Tertiary/Disabled, etc. Hook `useThemeTokens()` para acceder a valores en JS
+- Componentes shared de UI en `src/shared/ui` (barrel `index.ts`)
+- No usar StyleSheet.create ni styled-components (salvo casos puntuales como absoluteFillObject)
 
 ## Comandos
 
@@ -136,13 +133,13 @@ npm run migration:generate # Generar migracion TypeORM
 npm run migration:run      # Ejecutar migraciones
 ```
 
-### Mobile (`cd orbiflow-mobile-nativewind`)
+### Mobile (`cd inout-mobile`)
 ```bash
-npm run start:dev          # Expo dev (APP_ENV=dev)
+npm run start:dev          # Expo dev
 npm run android:dev        # Android dev
 npm run ios:dev            # iOS dev
-npm run web:dev            # Web dev
 npm run lint               # Expo lint
+npm run typecheck          # tsc --noEmit
 ```
 
 ## Principios de desarrollo
@@ -155,9 +152,10 @@ npm run lint               # Expo lint
 
 ## Estado actual del proyecto
 
-- Auth completo: login, register, email verification, forgot/reset password
-- CRUD: accounts, categories, transactions funcionando en backend
-- Mobile: auth flow conectado, tabs skeleton, design system en construccion
-- Pendiente: token refresh completo en mobile, route guards, features CRUD en mobile
+- Auth completo (backend y mobile): login, register, email verification, forgot/reset password, token refresh con mutex en interceptor, route guards post-logout
+- CRUD funcionando en backend y mobile: accounts, categories, transactions
+- IA: modulo `ai` con stats por periodo (year/month) y nota de cierre de mes generada por LLM (Otto), cacheada por fingerprint, solo para meses concluidos
+- Chat: asistente Otto in-app (modulo `chat` backend + feature `chat` mobile)
+- Insights: dashboard con selector de periodo, resumen, tendencia, desglose por categoria; auto-invalidacion al registrar/editar/borrar movimientos
 - Sin CI/CD ni Docker configurado
 - Sin tests escritos (infraestructura Jest lista en backend)
