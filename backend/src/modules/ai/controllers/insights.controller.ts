@@ -25,10 +25,13 @@ export class InsightsController {
     return this.insightStatsService.getStats(userId, query);
   }
 
-  @Throttle({ default: { ttl: 60000, limit: 6 } })
+  @Throttle({ default: { ttl: 60000, limit: 20 } })
   @Get('monthly')
-  async getMonthly(@User('id') userId: number): Promise<InsightResponse> {
-    return this.insightsService.getMonthlyInsight(userId);
+  async getMonthly(
+    @User('id') userId: number,
+    @Query() query: InsightStatsQuery,
+  ): Promise<InsightResponse> {
+    return this.insightsService.getMonthlyInsight(userId, query);
   }
 
   @Throttle({ default: { ttl: 60000, limit: 6 } })

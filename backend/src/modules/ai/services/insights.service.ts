@@ -84,6 +84,21 @@ const INSIGHT_TOOL = {
 
 const ACTIVE_DAYS_THRESHOLD = 30;
 
+const MONTH_NAMES = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
+];
+
 @Injectable()
 export class InsightsService {
   private readonly logger = new Logger(InsightsService.name);
@@ -95,26 +110,56 @@ export class InsightsService {
     private readonly accountRepo: AccountRepository,
   ) {}
 
-  async getMonthlyInsight(userId: number): Promise<InsightResponse> {
-    const period = this.currentPeriod();
+  async getMonthlyInsight(
+    userId: number,
+    query: { year?: number; month?: number } = {},
+  ): Promise<InsightResponse> {
+    const period = this.resolveClosedPeriod(query);
+
+    // La nota de cierre solo existe para meses ya concluidos. El mes en curso
+    // (o futuro) no se resume porque el usuario sigue registrando movimientos.
+    if (period >= this.currentPeriod()) {
+      return this.unavailable(period);
+    }
+
     const data = await this.aggregateMonthly(userId, period);
 
     if (data.transactionCount === 0) {
-      return this.emptyResponse(period, {
-        title: 'Sin movimientos este mes',
-        description:
-          'Aun no registras ingresos ni gastos. Empieza agregando tus primeras transacciones para ver analisis personalizados.',
-      });
+      return this.unavailable(period);
     }
 
     return this.getOrGenerate({
       userId,
-      type: 'monthly_summary',
+      type: 'monthly_closeout',
       period,
       fingerprint: this.computeMonthlyFingerprint(data),
-      systemPrompt: this.buildMonthlySystemPrompt(),
-      userPrompt: this.buildMonthlyUserPrompt(data),
+      systemPrompt: this.buildCloseoutSystemPrompt(),
+      userPrompt: this.buildCloseoutUserPrompt(data),
     });
+  }
+
+  private resolveClosedPeriod(query: {
+    year?: number;
+    month?: number;
+  }): string {
+    if (query.year != null && query.month != null) {
+      return `${query.year}-${String(query.month).padStart(2, '0')}`;
+    }
+    // Default: mes inmediatamente anterior al actual.
+    const now = new Date();
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  private unavailable(period: string): InsightResponse {
+    return {
+      available: false,
+      title: '',
+      description: '',
+      period,
+      generatedAt: new Date(),
+      cached: false,
+    };
   }
 
   async getAccountsInsight(userId: number): Promise<InsightResponse> {
@@ -596,35 +641,33 @@ export class InsightsService {
     };
   }
 
-  private buildMonthlySystemPrompt(): string {
+  private buildCloseoutSystemPrompt(): string {
     return [
-      'Eres un asistente financiero personal que genera insights breves y utiles para el resumen mensual de un usuario.',
-      'Tu tono es cercano, motivador y nunca culpabilizador. Hablas en espanol neutro.',
+      'Eres un asistente financiero personal que escribe una NOTA DE CIERRE de un mes que YA TERMINO.',
+      'Le escribes a una persona que no sabe nada de finanzas: usa lenguaje cotidiano y simple, sin tecnicismos ni jerga.',
+      'Tu tono es cercano, calido y nunca culpabilizador. Hablas en espanol neutro.',
       'No inventes numeros: usa solo los que te paso.',
-      'Eliges UNO de estos tres angulos para el insight, el que mas valor agregue segun los datos:',
-      '1) FORECAST: si pasaron al menos 7 dias del mes, proyecta como va a cerrar el mes y compara con el mes anterior si hay data.',
-      '2) CATEGORIA QUE CRECE: si una categoria tuvo una variacion fuerte (>= 20% absoluta) vs el mes anterior, destacala con numeros concretos.',
-      '3) HABITO DE GASTO: si hay diferencia clara entre gasto promedio de fin de semana vs dias de semana, mencionala (calcula promedios por cantidad de transacciones, no por dia).',
-      'Si los datos no soportan ningun angulo (mes muy chico, sin mes previo), haz un resumen cualitativo simple sin forecast ni comparativas.',
-      'Devuelve siempre el resultado via la tool emit_insight con un title corto (max 60 caracteres) y una description de 1 a 2 oraciones que incluya los numeros concretos clave directamente en el texto. No uses listas ni bullets.',
+      'La nota debe cubrir, de forma natural y fluida (nunca como lista):',
+      '1) Como le fue: cuanto logro ahorrar ese mes (o si gasto mas de lo que ingreso), explicando la tasa de ahorro en palabras simples (por ejemplo: "guardaste 2 de cada 10 soles que ganaste").',
+      '2) En que se fue su dinero: menciona la o las categorias principales de gasto con su monto.',
+      '3) Una comparacion breve con el mes anterior si hay datos (si subio o bajo el gasto o el ahorro).',
+      '4) Cierra con un consejo accionable, simple y amable para el proximo mes.',
+      'Devuelve el resultado via la tool emit_insight: title corto (max 60 caracteres, que haga referencia al mes) y una description de 3 a 4 oraciones que incluya los numeros clave explicados en lenguaje simple. Sin listas ni bullets.',
     ].join(' ');
   }
 
-  private buildMonthlyUserPrompt(data: MonthlyData): string {
+  private buildCloseoutUserPrompt(data: MonthlyData): string {
+    const savingsRate =
+      data.totalIncome > 0 ? (data.net / data.totalIncome) * 100 : 0;
     const lines: string[] = [];
-    lines.push(`MES ACTUAL: ${data.period}`);
+    lines.push(`MES CERRADO: ${this.monthLabel(data.period)}`);
+    lines.push(`Ingresos del mes: ${data.totalIncome.toFixed(2)}`);
+    lines.push(`Gastos del mes: ${data.totalExpense.toFixed(2)}`);
     lines.push(
-      `Dias transcurridos: ${data.daysElapsed} de ${data.daysInMonth} (faltan ${data.daysRemaining})`,
+      `Balance neto: ${data.net.toFixed(2)} (positivo = ahorro, negativo = gasto de mas)`,
     );
-    lines.push(`Ingresos MTD: ${data.totalIncome.toFixed(2)}`);
-    lines.push(`Gastos MTD: ${data.totalExpense.toFixed(2)}`);
-    lines.push(`Balance neto MTD: ${data.net.toFixed(2)}`);
+    lines.push(`Tasa de ahorro: ${savingsRate.toFixed(0)}% de los ingresos`);
     lines.push(`Cantidad de transacciones: ${data.transactionCount}`);
-    lines.push('');
-    lines.push('PROYECCION LINEAL A FIN DE MES:');
-    lines.push(`- Ingresos proyectados: ${data.projectedIncome.toFixed(2)}`);
-    lines.push(`- Gastos proyectados: ${data.projectedExpense.toFixed(2)}`);
-    lines.push(`- Balance proyectado: ${data.projectedNet.toFixed(2)}`);
     lines.push('');
 
     if (data.previousMonth) {
@@ -633,11 +676,11 @@ export class InsightsService {
       lines.push(`- Gastos: ${data.previousMonth.totalExpense.toFixed(2)}`);
       lines.push(`- Balance: ${data.previousMonth.net.toFixed(2)}`);
     } else {
-      lines.push('MES ANTERIOR: sin datos (no hay transacciones).');
+      lines.push('MES ANTERIOR: sin datos.');
     }
     lines.push('');
 
-    lines.push('TOP CATEGORIAS DEL MES (por monto):');
+    lines.push('EN QUE SE FUE EL DINERO (top categorias por monto):');
     for (const c of data.topCategories) {
       const tipo = c.type === TransactionTypeEnum.Income ? 'ingreso' : 'gasto';
       lines.push(`- ${c.name} (${tipo}): ${c.amount.toFixed(2)}`);
@@ -645,7 +688,7 @@ export class InsightsService {
     lines.push('');
 
     if (data.categoryDeltas.length > 0) {
-      lines.push('CATEGORIAS CON MAYOR VARIACION vs MES ANTERIOR:');
+      lines.push('CAMBIOS NOTABLES vs MES ANTERIOR:');
       for (const d of data.categoryDeltas) {
         const tipo =
           d.type === TransactionTypeEnum.Income ? 'ingreso' : 'gasto';
@@ -655,21 +698,17 @@ export class InsightsService {
         );
       }
     } else {
-      lines.push('CATEGORIAS: sin variaciones significativas vs mes anterior.');
+      lines.push('CAMBIOS: sin variaciones notables vs mes anterior.');
     }
     lines.push('');
-
-    lines.push('HABITO DE GASTO (solo gastos):');
-    lines.push(
-      `- Dias de semana: total ${data.weekdayExpense.toFixed(2)} en ${data.weekdayTransactionCount} transacciones`,
-    );
-    lines.push(
-      `- Fin de semana: total ${data.weekendExpense.toFixed(2)} en ${data.weekendTransactionCount} transacciones`,
-    );
-    lines.push('');
-    lines.push('Genera el insight con emit_insight.');
+    lines.push('Genera la nota de cierre con emit_insight.');
 
     return lines.join('\n');
+  }
+
+  private monthLabel(period: string): string {
+    const [year, month] = period.split('-').map(Number);
+    return `${MONTH_NAMES[month - 1]} ${year}`;
   }
 
   private buildAccountsSystemPrompt(): string {
