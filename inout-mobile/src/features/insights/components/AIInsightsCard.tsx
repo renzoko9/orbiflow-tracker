@@ -4,33 +4,30 @@ import { Wordmark } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 
 interface AIInsightsCardProps {
-  title: string;
   description: string;
   isLoading?: boolean;
+  eyebrow?: string;
 }
 
 /**
- * Insight con pleca lateral mango sobre fondo suave del mismo tono.
- * Cierra con el wordmark IN·OUT como signature de marca, dandole el peso
- * editorial de un articulo firmado por la app.
+ * Nota de cierre escrita por la IA. Caja surface como el resto del dashboard,
+ * con una pleca mango y el eyebrow en acento para distinguirla como nota de
+ * Otto. Firma discreta By Otto · IN·OUT al pie.
  */
 export function AIInsightsCard({
-  title,
   description,
   isLoading = false,
+  eyebrow = "Insight mensual",
 }: AIInsightsCardProps) {
   const tokens = useThemeTokens();
 
   return (
-    <View className="bg-accentSoft rounded-xl px-5 py-6 border-l-[3px] border-accent">
-      <View className="flex-row items-center gap-2 mb-3">
-        <Sparkles size={14} color={tokens.accentStrong} />
-        <Text
-          className="text-[10px] font-sans-bold text-accentStrong uppercase"
-          style={{ letterSpacing: 1.5 }}
-        >
-          Insight mensual
+    <View className="bg-surface rounded-2xl p-5 border border-accentSoft">
+      <View className="flex-row items-center justify-between mb-4">
+        <Text className="text-[11px] font-sans-bold uppercase text-accentStrong">
+          {eyebrow}
         </Text>
+        <Sparkles size={14} color={tokens.accentStrong} />
       </View>
 
       {isLoading ? (
@@ -39,21 +36,18 @@ export function AIInsightsCard({
         </View>
       ) : (
         <>
-          <Text className="text-base font-sans-bold text-onAccent mb-1.5">
-            {title}
-          </Text>
-          <Text className="text-sm text-onAccent/80 leading-5">
+          <Text className="text-sm text-textSecondary leading-6">
             {description}
           </Text>
 
-          <View className="flex-row justify-end items-center mt-5 pt-3 border-t border-accent/25">
+          <View className="flex-row justify-end items-center mt-4 pt-3 border-t border-border">
             <Text
-              className="text-[10px] uppercase text-onAccent/50 mr-2"
+              className="text-[10px] font-sans-bold uppercase text-textTertiary mr-1.5"
               style={{ letterSpacing: 1 }}
             >
-              by
+              By Otto ·
             </Text>
-            <Wordmark className="text-[11px] text-accentStrong" />
+            <Wordmark className="text-[11px] text-textTertiary" />
           </View>
         </>
       )}

@@ -23,10 +23,22 @@ export function InsightsScreen() {
   const [month, setMonth] = useState<number | null>(now.getMonth() + 1);
 
   const { data: stats, isLoading } = useInsightStats({ year, month });
-  const { data: insight, isLoading: insightLoading } = useMonthlyInsight();
 
-  const showOtto =
-    stats?.isCurrentPeriod && (insightLoading || insight?.available);
+  // La nota de cierre solo aplica a un mes ya concluido (pasado), nunca al
+  // mes en curso ni a la vista anual.
+  const isConcludedMonth =
+    month != null &&
+    (year < now.getFullYear() ||
+      (year === now.getFullYear() && month < now.getMonth() + 1));
+
+  const noteEnabled = isConcludedMonth && stats?.hasData === true;
+
+  const { data: insight, isLoading: insightLoading } = useMonthlyInsight(
+    { year, month },
+    { enabled: noteEnabled },
+  );
+
+  const showOtto = noteEnabled && (insightLoading || insight?.available);
 
   const trendLabel =
     stats?.granularity === "year"
@@ -99,7 +111,7 @@ export function InsightsScreen() {
           {showOtto ? (
             <AIInsightsCard
               isLoading={insightLoading}
-              title={insight?.title ?? ""}
+              eyebrow={`Cierre de ${stats.label}`}
               description={insight?.description ?? ""}
             />
           ) : null}

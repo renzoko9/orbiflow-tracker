@@ -24,8 +24,20 @@ export async function getInsightStats(
   return data;
 }
 
-export async function getMonthlyInsight(): Promise<Insight> {
-  const { data } = await httpClient.get<Insight>(PATHS.monthly);
+export interface MonthlyInsightParams {
+  year?: number;
+  month?: number | null;
+}
+
+export async function getMonthlyInsight(
+  params: MonthlyInsightParams = {},
+): Promise<Insight> {
+  const { data } = await httpClient.get<Insight>(PATHS.monthly, {
+    params: {
+      ...(params.year != null && { year: params.year }),
+      ...(params.month != null && { month: params.month }),
+    },
+  });
   return data;
 }
 

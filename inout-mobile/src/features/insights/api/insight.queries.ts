@@ -7,11 +7,15 @@ import { insightKeys } from "./insight.keys";
  */
 const INSIGHT_STALE = 10 * 60 * 1000;
 
-export function useMonthlyInsight() {
+export function useMonthlyInsight(
+  params: insightApi.MonthlyInsightParams = {},
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
-    queryKey: insightKeys.monthly(),
-    queryFn: insightApi.getMonthlyInsight,
+    queryKey: insightKeys.monthly(params.year, params.month),
+    queryFn: () => insightApi.getMonthlyInsight(params),
     staleTime: INSIGHT_STALE,
+    enabled: options.enabled ?? true,
   });
 }
 

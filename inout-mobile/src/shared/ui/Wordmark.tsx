@@ -22,7 +22,7 @@ export function Wordmark({ className }: WordmarkProps) {
       )}
       style={{ letterSpacing: 1.6 }}
     >
-      IN·OUT
+      INOUT
     </Text>
   );
 }
