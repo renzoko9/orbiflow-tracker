@@ -39,8 +39,7 @@ export function LoginScreen() {
     setError(null);
     login.mutate(values, {
       onSuccess: () => {
-        // TODO: cuando exista (tabs)/home, navegar alla
-        router.replace("/(auth)/login");
+        router.replace("/(tabs)/home");
       },
       onError: (err) => {
         if (err instanceof ApiError) {
