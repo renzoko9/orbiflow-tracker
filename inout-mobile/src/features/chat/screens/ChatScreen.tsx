@@ -4,12 +4,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -62,9 +63,15 @@ export function ChatScreen() {
     [conversation],
   );
 
+  // Lista invertida: data va de mas nuevo a mas viejo y el fondo es el
+  // offset 0. Esto ancla el chat al fondo sin depender de scrollToEnd (que
+  // con alturas variables se queda corto).
+  const data = useMemo(() => messages.slice().reverse(), [messages]);
+
+  // Al enviar/recibir saltamos al fondo (offset 0 es exacto en lista invertida).
   useEffect(() => {
     if (messages.length > 0) {
-      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
   }, [messages.length, sendMessage.isPending]);
 
@@ -200,47 +207,54 @@ export function ChatScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <FlatList
-          ref={listRef}
-          data={messages}
-          keyExtractor={(m) => String(m.id)}
-          renderItem={({ item }) => (
-            <Animated.View entering={FadeInDown.duration(180)}>
-              {item.kind === "proposal" && item.payload ? (
-                <View className="self-start max-w-[85%]">
-                  <ProposalCard
-                    message={item}
-                    isConfirming={confirmingId === item.id}
-                    isCancelling={cancellingId === item.id}
-                    onConfirm={handleConfirmProposal}
-                    onCancel={handleCancelProposal}
-                    onPressImage={setViewerUri}
-                  />
-                </View>
-              ) : (
-                <Bubble message={item} onPressImage={setViewerUri} />
-              )}
-            </Animated.View>
-          )}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: 20,
-            paddingBottom: 20,
-            gap: 12,
-          }}
-          ListEmptyComponent={
-            showEmptyState ? (
-              <EmptyState onPickSuggestion={handleSuggestion} />
-            ) : null
-          }
-          ListFooterComponent={
-            sendMessage.isPending ? <TypingBubble /> : null
-          }
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() =>
-            listRef.current?.scrollToEnd({ animated: true })
-          }
-        />
+        {showEmptyState ? (
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingHorizontal: 16,
+              paddingTop: 20,
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            <EmptyState onPickSuggestion={handleSuggestion} />
+          </ScrollView>
+        ) : (
+          <FlatList
+            ref={listRef}
+            data={data}
+            inverted
+            keyExtractor={(m) => String(m.id)}
+            renderItem={({ item }) => (
+              <Animated.View entering={FadeIn.duration(180)}>
+                {item.kind === "proposal" && item.payload ? (
+                  <View className="self-start max-w-[85%]">
+                    <ProposalCard
+                      message={item}
+                      isConfirming={confirmingId === item.id}
+                      isCancelling={cancellingId === item.id}
+                      onConfirm={handleConfirmProposal}
+                      onCancel={handleCancelProposal}
+                      onPressImage={setViewerUri}
+                    />
+                  </View>
+                ) : (
+                  <Bubble message={item} onPressImage={setViewerUri} />
+                )}
+              </Animated.View>
+            )}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingTop: 12,
+              paddingBottom: 20,
+              gap: 12,
+            }}
+            ListHeaderComponent={
+              sendMessage.isPending ? <TypingBubble /> : null
+            }
+            showsVerticalScrollIndicator={false}
+          />
+        )}
 
         {pendingImage && (
           <View
