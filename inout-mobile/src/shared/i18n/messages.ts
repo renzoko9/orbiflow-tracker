@@ -75,5 +75,19 @@ export const messages = {
       codeExpired: "El codigo expiro. Solicita uno nuevo.",
       genericError: "Error al cambiar la contraseña.",
     },
+    changePassword: {
+      header: "Cambiar contraseña",
+      introTitle: "Verifica que eres tu",
+      introSubtitle:
+        "Para proteger tu cuenta, te enviaremos un codigo de 6 digitos a tu correo",
+      introSubmit: "Enviar codigo",
+      verifyTitle: "Verifica el codigo",
+      verifySubtitle: "Ingresa el codigo de 6 digitos que enviamos a",
+      verifySubmit: "Verificar codigo",
+      successTitle: "¡Contraseña actualizada!",
+      successMessage: "Tu contraseña se cambio correctamente.",
+      successCta: "Listo",
+      genericError: "Error al cambiar la contraseña.",
+    },
   },
 } as const;

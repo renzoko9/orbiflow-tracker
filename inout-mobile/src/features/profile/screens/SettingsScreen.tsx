@@ -55,8 +55,8 @@ export function SettingsScreen() {
           <SettingsItem
             icon={<Lock size={ICON_SIZE} color={tokens.brand} />}
             title="Cambiar contraseña"
-            badge="Proximamente"
-            onPress={comingSoon}
+            subtitle="Verifica por correo y define una nueva"
+            onPress={() => router.push("/change-password")}
           />
         </SettingsSection>
 

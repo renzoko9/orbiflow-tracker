@@ -22,6 +22,7 @@ const PATHS = {
   forgotPassword: "/auth/forgot-password",
   verifyResetCode: "/auth/verify-reset-code",
   resetPassword: "/auth/reset-password",
+  changePasswordRequestCode: "/auth/change-password/request-code",
 } as const;
 
 /**
@@ -91,6 +92,14 @@ export async function resetPassword(
   const { data } = await httpClient.post<ResponseAPI>(
     PATHS.resetPassword,
     body,
+  );
+  return data;
+}
+
+export async function requestChangePasswordCode(): Promise<ResponseAPI> {
+  // Ruta autenticada: el http-client inyecta el JWT. No lleva body.
+  const { data } = await httpClient.post<ResponseAPI>(
+    PATHS.changePasswordRequestCode,
   );
   return data;
 }

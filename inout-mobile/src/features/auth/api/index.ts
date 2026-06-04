@@ -7,5 +7,6 @@ export {
   useForgotPassword,
   useVerifyResetCode,
   useResetPassword,
+  useRequestChangePasswordCode,
   useLogout,
 } from "./auth.queries";

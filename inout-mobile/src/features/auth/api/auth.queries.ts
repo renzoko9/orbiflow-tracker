@@ -54,6 +54,12 @@ export function useResetPassword() {
   });
 }
 
+export function useRequestChangePasswordCode() {
+  return useMutation({
+    mutationFn: authApi.requestChangePasswordCode,
+  });
+}
+
 export function useLogout() {
   return useMutation({
     mutationFn: authApi.logout,
