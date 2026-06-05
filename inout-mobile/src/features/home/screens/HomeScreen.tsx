@@ -8,18 +8,18 @@ import { useAuthStore } from "@/shared/auth";
 import { getCurrentMonthRange, getPreviousMonthRange } from "@/shared/utils";
 import { useAccounts } from "@/features/accounts";
 import { useTransactions } from "@/features/transactions";
+import { useInsightStats } from "@/features/insights";
 import { AccountMenuSheet } from "@/features/profile";
 import {
   BalanceOverviewCard,
+  HomeEmptyState,
   HomeHeader,
+  OttoChatBar,
   RecentTransactionsCard,
+  SpendingPaceCard,
   TopCategoriesCard,
 } from "../components";
 import { aggregateMonth, topExpenseCategories } from "../model";
-
-function Hairline() {
-  return <View className="h-px bg-border mx-5 mb-8" />;
-}
 
 export function HomeScreen() {
   const router = useRouter();
@@ -27,10 +27,15 @@ export function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const accountSheet = useRef<BottomSheetModal>(null);
 
+  const now = useMemo(() => new Date(), []);
   const currentMonthRange = useMemo(() => getCurrentMonthRange(), []);
   const previousMonthRange = useMemo(() => getPreviousMonthRange(), []);
 
   const { data: accounts = [] } = useAccounts();
+  const { data: stats } = useInsightStats({
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+  });
 
   const {
     data: transactions = [],
@@ -73,6 +78,23 @@ export function HomeScreen() {
     [transactions],
   );
 
+  const isEmpty = transactions.length === 0;
+  const showTopCategories =
+    topCategories.length > 0 && currentSummary.expenses > 0;
+  const pace =
+    stats?.isCurrentPeriod &&
+    stats.hasData &&
+    stats.projection &&
+    stats.daysElapsed != null &&
+    stats.daysInMonth != null
+      ? {
+          spent: stats.summary.expense,
+          projected: stats.projection.expense,
+          daysElapsed: stats.daysElapsed,
+          daysInMonth: stats.daysInMonth,
+        }
+      : null;
+
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
@@ -94,26 +116,42 @@ export function HomeScreen() {
           <View className="px-5">
             <Alert variant="error" message={error.message} />
           </View>
+        ) : isEmpty ? (
+          <HomeEmptyState
+            onChatPress={() => router.push("/chat")}
+            onManualPress={() => router.push("/transactions/create")}
+          />
         ) : (
           <>
-            <BalanceOverviewCard
-              totalBalance={totalBalance}
-              income={currentSummary.income}
-              expenses={currentSummary.expenses}
-              previousNet={previousSummary.net}
-            />
+            <View className="mx-5 mb-8">
+              <BalanceOverviewCard
+                totalBalance={totalBalance}
+                income={currentSummary.income}
+                expenses={currentSummary.expenses}
+                previousNet={previousSummary.net}
+              />
 
-            <TopCategoriesCard
-              categories={topCategories}
-              totalExpenses={currentSummary.expenses}
-            />
+              {pace ? (
+                <SpendingPaceCard
+                  {...pace}
+                  onPress={() => router.push("/(tabs)/insights")}
+                />
+              ) : null}
+            </View>
 
-            <Hairline />
+            {showTopCategories ? (
+              <TopCategoriesCard
+                categories={topCategories}
+                totalExpenses={currentSummary.expenses}
+              />
+            ) : null}
 
             <RecentTransactionsCard
               transactions={recentTransactions}
               onSeeAll={() => router.push("/transactions")}
             />
+
+            <OttoChatBar onPress={() => router.push("/chat")} />
           </>
         )}
       </ScrollView>

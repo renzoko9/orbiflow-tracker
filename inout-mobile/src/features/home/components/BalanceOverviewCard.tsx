@@ -27,7 +27,7 @@ export function BalanceOverviewCard({
   const isPositive = change >= 0;
 
   return (
-    <View className="rounded-2xl bg-brandStrong p-6 mx-5 mb-8">
+    <View className="rounded-2xl bg-brandStrong p-6 z-10">
       <Text
         className="text-[11px] font-sans-bold text-textInverse/60 uppercase"
         style={{ letterSpacing: 0.4 }}
