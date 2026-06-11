@@ -100,13 +100,13 @@ export function ChatScreen() {
     const result =
       source === "camera"
         ? await ImagePicker.launchCameraAsync({
-            mediaTypes: ["images"],
-            quality: 0.7,
-          })
+          mediaTypes: ["images"],
+          quality: 0.7,
+        })
         : await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
-            quality: 0.7,
-          });
+          mediaTypes: ["images"],
+          quality: 0.7,
+        });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
     try {
@@ -364,23 +364,21 @@ function Bubble({
       )}
       {message.content ? (
         <View
-          className={`rounded-2xl px-4 py-3 ${
-            isUser ? "bg-brand" : "bg-surface"
-          }`}
+          className={`rounded-2xl px-4 py-3 ${isUser ? "bg-brand" : "bg-surface"
+            }`}
           style={
             isUser
               ? { borderTopRightRadius: 4 }
               : {
-                  borderTopLeftRadius: 4,
-                  borderWidth: 1,
-                  borderColor: tokens.border,
-                }
+                borderTopLeftRadius: 4,
+                borderWidth: 1,
+                borderColor: tokens.border,
+              }
           }
         >
           <Text
-            className={`text-base leading-6 ${
-              isUser ? "text-onBrand" : "text-textPrimary"
-            }`}
+            className={`text-base leading-6 ${isUser ? "text-onBrand" : "text-textPrimary"
+              }`}
           >
             {message.content}
           </Text>
