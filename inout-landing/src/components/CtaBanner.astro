@@ -1,31 +1,48 @@
 ---
-import LogoMark from "./LogoMark.astro";
+
 ---
+
 <section id="descargar" class="cta-section">
   <div class="wrap">
     <div class="cta-banner reveal">
       <div class="cta-banner__ghost" aria-hidden="true">INOUT</div>
 
       <div class="cta-banner__mark">
-        <LogoMark />
+        <img src="/logo-mark.svg" alt="" class="cta-banner__logo" />
       </div>
 
       <div class="cta-banner__copy">
-        <span class="cta-banner__eyebrow">Aplicacion fintech &middot; IA + WhatsApp</span>
+        <span class="cta-banner__eyebrow"
+          >Aplicacion fintech &middot; IA + WhatsApp</span
+        >
         <h2>Tu dinero,<br />bajo control.</h2>
         <p>Registra ingresos y gastos en segundos. Sin complicaciones.</p>
       </div>
 
       <div class="cta-banner__buttons">
-        <a href="#" class="btn btn--ink">Descargar para iOS <i data-lucide="apple"></i></a>
-        <a href="#" class="btn btn--ink">Descargar para Android <i data-lucide="smartphone"></i></a>
+        <a href="#" class="store-badge" aria-label="Descargalo en la App Store">
+          <img class="store-badge__icon" src="/apple-logo.png" alt="" />
+          <span class="store-badge__text">
+            <span class="store-badge__small">Descargalo en la</span>
+            <span class="store-badge__name">App Store</span>
+          </span>
+        </a>
+        <a href="#" class="store-badge" aria-label="Descargalo en Google Play">
+          <img class="store-badge__icon" src="/google-play.png" alt="" />
+          <span class="store-badge__text">
+            <span class="store-badge__small">Descargalo en</span>
+            <span class="store-badge__name">Google Play</span>
+          </span>
+        </a>
       </div>
     </div>
   </div>
 </section>
 
 <style>
-  .cta-section { padding-top: 0; }
+  .cta-section {
+    padding-top: 0;
+  }
 
   .cta-banner {
     position: relative;
@@ -40,19 +57,20 @@ import LogoMark from "./LogoMark.astro";
     align-items: center;
   }
   .cta-banner__mark {
-    width: 88px;
-    height: 100px;
-    color: var(--color-ink);
-    background: transparent;
+    width: 116px;
+    height: 116px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    border-right: 1px solid rgba(14, 15, 12, 0.2);
-    padding-right: clamp(24px, 4vw, 56px);
+    background: var(--color-sage);
+    border-radius: 28px;
+    box-shadow: 0 16px 40px rgba(14, 15, 12, 0.18);
+    z-index: 2;
   }
-  .cta-banner__mark :global(svg) {
-    width: 64px;
-    height: 76px;
+  .cta-banner__logo {
+    width: 66px;
+    height: auto;
+    display: block;
   }
   .cta-banner__copy {
     z-index: 2;
@@ -87,6 +105,44 @@ import LogoMark from "./LogoMark.astro";
     position: relative;
     z-index: 2;
   }
+  .store-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #000000;
+    color: var(--color-white-pure);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 14px;
+    padding: 11px 22px;
+    transition:
+      transform 140ms var(--ease-out),
+      box-shadow 140ms var(--ease-out);
+  }
+  .store-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(14, 15, 12, 0.28);
+  }
+  .store-badge__icon {
+    height: 26px;
+    flex-shrink: 0;
+    display: block;
+  }
+  .store-badge__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.12;
+  }
+  .store-badge__small {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    opacity: 0.82;
+  }
+  .store-badge__name {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
   .cta-banner__ghost {
     position: absolute;
     right: -2%;
@@ -108,15 +164,13 @@ import LogoMark from "./LogoMark.astro";
       padding: 36px;
     }
     .cta-banner__mark {
-      border-right: 0;
-      border-bottom: 1px solid rgba(14, 15, 12, 0.2);
-      padding: 0 0 24px;
-      width: auto;
-      height: auto;
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
     }
-    .cta-banner__mark :global(svg) {
-      width: 48px;
-      height: 56px;
+    .cta-banner__logo {
+      width: 50px;
+      height: auto;
     }
   }
 </style>

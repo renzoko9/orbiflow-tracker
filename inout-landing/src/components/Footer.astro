@@ -1,12 +1,11 @@
 ---
-import LogoMark from "./LogoMark.astro";
 ---
 <footer class="foot">
   <div class="wrap">
     <div class="foot__top">
       <div>
         <div class="foot__brand">
-          <LogoMark />
+          <img src="/logo-gray.svg" alt="" class="foot__logo" />
           <span>INOUT</span>
         </div>
         <p class="foot__tag">Control de flujo de caja personal con asistente de IA integrado.</p>
@@ -68,10 +67,10 @@ import LogoMark from "./LogoMark.astro";
     font-size: 22px;
     letter-spacing: -0.01em;
   }
-  .foot__brand :global(svg) {
-    width: 28px;
+  .foot__logo {
     height: 32px;
-    color: var(--color-white-pure);
+    width: auto;
+    display: block;
   }
   .foot__tag {
     margin-top: 18px;

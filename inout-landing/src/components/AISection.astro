@@ -1,5 +1,4 @@
 ---
-import LogoMark from "./LogoMark.astro";
 ---
 <section class="ai-section" id="ia">
   <div class="wrap">
@@ -17,7 +16,7 @@ import LogoMark from "./LogoMark.astro";
       <article class="chat-card" aria-label="Ejemplo de chat con el asistente INOUT">
         <header class="chat-card__header">
           <div class="chat-card__avatar">
-            <LogoMark />
+            <img src="/logo-gray.svg" alt="" class="chat-card__logo" />
           </div>
           <div>
             <div class="chat-card__title">INOUT &middot; Asistente</div>
@@ -184,10 +183,10 @@ import LogoMark from "./LogoMark.astro";
     place-items: center;
     flex-shrink: 0;
   }
-  .chat-card__avatar :global(svg) {
-    width: 22px;
-    height: 26px;
-    color: var(--color-white-pure);
+  .chat-card__logo {
+    width: 24px;
+    height: auto;
+    display: block;
   }
   .chat-card__title {
     font-size: 15px;

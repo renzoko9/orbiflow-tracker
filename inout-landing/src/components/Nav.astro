@@ -1,10 +1,9 @@
 ---
-import LogoMark from "./LogoMark.astro";
 ---
 <header class="nav">
   <div class="wrap nav__inner">
     <a class="brand" href="#top" aria-label="INOUT">
-      <LogoMark />
+      <img src="/logo-mark.svg" alt="" class="brand__logo" />
       <span>INOUT</span>
     </a>
     <nav class="nav__links">
@@ -55,10 +54,10 @@ import LogoMark from "./LogoMark.astro";
     font-size: 18px;
     color: var(--color-white-pure);
   }
-  .brand :global(svg) {
-    width: 26px;
+  .brand__logo {
     height: 28px;
-    color: var(--color-white-pure);
+    width: auto;
+    display: block;
   }
   .nav__links {
     display: flex;
