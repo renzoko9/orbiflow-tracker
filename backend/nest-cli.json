@@ -8,6 +8,10 @@
       {
         "include": "common/providers/mail/templates/**/*.hbs",
         "outDir": "dist"
+      },
+      {
+        "include": "common/providers/mail/templates/**/*.png",
+        "outDir": "dist"
       }
     ]
   }

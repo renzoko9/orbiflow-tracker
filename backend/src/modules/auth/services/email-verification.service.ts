@@ -39,7 +39,7 @@ export class EmailVerificationService {
 
     await this.mailProvider.sendMail({
       to: email,
-      subject: 'Verifica tu cuenta - OrbiFlow',
+      subject: 'Verifica tu cuenta - INOUT',
       template: 'verify-email',
       context: { name, code, year: new Date().getFullYear() },
     });

@@ -34,7 +34,7 @@ export class PasswordResetService {
 
     await this.mailProvider.sendMail({
       to: email,
-      subject: 'Restablece tu contraseña - OrbiFlow',
+      subject: 'Restablece tu contraseña - INOUT',
       template: 'reset-password',
       context: { name, code, year: new Date().getFullYear() },
     });
