@@ -30,6 +30,9 @@ export class User {
   @Column({ name: 'avatar_url', type: 'text', nullable: true })
   avatarUrl: string | null;
 
+  @Column({ default: 'PEN' })
+  currency: string;
+
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
 

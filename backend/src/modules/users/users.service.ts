@@ -58,6 +58,7 @@ export class UsersService {
     const user = await this.findOne(id);
     if (data.name !== undefined) user.name = data.name;
     if (data.lastname !== undefined) user.lastname = data.lastname;
+    if (data.currency !== undefined) user.currency = data.currency;
     return this.userRepository.save(user);
   }
 
