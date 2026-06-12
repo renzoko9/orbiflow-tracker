@@ -10,7 +10,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldCheck } from "lucide-react-native";
-import { Alert, Button, FormField } from "@/shared/ui";
+import { Alert, Button, CodeField } from "@/shared/ui";
 import { ApiError } from "@/shared/api";
 import { messages } from "@/shared/i18n";
 import { useThemeTokens } from "@/shared/theme";
@@ -32,6 +32,7 @@ export function ChangePasswordCodeStep({ email, onCodeVerified }: Props) {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { isSubmitting },
   } = useForm<VerifyCodeFormValues>({
     resolver: zodResolver(verifyCodeSchema),
@@ -57,7 +58,10 @@ export function ChangePasswordCodeStep({ email, onCodeVerified }: Props) {
     setError(null);
     setSuccess(null);
     resend.mutate(undefined, {
-      onSuccess: (response) => setSuccess(response.message),
+      onSuccess: (response) => {
+        setSuccess(response.message);
+        reset({ code: "" });
+      },
       onError: (err) => {
         if (err instanceof ApiError) setError(err);
       },
@@ -93,15 +97,7 @@ export function ChangePasswordCodeStep({ email, onCodeVerified }: Props) {
         </View>
 
         <View className="gap-4">
-          <FormField
-            control={control}
-            name="code"
-            label="Codigo"
-            placeholder="000000"
-            keyboardType="number-pad"
-            autoCapitalize="none"
-            maxLength={6}
-          />
+          <CodeField control={control} name="code" label="Codigo" autoFocus />
           {error ? (
             <Alert variant="error" title={error.title} message={error.message} />
           ) : null}

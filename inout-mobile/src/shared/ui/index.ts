@@ -1,6 +1,7 @@
 export { Button } from "./Button";
 export { Input, type InputProps } from "./Input";
 export { FormField } from "./FormField";
+export { CodeField } from "./CodeField";
 export { Alert } from "./Alert";
 export { ScreenHeader } from "./ScreenHeader";
 export { Loading } from "./Loading";

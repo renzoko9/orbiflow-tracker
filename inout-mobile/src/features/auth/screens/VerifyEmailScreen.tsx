@@ -11,7 +11,7 @@ import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleCheck, Mail } from "lucide-react-native";
-import { Alert, Button, FormField } from "@/shared/ui";
+import { Alert, Button, CodeField } from "@/shared/ui";
 import { ApiError } from "@/shared/api";
 import { messages } from "@/shared/i18n";
 import { useThemeTokens } from "@/shared/theme";
@@ -43,6 +43,7 @@ export function VerifyEmailScreen() {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { isSubmitting },
   } = useForm<VerifyEmailFormValues>({
     resolver: zodResolver(verifyEmailSchema),
@@ -75,7 +76,10 @@ export function VerifyEmailScreen() {
     setError(null);
     setSuccess(null);
     resend.mutate(email, {
-      onSuccess: (response) => setSuccess(response.message),
+      onSuccess: (response) => {
+        setSuccess(response.message);
+        reset({ code: "" });
+      },
       onError: (err) => {
         if (err instanceof ApiError) setError(err);
         else
@@ -139,14 +143,11 @@ export function VerifyEmailScreen() {
         </View>
 
         <View className="gap-4">
-          <FormField
+          <CodeField
             control={control}
             name="code"
             label="Codigo de verificacion"
-            placeholder="000000"
-            keyboardType="number-pad"
-            autoCapitalize="none"
-            maxLength={6}
+            autoFocus
           />
 
           {error ? (
