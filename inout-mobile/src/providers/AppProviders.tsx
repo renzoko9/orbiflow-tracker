@@ -6,6 +6,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { setAuthFailureHandler, queryClient } from "@/shared/api";
 import { ThemeProvider } from "@/shared/theme";
 import { useAuthStore } from "@/shared/auth";
+import { DEFAULT_CURRENCY } from "@/shared/i18n";
 import { ToastHost, ErrorBoundary } from "@/shared/ui";
 
 interface AppProvidersProps {
@@ -20,6 +21,11 @@ interface AppProvidersProps {
  * entre el http-client y el auth store.
  */
 export function AppProviders({ children }: AppProvidersProps) {
+  // formatCurrency lee la moneda activa de forma no-reactiva. Remontamos el
+  // arbol de rutas con este key (debajo del QueryClientProvider para conservar
+  // la cache) para que un cambio de moneda reformatee todo el dinero a la vez.
+  const currency = useAuthStore((s) => s.user?.currency) ?? DEFAULT_CURRENCY;
+
   useEffect(() => {
     setAuthFailureHandler(() => {
       useAuthStore.getState().reset();
@@ -32,7 +38,7 @@ export function AppProviders({ children }: AppProvidersProps) {
         <ThemeProvider>
           <QueryClientProvider client={queryClient}>
             <BottomSheetModalProvider>
-              <ErrorBoundary>{children}</ErrorBoundary>
+              <ErrorBoundary key={currency}>{children}</ErrorBoundary>
               <ToastHost />
             </BottomSheetModalProvider>
           </QueryClientProvider>

@@ -10,6 +10,7 @@ export interface AuthUser {
   email: string;
   avatarUrl: string | null;
   emailVerified: boolean;
+  currency: string;
 }
 
 export interface AuthTokens {

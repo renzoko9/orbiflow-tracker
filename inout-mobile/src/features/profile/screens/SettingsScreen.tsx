@@ -22,6 +22,8 @@ import {
   showToast,
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
+import { getCurrency } from "@/shared/i18n";
+import { useAuthStore } from "@/shared/auth";
 
 const ICON_SIZE = 18;
 const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
@@ -29,6 +31,7 @@ const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 export function SettingsScreen() {
   const router = useRouter();
   const tokens = useThemeTokens();
+  const activeCurrency = getCurrency(useAuthStore((s) => s.user?.currency));
 
   const comingSoon = () =>
     showToast({
@@ -79,9 +82,8 @@ export function SettingsScreen() {
           <SettingsItem
             icon={<DollarSign size={ICON_SIZE} color={tokens.brand} />}
             title="Moneda"
-            subtitle="Sol peruano (PEN)"
-            badge="Proximamente"
-            onPress={comingSoon}
+            subtitle={`${activeCurrency.name} (${activeCurrency.code})`}
+            onPress={() => router.push("/currency")}
           />
           <SettingsItem
             icon={<Moon size={ICON_SIZE} color={tokens.brand} />}

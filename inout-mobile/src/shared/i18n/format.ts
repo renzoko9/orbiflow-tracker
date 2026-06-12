@@ -1,14 +1,26 @@
 import { APP_CONSTANTS } from "@/config";
+import { useAuthStore } from "@/shared/auth";
+import { getCurrency } from "./currencies";
 
 /**
  * Helpers de formato. Centralizados para que cuando agreguemos i18n real
  * o cambio de moneda no haya que tocar cada componente.
  */
 
-const numberFormatter = new Intl.NumberFormat(APP_CONSTANTS.locale, {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+// Formateadores de moneda por locale (la moneda activa puede variar en runtime).
+const currencyFormatters = new Map<string, Intl.NumberFormat>();
+
+function currencyFormatter(locale: string): Intl.NumberFormat {
+  let formatter = currencyFormatters.get(locale);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    currencyFormatters.set(locale, formatter);
+  }
+  return formatter;
+}
 
 const integerFormatter = new Intl.NumberFormat(APP_CONSTANTS.locale, {
   minimumFractionDigits: 0,
@@ -45,9 +57,12 @@ const headerDateFormatter = new Intl.DateTimeFormat(APP_CONSTANTS.locale, {
 });
 
 export function formatCurrency(amount: number | string): string {
+  const { symbol, locale } = getCurrency(
+    useAuthStore.getState().user?.currency,
+  );
   const value = typeof amount === "string" ? Number(amount) : amount;
-  if (Number.isNaN(value)) return `${APP_CONSTANTS.currencySymbol} 0.00`;
-  return `${APP_CONSTANTS.currencySymbol} ${numberFormatter.format(value)}`;
+  if (Number.isNaN(value)) return `${symbol} 0.00`;
+  return `${symbol} ${currencyFormatter(locale).format(value)}`;
 }
 
 export function formatNumber(value: number): string {

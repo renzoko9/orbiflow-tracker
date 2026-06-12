@@ -24,7 +24,8 @@ import {
   type IconSelectorItem,
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
-import { APP_CONSTANTS } from "@/config";
+import { getCurrency } from "@/shared/i18n";
+import { useAuthStore } from "@/shared/auth";
 import { useAccounts, type Account } from "@/features/accounts";
 import {
   TransactionType,
@@ -104,6 +105,9 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const router = useRouter();
   const tokens = useThemeTokens();
+  const currencySymbol = getCurrency(
+    useAuthStore((s) => s.user?.currency),
+  ).symbol;
   const isCreate = mode === "create";
 
   const initialKind: TransactionFormKind = initialValues?.kind ?? "movement";
@@ -258,7 +262,7 @@ export function TransactionForm({
             render={({ field: { onChange, value } }) => (
               <View className="flex-row gap-4 items-center justify-center">
                 <Text className="text-[40px] font-display-bold text-textPrimary">
-                  {APP_CONSTANTS.currencySymbol}
+                  {currencySymbol}
                 </Text>
                 <View>
                   <Text className="text-[48px] font-sans-bold text-textPrimary opacity-0">

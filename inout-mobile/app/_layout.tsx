@@ -44,6 +44,7 @@ export default function RootLayout() {
         <Stack.Screen name="transactions" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="currency" />
         <Stack.Screen name="change-password" />
         <Stack.Screen name="chat" />
       </Stack>

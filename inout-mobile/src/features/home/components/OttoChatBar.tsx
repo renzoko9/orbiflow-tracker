@@ -1,6 +1,8 @@
 import { Text, TouchableOpacity, View } from "react-native";
 import { ArrowRight, Sparkles } from "lucide-react-native";
 import { useThemeTokens } from "@/shared/theme";
+import { getCurrency } from "@/shared/i18n";
+import { useAuthStore } from "@/shared/auth";
 
 interface OttoChatBarProps {
   onPress: () => void;
@@ -12,6 +14,9 @@ interface OttoChatBarProps {
  */
 export function OttoChatBar({ onPress }: OttoChatBarProps) {
   const tokens = useThemeTokens();
+  const currencySymbol = getCurrency(
+    useAuthStore((s) => s.user?.currency),
+  ).symbol;
 
   return (
     <TouchableOpacity
@@ -33,7 +38,7 @@ export function OttoChatBar({ onPress }: OttoChatBarProps) {
           className="text-sm text-textSecondary mt-0.5"
           numberOfLines={1}
         >
-          Dile a Otto: “gaste S/20 en el almuerzo”
+          Dile a Otto: “gaste {currencySymbol}20 en el almuerzo”
         </Text>
       </View>
 

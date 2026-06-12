@@ -1,4 +1,5 @@
 import type { AuthUser } from "@/shared/auth";
+import { DEFAULT_CURRENCY } from "@/shared/i18n";
 import type { UserDto } from "./auth.dto";
 
 /**
@@ -13,5 +14,6 @@ export function userFromDto(dto: UserDto): AuthUser {
     email: dto.email,
     avatarUrl: dto.avatarUrl ?? null,
     emailVerified: dto.emailVerified ?? true,
+    currency: dto.currency ?? DEFAULT_CURRENCY,
   };
 }
