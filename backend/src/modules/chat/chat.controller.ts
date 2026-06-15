@@ -7,6 +7,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -16,6 +17,7 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { ChatService } from './chat.service';
 import { SendMessageRequest } from './dto/send-message.dto';
+import { GetConversationQuery } from './dto/get-conversation.query';
 import {
   ConversationResponse,
   ResolveProposalResponse,
@@ -45,8 +47,9 @@ export class ChatController {
   @Get('conversation')
   async getConversation(
     @User('id') userId: number,
+    @Query() query: GetConversationQuery,
   ): Promise<ConversationResponse> {
-    return this.chatService.getConversation(userId);
+    return this.chatService.getConversation(userId, query.before, query.limit);
   }
 
   @Delete('conversation')

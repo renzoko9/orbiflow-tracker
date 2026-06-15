@@ -14,6 +14,7 @@ export type ChatMessageKind = 'text' | 'proposal';
 export type ChatMessageStatus = 'pending' | 'confirmed' | 'cancelled';
 
 @Entity('chat_messages')
+@Index(['conversationId', 'id'])
 export class ChatMessage {
   @PrimaryGeneratedColumn()
   id: number;

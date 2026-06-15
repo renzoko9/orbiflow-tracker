@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { readFile } from 'fs/promises';
-import { In, IsNull } from 'typeorm';
+import { In, IsNull, LessThan } from 'typeorm';
 import {
   AccountRepository,
   CategoryRepository,
@@ -35,6 +35,7 @@ import {
 
 const HISTORY_LIMIT = 20;
 const MAX_TOOL_ITERATIONS = 5;
+const DEFAULT_PAGE_SIZE = 30;
 
 // Detecta mensajes con intencion clara de registrar un movimiento (numero +
 // verbo de gasto/ingreso, sin palabras interrogativas). Cuando matchea forzamos
@@ -69,13 +70,39 @@ export class ChatService {
     private readonly mapper: ChatMapper,
   ) {}
 
-  async getConversation(userId: number): Promise<ConversationResponse> {
+  async getConversation(
+    userId: number,
+    before?: number,
+    limit = DEFAULT_PAGE_SIZE,
+  ): Promise<ConversationResponse> {
     const conversation = await this.getOrCreateConversation(userId);
-    const messages = await this.messageRepo.find({
-      where: { conversation: { id: conversation.id } },
-      order: { createdAt: 'ASC' },
+
+    // Keyset pagination por id (descendente: del mas nuevo al mas viejo).
+    // Pedimos limit + 1 para saber si quedan mensajes mas viejos.
+    const rows = await this.messageRepo.find({
+      where: {
+        conversation: { id: conversation.id },
+        ...(before ? { id: LessThan(before) } : {}),
+      },
+      order: { id: 'DESC' },
+      take: limit + 1,
     });
-    return { messages: messages.map((m) => this.mapper.toResponse(m)) };
+
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+    // Devolvemos en orden ASC (viejo -> nuevo) dentro de la pagina.
+    page.reverse();
+
+    const nextCursor = hasMore && page.length > 0 ? page[0].id : null;
+    this.logger.log(
+      `chat:page user=${userId} before=${before ?? 'none'} limit=${limit} returned=${page.length} hasMore=${hasMore} nextCursor=${nextCursor ?? 'null'}`,
+    );
+
+    return {
+      messages: page.map((m) => this.mapper.toResponse(m)),
+      hasMore,
+      nextCursor,
+    };
   }
 
   async deleteConversation(userId: number): Promise<void> {
@@ -385,7 +412,7 @@ export class ChatService {
   ): Promise<LLMChatMessage[]> {
     const recent = await this.messageRepo.find({
       where: { conversation: { id: conversationId } },
-      order: { createdAt: 'DESC' },
+      order: { id: 'DESC' },
       take: HISTORY_LIMIT,
     });
     return recent.reverse().map<LLMChatMessage>((m) => ({

@@ -38,6 +38,8 @@ export interface SendMessageResponse {
 
 export interface ConversationResponse {
   messages: ChatMessageResponse[];
+  hasMore: boolean;
+  nextCursor: number | null;
 }
 
 export interface ResolveProposalResponse {
