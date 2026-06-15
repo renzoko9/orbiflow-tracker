@@ -33,7 +33,12 @@ export class AIInsight {
   @Column({ length: 7 })
   period: string;
 
-  @Column({ name: 'data_fingerprint', type: 'varchar', length: 64, nullable: true })
+  @Column({
+    name: 'data_fingerprint',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
   dataFingerprint: string | null;
 
   @Column({ type: 'jsonb' })

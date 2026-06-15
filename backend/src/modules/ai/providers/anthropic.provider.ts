@@ -81,9 +81,7 @@ export class AnthropicProvider implements LLMProvider, OnModuleInit {
     };
   }
 
-  private mapBlock(
-    block: LLMContentBlock,
-  ): Anthropic.ContentBlockParam | null {
+  private mapBlock(block: LLMContentBlock): Anthropic.ContentBlockParam | null {
     if (block.type === 'text') {
       return { type: 'text', text: block.text };
     }

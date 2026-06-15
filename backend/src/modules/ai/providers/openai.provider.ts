@@ -10,8 +10,7 @@ import {
   LLMResponse,
 } from './llm.provider';
 
-type OpenAIMessage =
-  OpenAI.Chat.Completions.ChatCompletionMessageParam;
+type OpenAIMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
 @Injectable()
 export class OpenAIProvider implements LLMProvider, OnModuleInit {

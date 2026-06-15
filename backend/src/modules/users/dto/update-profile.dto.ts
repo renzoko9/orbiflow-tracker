@@ -26,7 +26,11 @@ export class UpdateProfileRequest {
   @MinLength(2)
   lastname?: string;
 
-  @ApiProperty({ required: false, example: 'PEN', enum: SUPPORTED_CURRENCY_CODES })
+  @ApiProperty({
+    required: false,
+    example: 'PEN',
+    enum: SUPPORTED_CURRENCY_CODES,
+  })
   @IsOptional()
   @IsIn(SUPPORTED_CURRENCY_CODES)
   currency?: string;

@@ -79,7 +79,9 @@ export class UpdateTransactionRequest {
   @Transform(({ value }: { value: unknown }): unknown => {
     if (value === undefined || value === null) return value;
     const arr = Array.isArray(value) ? value : [value];
-    return arr.filter((v): v is string => typeof v === 'string' && v.length > 0);
+    return arr.filter(
+      (v): v is string => typeof v === 'string' && v.length > 0,
+    );
   })
   existingPhotos?: string[];
 }
