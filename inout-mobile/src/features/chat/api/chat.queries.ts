@@ -1,7 +1,8 @@
 import {
+  useInfiniteQuery,
   useMutation,
-  useQuery,
   useQueryClient,
+  type InfiniteData,
   type QueryClient,
 } from "@tanstack/react-query";
 import { accountKeys } from "@/features/accounts";
@@ -11,16 +12,47 @@ import { chatKeys } from "./chat.keys";
 import type {
   ChatActionTaken,
   ChatMessage,
-  Conversation,
+  ConversationPage,
   ResolveProposalResult,
   SendMessageInput,
   SendMessageResult,
 } from "../model";
 
+type ChatData = InfiniteData<ConversationPage>;
+
+// Modifica solo la pagina mas nueva (pages[0]), donde se agregan los mensajes
+// recientes. fetchNextPage anexa las paginas viejas al final del array.
+function updateFirstPage(
+  data: ChatData,
+  fn: (messages: ChatMessage[]) => ChatMessage[],
+): ChatData {
+  return {
+    ...data,
+    pages: data.pages.map((page, i) =>
+      i === 0 ? { ...page, messages: fn(page.messages) } : page,
+    ),
+  };
+}
+
+// Aplica fn a los mensajes de todas las paginas (para reemplazos/filtros por id,
+// que pueden caer en cualquier pagina).
+function updateAllPages(
+  data: ChatData,
+  fn: (messages: ChatMessage[]) => ChatMessage[],
+): ChatData {
+  return {
+    ...data,
+    pages: data.pages.map((page) => ({ ...page, messages: fn(page.messages) })),
+  };
+}
+
 export function useConversation() {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: chatKeys.conversation(),
-    queryFn: chatApi.getConversation,
+    queryFn: ({ pageParam }) => chatApi.getConversation(pageParam),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (last) =>
+      last.hasMore ? (last.nextCursor ?? undefined) : undefined,
     staleTime: 30 * 1000,
   });
 }
@@ -46,45 +78,45 @@ export function useSendMessage() {
         payload: null,
         status: null,
       };
-      queryClient.setQueryData<Conversation>(
-        chatKeys.conversation(),
-        (prev) => {
-          const previousMessages: ChatMessage[] = (prev?.messages ?? []).map(
-            (m) =>
-              m.kind === "proposal" && m.status === "pending"
-                ? { ...m, status: "cancelled" }
-                : m,
-          );
-          return { messages: [...previousMessages, tempMessage] };
-        },
-      );
+      queryClient.setQueryData<ChatData>(chatKeys.conversation(), (prev) => {
+        if (!prev) return prev;
+        const cancelled = updateAllPages(prev, (msgs) =>
+          msgs.map((m) =>
+            m.kind === "proposal" && m.status === "pending"
+              ? { ...m, status: "cancelled" as const }
+              : m,
+          ),
+        );
+        return updateFirstPage(cancelled, (msgs) => [...msgs, tempMessage]);
+      });
       return { tempId };
     },
     onError: (_err, _input, context) => {
       if (!context) return;
-      queryClient.setQueryData<Conversation>(
-        chatKeys.conversation(),
-        (prev) => {
-          if (!prev) return prev;
-          return {
-            messages: prev.messages.filter((m) => m.id !== context.tempId),
-          };
-        },
-      );
+      queryClient.setQueryData<ChatData>(chatKeys.conversation(), (prev) => {
+        if (!prev) return prev;
+        return updateAllPages(prev, (msgs) =>
+          msgs.filter((m) => m.id !== context.tempId),
+        );
+      });
     },
     onSuccess: (result, _input, context) => {
-      queryClient.setQueryData<Conversation>(
-        chatKeys.conversation(),
-        (prev) => {
-          const previousMessages = prev?.messages ?? [];
-          const replaced = previousMessages.map((m) =>
+      queryClient.setQueryData<ChatData>(chatKeys.conversation(), (prev) => {
+        if (!prev) return prev;
+        // Conservamos el id temporal en el mensaje del usuario para no remontar
+        // la burbuja (evita re-disparar la animacion de entrada).
+        const replaced = updateAllPages(prev, (msgs) =>
+          msgs.map((m) =>
             m.id === context?.tempId
               ? { ...result.userMessage, id: m.id }
               : m,
-          );
-          return { messages: [...replaced, result.assistantMessage] };
-        },
-      );
+          ),
+        );
+        return updateFirstPage(replaced, (msgs) => [
+          ...msgs,
+          result.assistantMessage,
+        ]);
+      });
 
       invalidateOnTransactionCreated(queryClient, result.actionsTaken);
     },
@@ -96,8 +128,9 @@ export function useDeleteConversation() {
   return useMutation({
     mutationFn: chatApi.deleteConversation,
     onSuccess: () => {
-      queryClient.setQueryData<Conversation>(chatKeys.conversation(), {
-        messages: [],
+      queryClient.setQueryData<ChatData>(chatKeys.conversation(), {
+        pages: [{ messages: [], hasMore: false, nextCursor: null }],
+        pageParams: [undefined],
       });
     },
   });
@@ -123,12 +156,12 @@ function applyResolveResult(
   queryClient: QueryClient,
   result: ResolveProposalResult,
 ) {
-  queryClient.setQueryData<Conversation>(chatKeys.conversation(), (prev) => {
-    const previousMessages = prev?.messages ?? [];
-    const updated = previousMessages.map((m) =>
-      m.id === result.proposal.id ? result.proposal : m,
+  queryClient.setQueryData<ChatData>(chatKeys.conversation(), (prev) => {
+    if (!prev) return prev;
+    const updated = updateAllPages(prev, (msgs) =>
+      msgs.map((m) => (m.id === result.proposal.id ? result.proposal : m)),
     );
-    return { messages: [...updated, result.followUp] };
+    return updateFirstPage(updated, (msgs) => [...msgs, result.followUp]);
   });
   invalidateOnTransactionCreated(queryClient, result.actionsTaken);
 }

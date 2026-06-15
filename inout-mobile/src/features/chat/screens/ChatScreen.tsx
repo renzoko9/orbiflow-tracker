@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -53,27 +54,32 @@ export function ChatScreen() {
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const attachMenuRef = useRef<BottomSheetModal>(null);
 
-  const { data: conversation } = useConversation();
+  const {
+    data: conversation,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useConversation();
   const sendMessage = useSendMessage();
   const confirmProposal = useConfirmProposal();
   const cancelProposal = useCancelProposal();
 
-  const messages = useMemo(
-    () => conversation?.messages ?? [],
+  // Lista invertida: data va de mas nuevo a mas viejo y el fondo es el offset 0.
+  // Cada pagina viene ASC; la invertimos y concatenamos en orden de paginas
+  // (pages[0] = la mas nueva), quedando todo en orden descendente.
+  const data = useMemo(
+    () => conversation?.pages.flatMap((p) => [...p.messages].reverse()) ?? [],
     [conversation],
   );
 
-  // Lista invertida: data va de mas nuevo a mas viejo y el fondo es el
-  // offset 0. Esto ancla el chat al fondo sin depender de scrollToEnd (que
-  // con alturas variables se queda corto).
-  const data = useMemo(() => messages.slice().reverse(), [messages]);
-
-  // Al enviar/recibir saltamos al fondo (offset 0 es exacto en lista invertida).
+  // Salta al fondo solo cuando llega un mensaje NUEVO (cambia el id mas reciente),
+  // no al paginar hacia atras (que solo agrega mensajes viejos al final).
+  const newestId = data[0]?.id;
   useEffect(() => {
-    if (messages.length > 0) {
+    if (newestId !== undefined) {
       listRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
-  }, [messages.length, sendMessage.isPending]);
+  }, [newestId, sendMessage.isPending]);
 
   function showError(err: unknown) {
     const message =
@@ -171,7 +177,7 @@ export function ChatScreen() {
       ? cancelProposal.variables
       : null;
 
-  const showEmptyState = messages.length === 0 && !sendMessage.isPending;
+  const showEmptyState = data.length === 0 && !sendMessage.isPending;
   const canSend =
     (text.trim().length > 0 || pendingImage !== null) && !sendMessage.isPending;
 
@@ -249,8 +255,19 @@ export function ChatScreen() {
               paddingBottom: 20,
               gap: 12,
             }}
+            onEndReached={() => {
+              if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+            }}
+            onEndReachedThreshold={0.3}
             ListHeaderComponent={
               sendMessage.isPending ? <TypingBubble /> : null
+            }
+            ListFooterComponent={
+              isFetchingNextPage ? (
+                <View className="items-center py-3">
+                  <ActivityIndicator color={tokens.textTertiary} />
+                </View>
+              ) : null
             }
             showsVerticalScrollIndicator={false}
           />

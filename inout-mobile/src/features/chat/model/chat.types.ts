@@ -43,8 +43,10 @@ export interface ResolveProposalResult {
   actionsTaken: ChatActionTaken[];
 }
 
-export interface Conversation {
+export interface ConversationPage {
   messages: ChatMessage[];
+  hasMore: boolean;
+  nextCursor: number | null;
 }
 
 export interface SendMessageInput {

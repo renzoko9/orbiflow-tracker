@@ -1,6 +1,6 @@
 import { httpClient } from "@/shared/api";
 import type {
-  Conversation,
+  ConversationPage,
   ResolveProposalResult,
   SendMessageInput,
   SendMessageResult,
@@ -11,8 +11,14 @@ const PATHS = {
   messages: "/chat/messages",
 } as const;
 
-export async function getConversation(): Promise<Conversation> {
-  const { data } = await httpClient.get<Conversation>(PATHS.conversation);
+const PAGE_SIZE = 30;
+
+export async function getConversation(
+  before?: number,
+): Promise<ConversationPage> {
+  const { data } = await httpClient.get<ConversationPage>(PATHS.conversation, {
+    params: { before, limit: PAGE_SIZE },
+  });
   return data;
 }
 
