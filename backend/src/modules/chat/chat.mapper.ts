@@ -4,17 +4,26 @@ import {
   ChatMessageResponse,
   ChatProposalPayload,
 } from './models/chat-response.model';
+import { StorageService } from '@/common/providers/storage/storage.service';
 
 @Injectable()
 export class ChatMapper {
-  toResponse(message: ChatMessage): ChatMessageResponse {
+  constructor(private readonly storage: StorageService) {}
+
+  async toResponse(message: ChatMessage): Promise<ChatMessageResponse> {
+    const payload = (message.payload as ChatProposalPayload | null) ?? null;
     return {
       id: message.id,
       role: message.role,
       content: message.content,
-      imageUrl: message.imageUrl,
+      imageUrl: await this.storage.signOrNull(message.imageUrl),
       kind: message.kind,
-      payload: (message.payload as ChatProposalPayload | null) ?? null,
+      payload: payload
+        ? {
+            ...payload,
+            photos: await this.storage.signMany(payload.photos ?? []),
+          }
+        : null,
       status: message.status,
       createdAt:
         message.createdAt instanceof Date

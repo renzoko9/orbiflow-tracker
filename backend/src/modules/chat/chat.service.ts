@@ -5,7 +5,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { readFile } from 'fs/promises';
 import { In, IsNull, LessThan } from 'typeorm';
 import {
   AccountRepository,
@@ -26,6 +25,7 @@ import type { LLMProvider } from '../ai/providers/llm.provider';
 import { CHAT_TOOLS, ChatToolsService } from './services/chat-tools.service';
 import { ChatMapper } from './chat.mapper';
 import { TransactionsService } from '../transactions/transactions.service';
+import { StorageService } from '@/common/providers/storage/storage.service';
 import {
   ChatProposalPayload,
   ConversationResponse,
@@ -68,6 +68,7 @@ export class ChatService {
     private readonly chatTools: ChatToolsService,
     private readonly transactionsService: TransactionsService,
     private readonly mapper: ChatMapper,
+    private readonly storage: StorageService,
   ) {}
 
   async getConversation(
@@ -99,7 +100,7 @@ export class ChatService {
     );
 
     return {
-      messages: page.map((m) => this.mapper.toResponse(m)),
+      messages: await Promise.all(page.map((m) => this.mapper.toResponse(m))),
       hasMore,
       nextCursor,
     };
@@ -128,10 +129,10 @@ export class ChatService {
     let imageUrl: string | null = null;
     let imageBase64: { data: string; mediaType: string } | null = null;
     if (image) {
-      imageUrl = `/uploads/chat/${image.filename}`;
-      const buffer = await readFile(image.path);
+      imageUrl = this.storage.buildKey('chat', image.originalname);
+      await this.storage.upload(imageUrl, image.buffer, image.mimetype);
       imageBase64 = {
-        data: buffer.toString('base64'),
+        data: image.buffer.toString('base64'),
         mediaType: image.mimetype,
       };
     }
@@ -240,9 +241,15 @@ export class ChatService {
         updatedAt: new Date(),
       });
 
+      const [userMessageResponse, assistantMessageResponse] = await Promise.all(
+        [
+          this.mapper.toResponse(userMessage),
+          this.mapper.toResponse(assistantMessage),
+        ],
+      );
       return {
-        userMessage: this.mapper.toResponse(userMessage),
-        assistantMessage: this.mapper.toResponse(assistantMessage),
+        userMessage: userMessageResponse,
+        assistantMessage: assistantMessageResponse,
         actionsTaken: [],
       };
     }
@@ -267,9 +274,13 @@ export class ChatService {
       updatedAt: new Date(),
     });
 
+    const [userMessageResponse, assistantMessageResponse] = await Promise.all([
+      this.mapper.toResponse(userMessage),
+      this.mapper.toResponse(assistantMessage),
+    ]);
     return {
-      userMessage: this.mapper.toResponse(userMessage),
-      assistantMessage: this.mapper.toResponse(assistantMessage),
+      userMessage: userMessageResponse,
+      assistantMessage: assistantMessageResponse,
       actionsTaken: [],
     };
   }
@@ -321,9 +332,13 @@ export class ChatService {
       updatedAt: new Date(),
     });
 
+    const [proposalResponse, followUpResponse] = await Promise.all([
+      this.mapper.toResponse(updatedProposal),
+      this.mapper.toResponse(followUp),
+    ]);
     return {
-      proposal: this.mapper.toResponse(updatedProposal),
-      followUp: this.mapper.toResponse(followUp),
+      proposal: proposalResponse,
+      followUp: followUpResponse,
       actionsTaken: [{ type: 'create_transaction', transactionId }],
     };
   }
@@ -353,9 +368,13 @@ export class ChatService {
       updatedAt: new Date(),
     });
 
+    const [proposalResponse, followUpResponse] = await Promise.all([
+      this.mapper.toResponse(updatedProposal),
+      this.mapper.toResponse(followUp),
+    ]);
     return {
-      proposal: this.mapper.toResponse(updatedProposal),
-      followUp: this.mapper.toResponse(followUp),
+      proposal: proposalResponse,
+      followUp: followUpResponse,
       actionsTaken: [],
     };
   }

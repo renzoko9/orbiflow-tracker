@@ -13,8 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { memoryStorage } from 'multer';
 import { ChatService } from './chat.service';
 import { SendMessageRequest } from './dto/send-message.dto';
 import { GetConversationQuery } from './dto/get-conversation.query';
@@ -28,16 +27,6 @@ import { User } from '@/common/decorators/user.decorator';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
-
-const chatImageStorage = diskStorage({
-  destination: join(process.cwd(), 'uploads', 'chat'),
-  filename: (_req, file, cb) => {
-    const ts = Date.now();
-    const rand = Math.round(Math.random() * 1e9);
-    const ext = extname(file.originalname).toLowerCase() || '.jpg';
-    cb(null, `chat-${ts}-${rand}${ext}`);
-  },
-});
 
 @Controller('chat')
 @UseGuards(JwtAccessGuard)
@@ -60,7 +49,7 @@ export class ChatController {
   @Post('messages')
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: chatImageStorage,
+      storage: memoryStorage(),
       limits: { fileSize: MAX_IMAGE_SIZE },
       fileFilter: (_req, file, cb) => {
         if (ALLOWED_IMAGE_MIMES.includes(file.mimetype)) {
