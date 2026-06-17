@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { typeOrmConfig } from './config/orm.config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { StorageModule } from './common/providers/storage/storage.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { APP_GUARD } from '@nestjs/core';
           : ['.env'],
     }),
     TypeOrmModule.forRoot(typeOrmConfig()),
+    StorageModule,
     ThrottlerModule.forRoot([
       {
         ttl: 60000, // Tiempo en milisegundos (60 segundos)

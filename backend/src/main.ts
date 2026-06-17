@@ -4,18 +4,12 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const port = Number(process.env.PORT) ?? 3000;
 
   app.setGlobalPrefix(process.env.CONTEXT || '');
-
-  // Servir archivos subidos por usuarios (avatares)
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
-    prefix: '/uploads/',
-  });
 
   // Configuración de CORS
   app.enableCors({
