@@ -69,6 +69,9 @@ export class StorageService implements OnModuleInit {
   }
 
   async upload(key: string, body: Buffer, contentType: string): Promise<void> {
+    this.logger.log(
+      `Subiendo a R2: key=${key} contentType=${contentType} bytes=${body.length}`,
+    );
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
@@ -77,15 +80,20 @@ export class StorageService implements OnModuleInit {
         ContentType: contentType,
       }),
     );
+    this.logger.log(`Subida completada a R2: key=${key}`);
   }
 
   async delete(key: string): Promise<void> {
+    this.logger.log(`Borrando de R2: key=${key}`);
     try {
       await this.client.send(
         new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
       );
-    } catch {
+    } catch (error) {
       // el objeto ya no existe o no se pudo borrar; no es critico
+      this.logger.warn(
+        `No se pudo borrar de R2: key=${key} (${(error as Error).message})`,
+      );
     }
   }
 
