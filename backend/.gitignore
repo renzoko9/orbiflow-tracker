@@ -47,15 +47,6 @@ lerna-debug.log*
 .temp
 .tmp
 
-# user uploads
-/uploads/*
-!/uploads/avatars/
-/uploads/avatars/*
-!/uploads/avatars/.gitkeep
-!/uploads/transactions/
-/uploads/transactions/*
-!/uploads/transactions/.gitkeep
-
 # Runtime data
 pids
 *.pid
