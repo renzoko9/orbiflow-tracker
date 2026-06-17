@@ -20,6 +20,8 @@ import { LoginTokensResponse } from '@/common/models/tokens.model';
 import { AccountsService } from '../accounts/accounts.service';
 import { EmailVerificationService } from './services/email-verification.service';
 import { PasswordResetService } from './services/password-reset.service';
+import { StorageService } from '@/common/providers/storage/storage.service';
+import { User } from '@/database/entities';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +33,16 @@ export class AuthService {
     private readonly accountsService: AccountsService,
     private readonly emailVerificationService: EmailVerificationService,
     private readonly passwordResetService: PasswordResetService,
+    private readonly storage: StorageService,
   ) {}
+
+  private async presentUser(user: User) {
+    const sanitized = JwtUtil.sanitizeUser(user);
+    return {
+      ...sanitized,
+      avatarUrl: await this.storage.signOrNull(sanitized.avatarUrl),
+    };
+  }
 
   async login(request: LoginRequest): Promise<ResponseAPI<LoginResponse>> {
     const { email, password } = request;
@@ -79,7 +90,7 @@ export class AuthService {
       responseType: ResponseTypeEnum.Success,
       message: 'Inicio de sesión exitoso',
       data: {
-        usuario: JwtUtil.sanitizeUser(user),
+        usuario: await this.presentUser(user),
         tokens,
       },
     };
@@ -129,7 +140,7 @@ export class AuthService {
     return {
       responseType: ResponseTypeEnum.Success,
       message: 'Usuario registrado. Revisa tu correo para verificar tu cuenta.',
-      data: { user: JwtUtil.sanitizeUser(newUser) },
+      data: { user: await this.presentUser(newUser) },
     };
   }
 

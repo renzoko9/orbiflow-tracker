@@ -11,46 +11,38 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { unlink } from 'fs/promises';
+import { memoryStorage } from 'multer';
 import { UsersService } from './users.service';
 import { UpdateProfileRequest } from './dto/update-profile.dto';
 import { JwtAccessGuard } from '@/common/jwt/access-token/jwt-access.guard';
 import { User } from '@/common/decorators/user.decorator';
 import { JwtUtil } from '@/common/utils/jwt.utils';
+import { StorageService } from '@/common/providers/storage/storage.service';
+import { User as UserEntity } from '@/database/entities';
 
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 const ALLOWED_AVATAR_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 
-const avatarStorage = diskStorage({
-  destination: join(process.cwd(), 'uploads', 'avatars'),
-  filename: (_req, file, cb) => {
-    const ts = Date.now();
-    const rand = Math.round(Math.random() * 1e9);
-    const ext = extname(file.originalname).toLowerCase() || '.jpg';
-    cb(null, `avatar-${ts}-${rand}${ext}`);
-  },
-});
-
-async function safeUnlinkAvatar(relativeUrl: string | null): Promise<void> {
-  if (!relativeUrl) return;
-  try {
-    await unlink(join(process.cwd(), relativeUrl));
-  } catch {
-    // archivo ya no existe o no se puede borrar; no es critico
-  }
-}
-
 @Controller('users')
 @UseGuards(JwtAccessGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly storage: StorageService,
+  ) {}
+
+  private async present(user: UserEntity) {
+    const sanitized = JwtUtil.sanitizeUser(user);
+    return {
+      ...sanitized,
+      avatarUrl: await this.storage.signOrNull(sanitized.avatarUrl),
+    };
+  }
 
   @Get('me')
   async getMe(@User('id') userId: number) {
     const user = await this.usersService.findOne(userId);
-    return JwtUtil.sanitizeUser(user);
+    return this.present(user);
   }
 
   @Patch('me')
@@ -59,13 +51,13 @@ export class UsersController {
     @Body() data: UpdateProfileRequest,
   ) {
     const user = await this.usersService.updateProfile(userId, data);
-    return JwtUtil.sanitizeUser(user);
+    return this.present(user);
   }
 
   @Post('me/avatar')
   @UseInterceptors(
     FileInterceptor('avatar', {
-      storage: avatarStorage,
+      storage: memoryStorage(),
       limits: { fileSize: MAX_AVATAR_SIZE },
       fileFilter: (_req, file, cb) => {
         if (ALLOWED_AVATAR_MIMES.includes(file.mimetype)) {
@@ -91,17 +83,19 @@ export class UsersController {
       });
     }
 
-    const newUrl = `/uploads/avatars/${file.filename}`;
+    const key = this.storage.buildKey('avatars', file.originalname);
+    await this.storage.upload(key, file.buffer, file.mimetype);
+
     const { user, previousAvatarUrl } = await this.usersService.updateAvatarUrl(
       userId,
-      newUrl,
+      key,
     );
 
-    if (previousAvatarUrl && previousAvatarUrl !== newUrl) {
-      await safeUnlinkAvatar(previousAvatarUrl);
+    if (previousAvatarUrl && previousAvatarUrl !== key) {
+      await this.storage.delete(previousAvatarUrl);
     }
 
-    return JwtUtil.sanitizeUser(user);
+    return this.present(user);
   }
 
   @Delete('me/avatar')
@@ -111,8 +105,10 @@ export class UsersController {
       null,
     );
 
-    await safeUnlinkAvatar(previousAvatarUrl);
+    if (previousAvatarUrl) {
+      await this.storage.delete(previousAvatarUrl);
+    }
 
-    return JwtUtil.sanitizeUser(user);
+    return this.present(user);
   }
 }
