@@ -9,10 +9,13 @@ import {
   TransferDetailResponse,
   TransferListResponse,
 } from './models/transaction-response.model';
+import { StorageService } from '@/common/providers/storage/storage.service';
 
 @Injectable()
 export class TransactionsMapper {
-  toResponse(transaction: Transaction): TransactionResponse {
+  constructor(private readonly storage: StorageService) {}
+
+  async toResponse(transaction: Transaction): Promise<TransactionResponse> {
     return {
       id: transaction.id,
       amount: Number(transaction.amount),
@@ -21,7 +24,7 @@ export class TransactionsMapper {
       date: this.formatDate(transaction.date),
       categoryName: transaction.category?.name || null,
       accountName: transaction.account.name,
-      photos: transaction.photos ?? [],
+      photos: await this.storage.signMany(transaction.photos ?? []),
     };
   }
 
@@ -96,7 +99,9 @@ export class TransactionsMapper {
     };
   }
 
-  toDetailResponse(transaction: Transaction): TransactionDetailResponse {
+  async toDetailResponse(
+    transaction: Transaction,
+  ): Promise<TransactionDetailResponse> {
     return {
       id: transaction.id,
       amount: Number(transaction.amount),
@@ -118,7 +123,7 @@ export class TransactionsMapper {
         balance: Number(transaction.account.balance),
       },
       transferGroupId: transaction.transferGroupId,
-      photos: transaction.photos ?? [],
+      photos: await this.storage.signMany(transaction.photos ?? []),
       createdAt:
         transaction.createdAt instanceof Date
           ? transaction.createdAt.toISOString()

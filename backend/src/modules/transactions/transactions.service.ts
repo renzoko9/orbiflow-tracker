@@ -6,8 +6,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { unlink } from 'fs/promises';
-import { join } from 'path';
 import {
   DataSource,
   EntityManager,
@@ -39,6 +37,7 @@ import {
   AccountMovementListResponse,
 } from './models/transaction-response.model';
 import { TransactionsMapper } from './transactions.mapper';
+import { StorageService } from '@/common/providers/storage/storage.service';
 
 interface TransferLegs {
   source: Transaction;
@@ -50,7 +49,7 @@ interface PhotosUpdateCommand {
   added: string[];
 }
 
-const TRANSACTION_UPLOAD_PREFIX = '/uploads/transactions/';
+const TRANSACTION_UPLOAD_PREFIX = 'transactions/';
 
 @Injectable()
 export class TransactionsService {
@@ -61,6 +60,7 @@ export class TransactionsService {
     private readonly accountRepository: AccountRepository,
     private readonly transactionsMapper: TransactionsMapper,
     private readonly dataSource: DataSource,
+    private readonly storage: StorageService,
   ) {}
 
   async create(
@@ -127,7 +127,7 @@ export class TransactionsService {
         responseType: ResponseTypeEnum.Success,
         title: 'Transacción registrada',
         message: 'El movimiento se guardó correctamente',
-        data: this.transactionsMapper.toResponse(full!),
+        data: await this.transactionsMapper.toResponse(full!),
       };
     } catch (err) {
       await this.cleanupUploadedPhotos(uploadedPhotos);
@@ -281,7 +281,7 @@ export class TransactionsService {
       });
     }
 
-    return this.transactionsMapper.toDetailResponse(transaction);
+    return await this.transactionsMapper.toDetailResponse(transaction);
   }
 
   async update(
@@ -325,9 +325,14 @@ export class TransactionsService {
     let nextPhotos: string[] | undefined;
     let photosToRemove: string[] = [];
     if (photosCmd) {
+      // El cliente reenvia las URLs prefirmadas que recibio; las volvemos a key
+      // para compararlas con lo guardado.
+      const retainKeys = photosCmd.retain.map((url) =>
+        this.storage.keyFromUrl(url),
+      );
       const currentSet = new Set(transaction.photos);
-      for (const url of photosCmd.retain) {
-        if (!currentSet.has(url)) {
+      for (const key of retainKeys) {
+        if (!currentSet.has(key)) {
           await this.cleanupUploadedPhotos(photosCmd.added);
           throw new BadRequestException({
             message:
@@ -335,15 +340,15 @@ export class TransactionsService {
           });
         }
       }
-      if (photosCmd.retain.length + photosCmd.added.length > 5) {
+      if (retainKeys.length + photosCmd.added.length > 5) {
         await this.cleanupUploadedPhotos(photosCmd.added);
         throw new BadRequestException({
           message: 'No se pueden adjuntar mas de 5 fotos por movimiento',
         });
       }
-      nextPhotos = [...photosCmd.retain, ...photosCmd.added];
+      nextPhotos = [...retainKeys, ...photosCmd.added];
       const finalSet = new Set(nextPhotos);
-      photosToRemove = transaction.photos.filter((url) => !finalSet.has(url));
+      photosToRemove = transaction.photos.filter((key) => !finalSet.has(key));
     }
 
     if (
@@ -429,7 +434,7 @@ export class TransactionsService {
       responseType: ResponseTypeEnum.Success,
       title: 'Transacción actualizada',
       message: 'El movimiento se actualizó correctamente',
-      data: this.transactionsMapper.toResponse(updated!),
+      data: await this.transactionsMapper.toResponse(updated!),
     };
   }
 
@@ -868,14 +873,10 @@ export class TransactionsService {
     return map;
   }
 
-  private async cleanupUploadedPhotos(urls: string[]): Promise<void> {
-    for (const url of urls) {
-      if (!url.startsWith(TRANSACTION_UPLOAD_PREFIX)) continue;
-      try {
-        await unlink(join(process.cwd(), url));
-      } catch {
-        // archivo no existe o no se pudo borrar; no es critico
-      }
+  private async cleanupUploadedPhotos(keys: string[]): Promise<void> {
+    for (const key of keys) {
+      if (!key.startsWith(TRANSACTION_UPLOAD_PREFIX)) continue;
+      await this.storage.delete(key);
     }
   }
 

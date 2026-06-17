@@ -64,8 +64,8 @@ export class CreateTransactionRequest {
 
   @ApiProperty({
     description:
-      'URLs de fotos adjuntas (uso interno). Los clientes HTTP suben archivos en el campo multipart "photos"; el controller construye estas URLs.',
-    example: ['/uploads/transactions/transaction-123.jpg'],
+      'Keys de objetos en storage (uso interno). Los clientes HTTP suben archivos en el campo multipart "photos"; el controller sube a R2 y guarda estas keys.',
+    example: ['transactions/123e4567-e89b-12d3-a456-426614174000.jpg'],
     required: false,
     type: [String],
   })

@@ -68,8 +68,8 @@ export class UpdateTransactionRequest {
 
   @ApiProperty({
     description:
-      'URLs de fotos existentes que se conservan. Las URLs no incluidas se eliminan; los archivos nuevos se suben como multipart en el campo "photos".',
-    example: ['/uploads/transactions/transaction-123.jpg'],
+      'Keys de fotos existentes que se conservan. Las keys no incluidas se eliminan; los archivos nuevos se suben como multipart en el campo "photos".',
+    example: ['transactions/123e4567-e89b-12d3-a456-426614174000.jpg'],
     required: false,
     type: [String],
   })
