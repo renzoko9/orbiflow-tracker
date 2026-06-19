@@ -13,7 +13,7 @@ import {
   ChatMessageRepository,
   UserRepository,
 } from '@Repositories';
-import { ChatConversation } from '@Entities';
+import { ChatChannel, ChatConversation, ChatMessage } from '@Entities';
 import { TransactionTypeEnum } from '@Enums';
 import {
   LLMChatMessage,
@@ -23,15 +23,14 @@ import {
 } from '../ai/providers/llm.provider';
 import type { LLMProvider } from '../ai/providers/llm.provider';
 import { CHAT_TOOLS, ChatToolsService } from './services/chat-tools.service';
-import { ChatMapper } from './chat.mapper';
 import { TransactionsService } from '../transactions/transactions.service';
 import { StorageService } from '@/common/providers/storage/storage.service';
+import { ChatProposalPayload } from './models/chat-response.model';
 import {
-  ChatProposalPayload,
-  ConversationResponse,
-  ResolveProposalResponse,
-  SendMessageResponse,
-} from './models/chat-response.model';
+  ChatExchange,
+  InboundImage,
+  ProposalResolution,
+} from './models/inbound-message.model';
 
 const HISTORY_LIMIT = 20;
 const MAX_TOOL_ITERATIONS = 5;
@@ -67,16 +66,20 @@ export class ChatService {
     private readonly categoryRepo: CategoryRepository,
     private readonly chatTools: ChatToolsService,
     private readonly transactionsService: TransactionsService,
-    private readonly mapper: ChatMapper,
     private readonly storage: StorageService,
   ) {}
 
-  async getConversation(
+  async getConversationMessages(
     userId: number,
+    channel: ChatChannel,
     before?: number,
     limit = DEFAULT_PAGE_SIZE,
-  ): Promise<ConversationResponse> {
-    const conversation = await this.getOrCreateConversation(userId);
+  ): Promise<{
+    messages: ChatMessage[];
+    hasMore: boolean;
+    nextCursor: number | null;
+  }> {
+    const conversation = await this.getOrCreateConversation(userId, channel);
 
     // Keyset pagination por id (descendente: del mas nuevo al mas viejo).
     // Pedimos limit + 1 para saber si quedan mensajes mas viejos.
@@ -99,16 +102,15 @@ export class ChatService {
       `chat:page user=${userId} before=${before ?? 'none'} limit=${limit} returned=${page.length} hasMore=${hasMore} nextCursor=${nextCursor ?? 'null'}`,
     );
 
-    return {
-      messages: await Promise.all(page.map((m) => this.mapper.toResponse(m))),
-      hasMore,
-      nextCursor,
-    };
+    return { messages: page, hasMore, nextCursor };
   }
 
-  async deleteConversation(userId: number): Promise<void> {
+  async deleteConversation(
+    userId: number,
+    channel: ChatChannel,
+  ): Promise<void> {
     const conversation = await this.conversationRepo.findOne({
-      where: { user: { id: userId } },
+      where: { user: { id: userId }, channel },
     });
     if (!conversation) return;
     await this.conversationRepo.remove(conversation);
@@ -116,9 +118,10 @@ export class ChatService {
 
   async sendMessage(
     userId: number,
+    channel: ChatChannel,
     content: string | undefined,
-    image?: Express.Multer.File,
-  ): Promise<SendMessageResponse> {
+    image?: InboundImage,
+  ): Promise<ChatExchange> {
     const trimmed = (content ?? '').trim();
     if (!trimmed && !image) {
       throw new BadRequestException({
@@ -129,15 +132,15 @@ export class ChatService {
     let imageUrl: string | null = null;
     let imageBase64: { data: string; mediaType: string } | null = null;
     if (image) {
-      imageUrl = this.storage.buildKey('chat', image.originalname);
-      await this.storage.upload(imageUrl, image.buffer, image.mimetype);
+      imageUrl = this.storage.buildKey('chat', image.originalName);
+      await this.storage.upload(imageUrl, image.buffer, image.mimeType);
       imageBase64 = {
         data: image.buffer.toString('base64'),
-        mediaType: image.mimetype,
+        mediaType: image.mimeType,
       };
     }
 
-    const conversation = await this.getOrCreateConversation(userId);
+    const conversation = await this.getOrCreateConversation(userId, channel);
 
     await this.autoCancelPendingProposals(conversation.id);
 
@@ -241,15 +244,9 @@ export class ChatService {
         updatedAt: new Date(),
       });
 
-      const [userMessageResponse, assistantMessageResponse] = await Promise.all(
-        [
-          this.mapper.toResponse(userMessage),
-          this.mapper.toResponse(assistantMessage),
-        ],
-      );
       return {
-        userMessage: userMessageResponse,
-        assistantMessage: assistantMessageResponse,
+        userMessage,
+        assistantMessage,
         actionsTaken: [],
       };
     }
@@ -274,13 +271,9 @@ export class ChatService {
       updatedAt: new Date(),
     });
 
-    const [userMessageResponse, assistantMessageResponse] = await Promise.all([
-      this.mapper.toResponse(userMessage),
-      this.mapper.toResponse(assistantMessage),
-    ]);
     return {
-      userMessage: userMessageResponse,
-      assistantMessage: assistantMessageResponse,
+      userMessage,
+      assistantMessage,
       actionsTaken: [],
     };
   }
@@ -288,7 +281,7 @@ export class ChatService {
   async confirmProposal(
     userId: number,
     messageId: number,
-  ): Promise<ResolveProposalResponse> {
+  ): Promise<ProposalResolution> {
     const message = await this.getPendingProposal(userId, messageId);
     const payload = message.payload as unknown as ChatProposalPayload;
 
@@ -332,13 +325,9 @@ export class ChatService {
       updatedAt: new Date(),
     });
 
-    const [proposalResponse, followUpResponse] = await Promise.all([
-      this.mapper.toResponse(updatedProposal),
-      this.mapper.toResponse(followUp),
-    ]);
     return {
-      proposal: proposalResponse,
-      followUp: followUpResponse,
+      proposal: updatedProposal,
+      followUp,
       actionsTaken: [{ type: 'create_transaction', transactionId }],
     };
   }
@@ -346,7 +335,7 @@ export class ChatService {
   async cancelProposal(
     userId: number,
     messageId: number,
-  ): Promise<ResolveProposalResponse> {
+  ): Promise<ProposalResolution> {
     const message = await this.getPendingProposal(userId, messageId);
 
     message.status = 'cancelled';
@@ -368,13 +357,9 @@ export class ChatService {
       updatedAt: new Date(),
     });
 
-    const [proposalResponse, followUpResponse] = await Promise.all([
-      this.mapper.toResponse(updatedProposal),
-      this.mapper.toResponse(followUp),
-    ]);
     return {
-      proposal: proposalResponse,
-      followUp: followUpResponse,
+      proposal: updatedProposal,
+      followUp,
       actionsTaken: [],
     };
   }
@@ -540,13 +525,14 @@ export class ChatService {
 
   private async getOrCreateConversation(
     userId: number,
+    channel: ChatChannel,
   ): Promise<ChatConversation> {
     let conversation = await this.conversationRepo.findOne({
-      where: { user: { id: userId } },
+      where: { user: { id: userId }, channel },
     });
     if (!conversation) {
       conversation = await this.conversationRepo.save(
-        this.conversationRepo.create({ user: { id: userId } }),
+        this.conversationRepo.create({ user: { id: userId }, channel }),
       );
     }
     return conversation;
