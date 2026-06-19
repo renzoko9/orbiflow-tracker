@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { typeOrmConfig } from './config/orm.config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { StorageModule } from './common/providers/storage/storage.module';
 
@@ -17,6 +18,7 @@ import { StorageModule } from './common/providers/storage/storage.module';
           : ['.env'],
     }),
     TypeOrmModule.forRoot(typeOrmConfig()),
+    ScheduleModule.forRoot(),
     StorageModule,
     ThrottlerModule.forRoot([
       {

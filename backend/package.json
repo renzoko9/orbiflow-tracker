@@ -29,7 +29,8 @@
     "migration:generate": "npm run typeorm -- migration:generate -d src/config/data-source.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/config/data-source.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/config/data-source.ts",
-    "migrate:uploads": "ts-node -r tsconfig-paths/register src/scripts/migrate-uploads-to-r2.ts"
+    "migrate:uploads": "ts-node -r tsconfig-paths/register src/scripts/migrate-uploads-to-r2.ts",
+    "prune:chat": "ts-node -r tsconfig-paths/register src/scripts/prune-chat.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",
@@ -42,6 +43,7 @@
     "@nestjs/jwt": "^11.0.1",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^6.1.3",
     "@nestjs/swagger": "^11.2.3",
     "@nestjs/throttler": "^6.5.0",
     "@nestjs/typeorm": "^11.0.0",

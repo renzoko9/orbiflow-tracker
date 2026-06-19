@@ -14,6 +14,7 @@ import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { ChatMapper } from './chat.mapper';
 import { ChatToolsService } from './services/chat-tools.service';
+import { ChatRetentionService } from './services/chat-retention.service';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ChatToolsService } from './services/chat-tools.service';
   providers: [
     ChatService,
     ChatToolsService,
+    ChatRetentionService,
     ChatMapper,
     ChatConversationRepository,
     ChatMessageRepository,
