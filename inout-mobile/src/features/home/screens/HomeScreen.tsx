@@ -27,9 +27,13 @@ export function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const accountSheet = useRef<BottomSheetModal>(null);
 
-  const now = useMemo(() => new Date(), []);
-  const currentMonthRange = useMemo(() => getCurrentMonthRange(), []);
-  const previousMonthRange = useMemo(() => getPreviousMonthRange(), []);
+  // No memoizar con []: congelaria el rango y un movimiento creado tras cruzar
+  // la medianoche quedaria fuera del home. Son calculos triviales; se recalculan
+  // por render y los memos de abajo dependen de los strings de fecha (estables
+  // dentro del dia), asi que no provocan recomputos ni refetch innecesarios.
+  const now = new Date();
+  const currentMonthRange = getCurrentMonthRange();
+  const previousMonthRange = getPreviousMonthRange();
 
   const { data: accounts = [] } = useAccounts();
   const { data: stats } = useInsightStats({
