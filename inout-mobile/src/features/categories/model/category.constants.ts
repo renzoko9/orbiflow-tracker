@@ -30,10 +30,10 @@ export const CATEGORY_ICONS = [
 ] as const;
 
 export const CATEGORY_COLORS = [
-  "#1B2A5B",
+  "#324FAD",
   "#2C8E96",
   "#2BB673",
-  "#FFB347",
+  "#BE8E34",
   "#C9462C",
   "#9B75C7",
   "#7CA5D4",
@@ -45,4 +45,4 @@ export const CATEGORY_COLORS = [
 ] as const;
 
 export const DEFAULT_CATEGORY_ICON = "shopping-cart";
-export const DEFAULT_CATEGORY_COLOR = "#1B2A5B";
+export const DEFAULT_CATEGORY_COLOR = "#324FAD";
