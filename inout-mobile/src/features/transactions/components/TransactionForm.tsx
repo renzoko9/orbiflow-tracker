@@ -25,6 +25,7 @@ import {
 } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { getCurrency } from "@/shared/i18n";
+import { toDateKey } from "@/shared/utils";
 import { useAuthStore } from "@/shared/auth";
 import { useAccounts, type Account } from "@/features/accounts";
 import {
@@ -123,7 +124,7 @@ export function TransactionForm({
     defaultValues: {
       kind: initialKind,
       type: initialValues?.type ?? TransactionType.EXPENSE,
-      date: initialValues?.date ?? new Date().toISOString(),
+      date: initialValues?.date ?? toDateKey(new Date()),
       amount: initialValues?.amount as number,
       accountId: initialValues?.accountId,
       categoryId: initialValues?.categoryId,

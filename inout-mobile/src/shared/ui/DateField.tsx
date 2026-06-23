@@ -6,6 +6,7 @@ import DateTimePicker, {
 import { Calendar } from "lucide-react-native";
 import { useThemeTokens } from "@/shared/theme";
 import { formatDate } from "@/shared/i18n";
+import { toDateKey } from "@/shared/utils";
 import {
   BottomSheet,
   BottomSheetView,
@@ -14,9 +15,9 @@ import {
 import { SelectField } from "./SelectField";
 
 interface DateFieldProps {
-  /** ISO string */
+  /** Clave de fecha local "YYYY-MM-DD" */
   value: string;
-  onChange: (iso: string) => void;
+  onChange: (dateKey: string) => void;
   error?: string;
   maximumDate?: Date;
   minimumDate?: Date;
@@ -34,7 +35,9 @@ export function DateField({
   const [androidOpen, setAndroidOpen] = useState(false);
   const [tempDate, setTempDate] = useState<Date | null>(null);
 
-  const date = value ? new Date(value) : new Date();
+  // value es "YYYY-MM-DD" local; se parsea como medianoche local (no UTC)
+  // para que el display no se corra un dia en zonas UTC-.
+  const date = value ? new Date(value + "T00:00:00") : new Date();
 
   function openPicker() {
     if (Platform.OS === "ios") {
@@ -48,7 +51,7 @@ export function DateField({
   function handleAndroidChange(event: DateTimePickerEvent, selected?: Date) {
     setAndroidOpen(false);
     if (event.type === "set" && selected) {
-      onChange(selected.toISOString());
+      onChange(toDateKey(selected));
     }
   }
 
@@ -57,7 +60,7 @@ export function DateField({
   }
 
   function confirmIos() {
-    if (tempDate) onChange(tempDate.toISOString());
+    if (tempDate) onChange(toDateKey(tempDate));
     sheetRef.current?.dismiss();
   }
 

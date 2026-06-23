@@ -5,6 +5,7 @@ import { Search } from "lucide-react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Alert, Input, Loading } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
+import { toDateKey } from "@/shared/utils";
 import { useCategories } from "@/features/categories";
 import {
   TransactionFilters,
@@ -35,7 +36,7 @@ function getDateRange(range: string): {
   if (range === "all") return {};
 
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = toDateKey(today);
 
   switch (range) {
     case "today":
@@ -44,14 +45,14 @@ function getDateRange(range: string): {
       const startOfWeek = new Date(today);
       startOfWeek.setDate(today.getDate() - today.getDay());
       return {
-        dateFrom: startOfWeek.toISOString().split("T")[0],
+        dateFrom: toDateKey(startOfWeek),
         dateTo: todayStr,
       };
     }
     case "month": {
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       return {
-        dateFrom: startOfMonth.toISOString().split("T")[0],
+        dateFrom: toDateKey(startOfMonth),
         dateTo: todayStr,
       };
     }
