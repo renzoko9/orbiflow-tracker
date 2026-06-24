@@ -21,6 +21,6 @@ export interface ChatExchange {
 
 export interface ProposalResolution {
   proposal: ChatMessage;
-  followUp: ChatMessage;
+  followUp: ChatMessage | null;
   actionsTaken: ChatActionTaken[];
 }

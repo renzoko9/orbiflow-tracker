@@ -44,6 +44,6 @@ export interface ConversationResponse {
 
 export interface ResolveProposalResponse {
   proposal: ChatMessageResponse;
-  followUp: ChatMessageResponse;
+  followUp: ChatMessageResponse | null;
   actionsTaken: ChatActionTaken[];
 }

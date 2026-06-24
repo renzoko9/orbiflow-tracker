@@ -309,25 +309,15 @@ export class ChatService {
     } as unknown as Record<string, unknown>;
     const updatedProposal = await this.messageRepo.save(message);
 
-    const followUp = await this.messageRepo.save(
-      this.messageRepo.create({
-        conversation: { id: message.conversationId },
-        role: 'assistant',
-        content: 'Listo, ya quedo registrado ✅ ¿Algo mas?',
-        imageUrl: null,
-        kind: 'text',
-        payload: null,
-        status: null,
-      }),
-    );
-
+    // La tarjeta confirmada de la UI ya comunica el exito; no mandamos un
+    // mensaje de texto redundante ("ya quedo registrado").
     await this.conversationRepo.update(message.conversationId, {
       updatedAt: new Date(),
     });
 
     return {
       proposal: updatedProposal,
-      followUp,
+      followUp: null,
       actionsTaken: [{ type: 'create_transaction', transactionId }],
     };
   }

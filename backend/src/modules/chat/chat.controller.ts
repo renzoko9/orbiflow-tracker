@@ -141,7 +141,7 @@ export class ChatController {
   ): Promise<ResolveProposalResponse> {
     const [proposal, followUp] = await Promise.all([
       this.mapper.toResponse(result.proposal),
-      this.mapper.toResponse(result.followUp),
+      result.followUp ? this.mapper.toResponse(result.followUp) : null,
     ]);
     return { proposal, followUp, actionsTaken: result.actionsTaken };
   }
