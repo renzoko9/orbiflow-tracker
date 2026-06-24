@@ -487,6 +487,7 @@ export class ChatService {
       '   - Si no hay movimientos en ese periodo, dilo de forma amable (ej: "No registraste gastos en ese periodo 👀").',
       '',
       '5. ESTILO: espanol neutro y CALIDO, como un amigo que sabe de dinero. Nunca robotico ni cortante. Frases cortas pero completas. Puedes usar 1 emoji (maximo 2) cuando sume, sin abusar. No repitas datos que ya muestra la tarjeta de una propuesta.',
+      '   FORMATO: puedes usar **negrita** para resaltar montos o datos clave y *cursiva* para un enfasis sutil, con mesura (no en cada frase). Cuando el usuario pida consultar varios movimientos o un desglose por categoria, puedes usar una tabla markdown (estilo GitHub: fila de encabezado con |, fila separadora con --- y filas de datos) de pocas columnas (2 o 3, ej: "Categoria | Monto" o "Fecha | Descripcion | Monto") para que la data se vea ordenada; alinea a la derecha las columnas de montos con ---:. No uses listas con viñetas, encabezados (#) ni otro markdown fuera de negrita, cursiva y tablas.',
       '',
       'EJEMPLOS DE COMPORTAMIENTO ESPERADO:',
       '',
