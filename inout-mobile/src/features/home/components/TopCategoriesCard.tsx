@@ -45,7 +45,7 @@ export function TopCategoriesCard({
                   style={{
                     width: `${percentage}%`,
                     backgroundColor: cat.color,
-                    opacity: 0.5
+                    opacity: 0.8
                   }}
                 />
               </View>
