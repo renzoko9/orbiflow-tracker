@@ -18,7 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
-import { ArrowDown, Plus, Send, Sparkles, X } from "lucide-react-native";
+import { ArrowDown, Bot, Plus, Send, X } from "lucide-react-native";
 import { ScreenHeader, showToast, type BottomSheetModal } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
 import { formatTime } from "@/shared/i18n";
@@ -204,19 +204,44 @@ export function ChatScreen() {
         titleAlign="left"
         title={
           <View className="flex-row items-center gap-3">
-            <View
-              className="items-center justify-center rounded-full bg-brand"
-              style={{ width: 36, height: 36 }}
-            >
-              <Sparkles size={18} color={tokens.onBrand} strokeWidth={2.2} />
+            <View style={{ width: 38, height: 38 }}>
+              <View
+                className="items-center justify-center rounded-full bg-brand"
+                style={{ width: 38, height: 38 }}
+              >
+                <Bot size={20} color={tokens.onBrand} strokeWidth={2.2} />
+              </View>
+              <View
+                className="absolute bottom-0 right-0 rounded-full"
+                style={{
+                  width: 11,
+                  height: 11,
+                  backgroundColor: tokens.success,
+                  borderWidth: 2,
+                  borderColor: tokens.background,
+                }}
+              />
             </View>
             <View>
               <Text className="text-base font-sans-bold text-textPrimary">
                 Otto
               </Text>
-              <Text className="text-xs text-textTertiary">
-                Asistente financiero
-              </Text>
+              <View className="flex-row items-center gap-1.5">
+                <View
+                  className="rounded-full"
+                  style={{
+                    width: 6,
+                    height: 6,
+                    backgroundColor: tokens.success,
+                  }}
+                />
+                <Text className="text-xs" style={{ color: tokens.success }}>
+                  En linea
+                </Text>
+                <Text className="text-xs text-textTertiary">
+                  · Asistente financiero
+                </Text>
+              </View>
             </View>
           </View>
         }
@@ -348,7 +373,7 @@ export function ChatScreen() {
           >
             <Plus size={22} color={tokens.textSecondary} strokeWidth={2.2} />
           </Pressable>
-          <View className="flex-1 px-4 py-2 rounded-2xl bg-surfaceMuted">
+          <View className="flex-1 px-4 py-2 rounded-xl bg-surfaceMuted">
             <TextInput
               value={text}
               onChangeText={setText}

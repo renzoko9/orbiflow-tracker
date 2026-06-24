@@ -161,7 +161,12 @@ function applyResolveResult(
     const updated = updateAllPages(prev, (msgs) =>
       msgs.map((m) => (m.id === result.proposal.id ? result.proposal : m)),
     );
-    return updateFirstPage(updated, (msgs) => [...msgs, result.followUp]);
+    // Al confirmar no hay followUp (la tarjeta ya comunica el exito); al
+    // cancelar si llega un mensaje de cierre.
+    const followUp = result.followUp;
+    return followUp
+      ? updateFirstPage(updated, (msgs) => [...msgs, followUp])
+      : updated;
   });
   invalidateOnTransactionCreated(queryClient, result.actionsTaken);
 }

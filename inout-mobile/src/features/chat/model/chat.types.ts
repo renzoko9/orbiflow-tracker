@@ -39,7 +39,7 @@ export interface SendMessageResult {
 
 export interface ResolveProposalResult {
   proposal: ChatMessage;
-  followUp: ChatMessage;
+  followUp: ChatMessage | null;
   actionsTaken: ChatActionTaken[];
 }
 
