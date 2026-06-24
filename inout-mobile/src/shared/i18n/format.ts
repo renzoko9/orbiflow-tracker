@@ -56,6 +56,11 @@ const headerDateFormatter = new Intl.DateTimeFormat(APP_CONSTANTS.locale, {
   month: "long",
 });
 
+const timeFormatter = new Intl.DateTimeFormat(APP_CONSTANTS.locale, {
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 export function formatCurrency(amount: number | string): string {
   const { symbol, locale } = getCurrency(
     useAuthStore.getState().user?.currency,
@@ -81,6 +86,12 @@ export function formatDate(input: string | Date): string {
 export function formatShortDate(input: string | Date): string {
   const d = typeof input === "string" ? new Date(input) : input;
   return shortDateFormatter.format(d);
+}
+
+/** "14:30": hora y minuto local. Pensado para timestamps del chat. */
+export function formatTime(input: string | Date): string {
+  const d = typeof input === "string" ? new Date(input) : input;
+  return timeFormatter.format(d);
 }
 
 export function formatMonthName(input: string | Date): string {

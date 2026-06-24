@@ -3,6 +3,8 @@ import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -11,14 +13,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
-import { Plus, Send, Sparkles, X } from "lucide-react-native";
+import { ArrowDown, Plus, Send, Sparkles, X } from "lucide-react-native";
 import { ScreenHeader, showToast, type BottomSheetModal } from "@/shared/ui";
 import { useThemeTokens } from "@/shared/theme";
+import { formatTime } from "@/shared/i18n";
 import { normalizeImageToJpeg, resolveAvatarUrl } from "@/shared/utils";
 import { ApiError } from "@/shared/api";
 import {
@@ -51,6 +54,7 @@ export function ChatScreen() {
   const [text, setText] = useState("");
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const [viewerUri, setViewerUri] = useState<string | null>(null);
+  const [showScrollDown, setShowScrollDown] = useState(false);
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const attachMenuRef = useRef<BottomSheetModal>(null);
 
@@ -80,6 +84,16 @@ export function ChatScreen() {
       listRef.current?.scrollToOffset({ offset: 0, animated: true });
     }
   }, [newestId, sendMessage.isPending]);
+
+  function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    // Lista invertida: y crece a medida que el usuario sube. Mostramos el boton
+    // cuando se aleja del fondo (offset 0).
+    setShowScrollDown(e.nativeEvent.contentOffset.y > 400);
+  }
+
+  function scrollToBottom() {
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }
 
   function showError(err: unknown) {
     const message =
@@ -255,6 +269,8 @@ export function ChatScreen() {
               paddingBottom: 20,
               gap: 12,
             }}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) fetchNextPage();
             }}
@@ -272,6 +288,31 @@ export function ChatScreen() {
             showsVerticalScrollIndicator={false}
           />
         )}
+
+        {showScrollDown && !showEmptyState ? (
+          <Animated.View
+            entering={FadeIn.duration(150)}
+            exiting={FadeOut.duration(150)}
+            className="absolute right-4"
+            style={{ bottom: 72 }}
+          >
+            <Pressable
+              onPress={scrollToBottom}
+              className="items-center justify-center rounded-full bg-surface opacity-80"
+              style={{
+                width: 40,
+                height: 40,
+                shadowColor: "#000",
+                shadowOpacity: 0.12,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 2 },
+                elevation: 3,
+              }}
+            >
+              <ArrowDown size={20} color={tokens.textSecondary} strokeWidth={2.2} />
+            </Pressable>
+          </Animated.View>
+        ) : null}
 
         {pendingImage && (
           <View
@@ -349,6 +390,155 @@ export function ChatScreen() {
   );
 }
 
+// Markdown inline minimo (solo **negrita** y *cursiva*/_cursiva_) para las
+// respuestas de Otto. Devuelve nodos que viven dentro del <Text> de la burbuja,
+// asi no rompe el truco de la hora inline. La negrita usa la familia real
+// (Inter no hace bold sintetico en Android); la cursiva usa fontStyle.
+function renderInlineMarkdown(text: string): React.ReactNode[] {
+  return text.split(/(\*\*[^*]+\*\*)/g).flatMap((part, i) => {
+    const bold = /^\*\*([^*]+)\*\*$/.exec(part);
+    if (bold) {
+      return (
+        <Text key={`b${i}`} style={{ fontFamily: "Inter_700Bold" }}>
+          {renderItalic(bold[1] ?? "", `b${i}`)}
+        </Text>
+      );
+    }
+    return renderItalic(part, `t${i}`);
+  });
+}
+
+function renderItalic(text: string, prefix: string): React.ReactNode[] {
+  return text.split(/(\*[^*]+\*|_[^_]+_)/g).map((part, i) => {
+    const italic = /^(?:\*([^*]+)\*|_([^_]+)_)$/.exec(part);
+    if (italic) {
+      return (
+        <Text key={`${prefix}i${i}`} style={{ fontStyle: "italic" }}>
+          {italic[1] ?? italic[2]}
+        </Text>
+      );
+    }
+    return part;
+  });
+}
+
+type CellAlign = "left" | "center" | "right";
+type Block =
+  | { type: "text"; text: string }
+  | { type: "table"; header: string[]; rows: string[][]; aligns: CellAlign[] };
+
+const isTableRow = (l?: string) => !!l && /^\s*\|.*\|\s*$/.test(l);
+const isSeparatorRow = (l?: string) =>
+  !!l && l.includes("-") && /^\s*\|?[\s:|-]+\|?\s*$/.test(l);
+
+function splitRow(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((c) => c.trim());
+}
+
+// Parte el contenido en bloques de texto y tablas (markdown GitHub). Solo se usa
+// cuando hay una tabla; los mensajes normales siguen por el camino inline.
+function parseBlocks(content: string): Block[] {
+  const lines = content.split("\n");
+  const blocks: Block[] = [];
+  let textBuf: string[] = [];
+
+  const flushText = () => {
+    const t = textBuf.join("\n").trim();
+    if (t) blocks.push({ type: "text", text: t });
+    textBuf = [];
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? "";
+    const next = lines[i + 1];
+    if (isTableRow(line) && isSeparatorRow(next)) {
+      flushText();
+      const header = splitRow(line);
+      const aligns: CellAlign[] = splitRow(next ?? "").map((c) => {
+        const l = c.startsWith(":");
+        const r = c.endsWith(":");
+        return l && r ? "center" : r ? "right" : "left";
+      });
+      const rows: string[][] = [];
+      let j = i + 2;
+      while (j < lines.length && isTableRow(lines[j])) {
+        rows.push(splitRow(lines[j] ?? ""));
+        j++;
+      }
+      blocks.push({ type: "table", header, rows, aligns });
+      i = j - 1;
+      continue;
+    }
+    textBuf.push(line);
+  }
+  flushText();
+  return blocks;
+}
+
+function TableView({
+  header,
+  rows,
+  aligns,
+}: {
+  header: string[];
+  rows: string[][];
+  aligns: CellAlign[];
+}) {
+  const tokens = useThemeTokens();
+  const cols = header.length;
+
+  return (
+    <View
+      className="rounded-xl overflow-hidden"
+      style={{ borderWidth: 1, borderColor: tokens.border }}
+    >
+      <View className="flex-row" style={{ backgroundColor: tokens.surfaceMuted }}>
+        {header.map((cell, c) => (
+          <View
+            key={c}
+            className="flex-1 px-2.5 py-1.5"
+            style={c > 0 ? { borderLeftWidth: 1, borderColor: tokens.border } : undefined}
+          >
+            <Text
+              className="text-xs font-sans-bold text-textPrimary"
+              style={{ textAlign: aligns[c] ?? "left" }}
+            >
+              {renderInlineMarkdown(cell)}
+            </Text>
+          </View>
+        ))}
+      </View>
+      {rows.map((row, r) => (
+        <View
+          key={r}
+          className="flex-row"
+          style={{ borderTopWidth: 1, borderColor: tokens.border }}
+        >
+          {Array.from({ length: cols }).map((_, c) => (
+            <View
+              key={c}
+              className="flex-1 px-2.5 py-1.5"
+              style={c > 0 ? { borderLeftWidth: 1, borderColor: tokens.border } : undefined}
+            >
+              <Text
+                className="text-xs text-textPrimary"
+                style={{ textAlign: aligns[c] ?? "left" }}
+              >
+                {renderInlineMarkdown(row[c] ?? "")}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function Bubble({
   message,
   onPressImage,
@@ -359,10 +549,23 @@ function Bubble({
   const tokens = useThemeTokens();
   const isUser = message.role === "user";
   const imageUrl = resolveAvatarUrl(message.imageUrl);
+  const time = formatTime(message.createdAt);
+  const hasText = !!message.content;
+
+  // Solo los mensajes de Otto pueden traer markdown de bloque (tablas). Si hay
+  // una tabla, no se puede usar la hora inline (es layout de bloque): la hora
+  // va en su propia linea. Los mensajes sin tabla siguen el camino inline.
+  const blocks = !isUser && hasText ? parseBlocks(message.content) : null;
+  const hasTable = blocks?.some((b) => b.type === "table") ?? false;
 
   return (
     <View
-      className={`max-w-[85%] ${isUser ? "self-end" : "self-start"}`}
+      className={
+        hasTable
+          ? "self-stretch"
+          : `max-w-[85%] ${isUser ? "self-end items-end" : "self-start items-start"
+          }`
+      }
       style={{ gap: 6 }}
     >
       {imageUrl && (
@@ -377,11 +580,52 @@ function Bubble({
             }}
             contentFit="cover"
           />
+          {!hasText && (
+            <View
+              className="absolute bottom-2 right-2 rounded-full px-2 py-0.5"
+              style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+            >
+              <Text className="text-[11px]" style={{ color: "#FFFFFF" }}>
+                {time}
+              </Text>
+            </View>
+          )}
         </Pressable>
       )}
-      {message.content ? (
+      {hasText && hasTable && blocks ? (
         <View
-          className={`rounded-2xl px-4 py-3 ${isUser ? "bg-brand" : "bg-surface"
+          className="rounded-2xl px-4 py-2.5 bg-surface"
+          style={{
+            borderTopLeftRadius: 4,
+            borderWidth: 1,
+            borderColor: tokens.border,
+            gap: 8,
+          }}
+        >
+          {blocks.map((block, i) =>
+            block.type === "table" ? (
+              <TableView
+                key={i}
+                header={block.header}
+                rows={block.rows}
+                aligns={block.aligns}
+              />
+            ) : (
+              <Text key={i} className="text-base leading-6 text-textPrimary">
+                {renderInlineMarkdown(block.text)}
+              </Text>
+            ),
+          )}
+          <Text
+            className="self-end text-[11px]"
+            style={{ color: tokens.textTertiary }}
+          >
+            {time}
+          </Text>
+        </View>
+      ) : hasText ? (
+        <View
+          className={`rounded-2xl px-4 py-2.5 ${isUser ? "bg-brand" : "bg-surface"
             }`}
           style={
             isUser
@@ -397,7 +641,26 @@ function Bubble({
             className={`text-base leading-6 ${isUser ? "text-onBrand" : "text-textPrimary"
               }`}
           >
-            {message.content}
+            {isUser
+              ? message.content
+              : renderInlineMarkdown(message.content)}
+            {/* Reserva el ancho de la hora al final de la ultima linea: si cabe,
+                la hora absoluta de abajo queda al lado; si no, baja sola. */}
+            {"     "}
+            <Text className="text-[11px]" style={{ opacity: 0 }}>
+              {time}
+            </Text>
+          </Text>
+          <Text
+            className="absolute text-[11px]"
+            style={{
+              right: 14,
+              bottom: 7,
+              color: isUser ? tokens.onBrand : tokens.textTertiary,
+              opacity: isUser ? 0.7 : 1,
+            }}
+          >
+            {time}
           </Text>
         </View>
       ) : null}

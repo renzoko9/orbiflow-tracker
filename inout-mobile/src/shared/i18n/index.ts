@@ -4,6 +4,7 @@ export {
   formatPercent,
   formatDate,
   formatShortDate,
+  formatTime,
   formatMonthName,
   formatWeekdayShort,
   formatHeaderDate,
