@@ -1,38 +1,66 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   INOUT - Design tokens
+   INOUT - Design tokens (alineados con la app movil)
    ----------------------------------------------------------------------------
-   Hierarchy is achieved through SURFACE CONTRAST only.
-   Never apply box-shadow. Never apply gradients. Never invent new colors.
-   Primary Green -> INCOME / IN flows only.
-   Action Red    -> EXPENSE / OUT flows only.
-   Navy Deep     -> main balance card only.
+   Fondo crema calido (como la app). Navy profundo para superficies oscuras y
+   tarjeta de balance. Verde de marca (#76C045) -> IN / ingresos. Rojo -> OUT /
+   gastos. Sin gradientes de relleno. Sombras solo donde la app las usa (sutiles).
+   Marca tipografica IN/OUT y watermarks: Oswald. Resto: Inter (como la app).
    ============================================================================ */
 
 @theme {
-  --color-sage: #E8EBE6;
-  --color-ink: #0E0F0C;
-  --color-ink-60: rgba(14, 15, 12, 0.60);
-  --color-ink-40: rgba(14, 15, 12, 0.40);
-  --color-ink-12: rgba(14, 15, 12, 0.12);
-  --color-primary-green: #9FE870;
+  /* Superficies */
+  --color-cream: #F6F1E7;
+  --color-cream-2: #EFE9DB;
+  --color-white: #FFFFFF;
+
+  /* Tinta (texto, sobre crema) - negro calido */
+  --color-ink: #14130E;
+  --color-ink-70: rgba(20, 19, 14, 0.72);
+  --color-ink-60: rgba(20, 19, 14, 0.60);
+  --color-ink-40: rgba(20, 19, 14, 0.42);
+  --color-ink-12: rgba(20, 19, 14, 0.12);
+
+  /* Superficies oscuras: midnight profundo (deja respirar al logo y al verde).
+     navy-2 es el navy de la app, usado como acento SOBRE fondos claros. */
+  --color-navy: #0F1A3D;
+  --color-navy-2: #1B2B5E;
+  --color-blue: #334B9A;
+
+  /* Verde de marca (logo) = IN / ingresos. Brillo subido para que resalte. */
+  --color-green: #84CD4D;
+  --color-green-deep: #4C8A28;
+  --color-green-soft: #E7F3D5;
+
+  /* Rojo = OUT / gastos */
+  --color-red: #D03238;
+  --color-red-soft: #F7D9DA;
+
+  /* Sobre fondos oscuros */
+  --color-white-70: rgba(255, 255, 255, 0.72);
+  --color-white-60: rgba(255, 255, 255, 0.60);
+  --color-white-40: rgba(255, 255, 255, 0.40);
+  --color-white-15: rgba(255, 255, 255, 0.15);
+  --color-white-10: rgba(255, 255, 255, 0.10);
+
+  /* Aliases retrocompat (por si queda alguna referencia vieja) */
+  --color-sage: #F6F1E7;
+  --color-primary-green: #76C045;
   --color-action-red: #D03238;
   --color-navy-deep: #1B2B5E;
   --color-white-pure: #FFFFFF;
-  --color-white-60: rgba(255, 255, 255, 0.60);
-  --color-white-15: rgba(255, 255, 255, 0.15);
-  --color-green-soft: #DCF6C7;
-  --color-red-soft: #F6D7D8;
-  --color-navy-soft: #D4D7E1;
 
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-display: "Oswald", "Bebas Neue", "Arial Narrow", sans-serif;
 
+  /* Radios alineados con la app: botones 12-16px (no pill), cards 16-20px */
+  --radius-btn: 14px;
   --radius-input: 12px;
   --radius-chip: 12px;
-  --radius-card: 24px;
-  --radius-sheet: 28px;
+  --radius-card-sm: 16px;
+  --radius-card: 20px;
+  --radius-sheet: 24px;
   --radius-pill: 999px;
 
   --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -46,7 +74,7 @@
 html, body { margin: 0; padding: 0; }
 
 html, body {
-  background: var(--color-sage);
+  background: var(--color-cream);
   color: var(--color-ink);
   font-family: var(--font-body);
   font-size: 16px;
@@ -87,13 +115,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================================
-   Display / amounts: ALWAYS Oswald with tabular figures
+   Brand display (Oswald): solo IN/OUT, watermarks y numerales editoriales
    ============================================================================ */
-.display, .amount, .amt {
+.display {
   font-family: var(--font-display);
   font-weight: 700;
-  font-feature-settings: "tnum" 1, "lnum" 1;
   letter-spacing: 0;
+  line-height: 1;
+}
+
+/* Montos de dinero: Inter pesado tabular (como la app) */
+.amount, .amt {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  letter-spacing: -0.02em;
   line-height: 1;
 }
 
@@ -117,15 +153,15 @@ h1, h2, h3, h4, h5, h6 {
    Section title + lead
    ============================================================================ */
 .section__h2 {
-  font-size: clamp(38px, 5.6vw, 76px);
+  font-size: clamp(36px, 5.4vw, 72px);
   font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
   margin: 18px 0 0;
   text-wrap: balance;
 }
 .section__lead {
-  margin-top: 24px;
+  margin-top: 22px;
   font-size: 18px;
   line-height: 1.55;
   color: var(--color-ink-60);
@@ -133,7 +169,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================================
-   Buttons
+   Buttons (radio 14px, no pill)
    ============================================================================ */
 .btn {
   display: inline-flex;
@@ -141,25 +177,25 @@ h1, h2, h3, h4, h5, h6 {
   gap: 10px;
   height: 48px;
   padding: 0 22px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-btn);
   font-weight: 600;
   font-size: 14px;
-  transition: transform 120ms var(--ease-out), background 120ms var(--ease-out), color 120ms var(--ease-out);
+  transition: transform 120ms var(--ease-out), background 120ms var(--ease-out), color 120ms var(--ease-out), opacity 120ms var(--ease-out);
   white-space: nowrap;
 }
-.btn--ink { background: var(--color-ink); color: var(--color-white-pure); }
-.btn--green { background: var(--color-primary-green); color: var(--color-ink); }
+.btn--navy { background: var(--color-navy); color: var(--color-white); }
+.btn--green { background: var(--color-green); color: var(--color-ink); }
 .btn--ghost { background: transparent; color: var(--color-ink); border: 1px solid var(--color-ink-12); }
-.btn--ghost-on-dark { background: transparent; color: var(--color-white-pure); border: 1px solid var(--color-white-15); }
+.btn--ghost-on-dark { background: var(--color-white-10); color: var(--color-white); border: 1px solid var(--color-white-15); }
 .btn:hover { transform: translateY(-1px); }
-.btn:active { transform: scale(0.97); }
-.btn--sm { height: 40px; padding: 0 18px; font-size: 13px; }
+.btn:active { transform: scale(0.98); }
+.btn--sm { height: 40px; padding: 0 16px; font-size: 13px; border-radius: 12px; }
 .btn svg { width: 16px; height: 16px; }
 
 /* ============================================================================
    Section base
    ============================================================================ */
-section { padding: clamp(80px, 10vw, 128px) 0; }
+section { padding: clamp(72px, 9vw, 120px) 0; }
 
 /* ============================================================================
    Motion: keyframes
@@ -174,7 +210,7 @@ section { padding: clamp(80px, 10vw, 128px) 0; }
 }
 @keyframes inout-ghost-in {
   from { opacity: 0; }
-  to { opacity: 0.05; }
+  to { opacity: 0.06; }
 }
 @keyframes inout-drift {
   0%, 100% { transform: translateX(0) translateY(0); }
@@ -187,6 +223,10 @@ section { padding: clamp(80px, 10vw, 128px) 0; }
 @keyframes inout-bounce-down {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(8px); }
+}
+@keyframes inout-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
 }
 
 /* Scroll reveal */

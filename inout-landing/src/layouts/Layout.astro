@@ -7,8 +7,8 @@ interface Props {
 }
 
 const {
-  title = "INOUT - Tu dinero, bajo control",
-  description = "Registra ingresos y gastos en segundos. Mandale una foto del recibo por WhatsApp o pidele a la IA que registre por ti. Cada sol contado, sin abrir la app.",
+  title = "INOUT - Tu dinero, bajo control · Disponible el 1 de julio",
+  description = "INOUT es una app de finanzas personales con Otto, un asistente que registra tus gastos por ti. En desarrollo activo. Primera version para probar el 1 de julio de 2026.",
 } = Astro.props;
 ---
 
@@ -24,7 +24,7 @@ const {
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content="/app-mobile-screenshot.png" />
+    <meta property="og:image" content="/screenshots/app-mobile-screenshot.jpeg" />
     <meta name="twitter:card" content="summary_large_image" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -50,6 +50,32 @@ const {
         }
         update();
         window.addEventListener("scroll", update, { passive: true });
+      })();
+
+      (function () {
+        var target = new Date("2026-07-01T00:00:00").getTime();
+        var nodes = document.querySelectorAll("[data-countdown]");
+        if (!nodes.length) return;
+        function pad(n) { return String(n).padStart(2, "0"); }
+        function setv(node, key, val) {
+          var el = node.querySelector('[data-cd="' + key + '"]');
+          if (el) el.textContent = val;
+        }
+        function tick() {
+          var diff = Math.max(0, target - Date.now());
+          var days = Math.floor(diff / 86400000);
+          var hours = Math.floor((diff % 86400000) / 3600000);
+          var mins = Math.floor((diff % 3600000) / 60000);
+          var secs = Math.floor((diff % 60000) / 1000);
+          nodes.forEach(function (n) {
+            setv(n, "days", pad(days));
+            setv(n, "hours", pad(hours));
+            setv(n, "mins", pad(mins));
+            setv(n, "secs", pad(secs));
+          });
+        }
+        tick();
+        setInterval(tick, 1000);
       })();
 
       (function () {

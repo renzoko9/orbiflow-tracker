@@ -2,28 +2,28 @@
 const items = [
   {
     tag: "01",
-    q: "¿INOUT es realmente gratis?",
-    a: "Si. La app es 100% gratuita, sin version premium, sin anuncios y sin comisiones por movimiento. No vendemos tus datos.",
+    q: "¿Cuando puedo usar INOUT?",
+    a: "La primera version para probar estara lista el 1 de julio de 2026. Hasta entonces seguimos puliendo la app; lo que ves en esta pagina son capturas reales del avance.",
   },
   {
     tag: "02",
-    q: "¿Se conecta con mi banco?",
-    a: "No, y es a propósito. INOUT es un registro manual de 30 segundos por movimiento. Eso te obliga a saber, en lugar de delegar.",
+    q: "¿Tendra bot de WhatsApp?",
+    a: "Por ahora no. Nos estamos enfocando en Otto, el asistente dentro de la app, para que tenga una interfaz limpia y vaya soportando consultas cada vez mas complejas. Es donde queremos que la experiencia sea excelente primero.",
   },
   {
     tag: "03",
-    q: "¿Como funciona el registro por WhatsApp?",
-    a: "Conectas tu numero una vez. Despues le mandas un mensaje (\"gaste 45 en uber\") o una foto del recibo. La IA detecta monto, categoria y fecha - tú confirmas con un toque.",
+    q: "¿Como registra Otto mis movimientos?",
+    a: "Le mandas una foto del recibo o le escribes en lenguaje normal (\"gaste 20 en uber\"). Otto detecta monto, categoria, cuenta y fecha, y te propone el movimiento. Tu confirmas o ajustas con un toque.",
   },
   {
     tag: "04",
-    q: "¿Mis datos donde se guardan?",
-    a: "En tu telefono, primero. Si activas backup, en nuestros servidores cifrados - solo para que puedas restaurar al cambiar de equipo.",
+    q: "¿Se conecta con mi banco?",
+    a: "No, y es a proposito. INOUT es un registro asistido de segundos por movimiento. Eso te mantiene consciente de tus gastos, en lugar de delegar y olvidar.",
   },
   {
     tag: "05",
-    q: "¿Que monedas soporta?",
-    a: "Soles (S/) por defecto. Tipo de cambio automatico para dolares, euros y otras monedas en ajustes - se convierte al registrar.",
+    q: "¿Sera de pago?",
+    a: "Estamos construyendo INOUT para que registrar y entender tus finanzas sea accesible. Los detalles de planes los compartiremos cerca del lanzamiento.",
   },
 ];
 ---
@@ -33,7 +33,7 @@ const items = [
       <span class="tick"></span> Preguntas frecuentes
     </div>
     <h2 class="section__h2 reveal reveal--lag-1">
-      Lo de siempre,<br />respondido sin vueltas.
+      Lo que probablemente<br />te estas preguntando.
     </h2>
 
     <div class="faq reveal reveal--lag-2">
@@ -53,7 +53,7 @@ const items = [
 <style>
   .faq-section { padding-top: 32px; }
   .faq {
-    margin-top: 56px;
+    margin-top: 52px;
     border-top: 1px solid var(--color-ink-12);
   }
   .faq__item {
@@ -75,7 +75,7 @@ const items = [
     color: var(--color-ink-60);
     font-size: 16px;
     line-height: 1.55;
-    max-width: 640px;
+    max-width: 660px;
   }
   .faq__tag {
     font-size: 11px;

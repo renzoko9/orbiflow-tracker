@@ -2,18 +2,18 @@
 const steps = [
   {
     num: "01",
-    title: "Descarga la app",
-    body: "Disponible en iOS y Android. Sin registro obligatorio para empezar - entras directo al dashboard.",
+    title: "Registra a tu manera",
+    body: "Pulsa el boton +, sacale foto al recibo o escribele a Otto en lenguaje normal. Tu eliges el camino mas rapido en cada momento.",
   },
   {
     num: "02",
-    title: "Pulsa IN u OUT - o mandale al bot",
-    body: "Dos botones en la app, una foto por WhatsApp, o un mensaje al chatbot. La IA detecta los datos y los registra por ti.",
+    title: "Otto propone, tu confirmas",
+    body: "La IA detecta monto, categoria, cuenta y fecha, y arma el movimiento. Lo revisas y confirmas con un toque. Si algo no cuadra, lo ajustas.",
   },
   {
     num: "03",
-    title: "Mira tu balance",
-    body: "El balance total se actualiza al instante. Vas a ver, mes a mes, exactamente donde se va cada sol.",
+    title: "Mira a donde se va tu plata",
+    body: "Tu balance se actualiza al instante y, al cerrar el mes, Insights te muestra como te fue. Sin planillas ni configuraciones.",
   },
 ];
 ---
@@ -27,7 +27,7 @@ const steps = [
     <div class="steps reveal reveal--lag-2">
       {steps.map((s) => (
         <div class="step">
-          <div class="step__num">{s.num}<span class="of">/03</span></div>
+          <div class="step__num display">{s.num}<span class="of">/03</span></div>
           <h3>{s.title}</h3>
           <p>{s.body}</p>
         </div>
@@ -38,7 +38,7 @@ const steps = [
 
 <style>
   .steps {
-    margin-top: 56px;
+    margin-top: 52px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 0;
@@ -71,8 +71,6 @@ const steps = [
     }
   }
   .step__num {
-    font-family: var(--font-display);
-    font-weight: 700;
     font-size: 56px;
     line-height: 1;
     color: var(--color-ink);

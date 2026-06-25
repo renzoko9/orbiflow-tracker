@@ -1,0 +1,247 @@
+---
+
+---
+
+<section class="insights-section" id="insights">
+  <div class="wrap insights">
+    <div class="insights__copy">
+      <div class="eyebrow-row">
+        <span class="tick"></span> Insights &middot; Resumen del mes
+      </div>
+      <h2 class="section__h2 insights__title">
+        No solo registras.<br />Entiendes.
+      </h2>
+      <p class="section__lead">
+        Cada mes INOUT arma tu resumen: cuanto ahorraste, como te fue frente al
+        mes anterior y a donde se fue tu plata. Datos claros, sin hojas de
+        calculo.
+      </p>
+
+      <div class="ins-list">
+        <div class="ins-item">
+          <div class="ins-item__icon green">
+            <i data-lucide="piggy-bank"></i>
+          </div>
+          <div>
+            <h3>Tu tasa de ahorro</h3>
+            <p>
+              El porcentaje que lograste guardar este mes, comparado con el
+              anterior.
+            </p>
+          </div>
+        </div>
+        <div class="ins-item">
+          <div class="ins-item__icon navy">
+            <i data-lucide="bar-chart-3"></i>
+          </div>
+          <div>
+            <h3>Ingresos vs gastos</h3>
+            <p>
+              La tendencia de los ultimos meses, lado a lado, para ver tu rumbo.
+            </p>
+          </div>
+        </div>
+        <div class="ins-item">
+          <div class="ins-item__icon"><i data-lucide="pie-chart"></i></div>
+          <div>
+            <h3>Desglose por categoria</h3>
+            <p>
+              Que categorias pesan mas y cuales subieron o bajaron respecto al
+              mes pasado.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insights__media">
+      <div class="phone-frame">
+        <div class="phone-frame__notch"></div>
+        <div class="phone-frame__screen">
+          <img
+            src="/screenshots/app-mobile-screenshot-7.jpeg"
+            alt="Pantalla de Insights con resumen del mes e ingresos vs gastos"
+            loading="lazy"
+          />
+        </div>
+
+        <div class="callout callout--save">
+          <span class="pip pip--green"><i data-lucide="trending-up"></i></span>
+          <span>39% de ahorro</span>
+        </div>
+        <div class="callout callout--neto">
+          <span class="pip pip--navy"><i data-lucide="equal"></i></span>
+          <span>Neto +S/&nbsp;471.50</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .insights-section {
+    background: var(--color-white);
+    border-top: 1px solid var(--color-ink-12);
+    border-bottom: 1px solid var(--color-ink-12);
+  }
+  .insights {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: clamp(40px, 6vw, 96px);
+    align-items: center;
+  }
+  @media (max-width: 900px) {
+    .insights {
+      grid-template-columns: 1fr;
+    }
+    .insights__media {
+      order: -1;
+    }
+  }
+  .insights__title {
+    font-size: clamp(34px, 4.4vw, 58px);
+  }
+
+  .insights__media {
+    position: relative;
+  }
+  .phone-frame {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    aspect-ratio: 9 / 19.5;
+    background: var(--color-navy);
+    border-radius: 46px;
+    padding: 10px;
+    border: 1px solid var(--color-ink-12);
+    box-shadow: 0 28px 70px rgba(20, 19, 14, 0.16);
+  }
+  .phone-frame__notch {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95px;
+    height: 24px;
+    background: var(--color-navy);
+    border-radius: 999px;
+    z-index: 3;
+  }
+  .phone-frame__screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 38px;
+    overflow: hidden;
+    background: var(--color-cream);
+  }
+  .phone-frame__screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  .callout {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--color-white);
+    border: 1px solid var(--color-ink-12);
+    border-radius: 14px;
+    padding: 8px 14px 8px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 10px 26px rgba(20, 19, 14, 0.1);
+  }
+  .callout .pip {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+  }
+  .callout :global(.lucide) {
+    width: 14px;
+    height: 14px;
+  }
+  .pip--green {
+    background: var(--color-green);
+    color: var(--color-ink);
+  }
+  .pip--navy {
+    background: var(--color-navy-2);
+    color: var(--color-white);
+  }
+  .callout--save {
+    right: -22px;
+    top: 18%;
+    animation: inout-float 6s var(--ease-in-out) infinite;
+  }
+  .callout--neto {
+    left: -22px;
+    bottom: 22%;
+    animation: inout-float 6.5s var(--ease-in-out) 0.4s infinite;
+  }
+  @media (max-width: 900px) {
+    .callout--save {
+      right: 0;
+    }
+    .callout--neto {
+      left: 0;
+    }
+  }
+
+  .ins-list {
+    display: grid;
+    gap: 24px;
+    margin-top: 36px;
+  }
+  .ins-item {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 20px;
+    align-items: start;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-ink-12);
+  }
+  .ins-item:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .ins-item__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: var(--color-cream-2);
+    color: var(--color-ink);
+  }
+  .ins-item__icon.green {
+    background: var(--color-green);
+    color: var(--color-ink);
+  }
+  .ins-item__icon.navy {
+    background: var(--color-navy-2);
+    color: var(--color-white);
+  }
+  .ins-item__icon :global(.lucide) {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2;
+  }
+  .ins-item h3 {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    margin: 0 0 6px;
+  }
+  .ins-item p {
+    font-size: 15px;
+    color: var(--color-ink-60);
+    line-height: 1.5;
+  }
+</style>

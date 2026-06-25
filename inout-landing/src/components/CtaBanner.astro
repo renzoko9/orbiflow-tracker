@@ -1,39 +1,53 @@
 ---
-
 ---
 
-<section id="descargar" class="cta-section">
+<section id="proximamente" class="cta-section">
   <div class="wrap">
     <div class="cta-banner reveal">
-      <div class="cta-banner__ghost" aria-hidden="true">INOUT</div>
+      <div class="cta-banner__ghost display" aria-hidden="true">JUL 1</div>
 
-      <div class="cta-banner__mark">
-        <img src="/logo-mark.svg" alt="" class="cta-banner__logo" />
+      <div class="cta-banner__head">
+        <div class="cta-banner__mark">
+          <img src="/logo-mark.svg" alt="" class="cta-banner__logo" />
+        </div>
+        <div class="cta-banner__copy">
+          <span class="cta-banner__eyebrow">Proximamente &middot; en desarrollo</span>
+          <h2>Disponible el<br />1 de julio de 2026.</h2>
+          <p>
+            Estamos terminando la primera version para probar. Vuelve el dia del
+            lanzamiento &mdash; los enlaces de descarga apareceran aqui.
+          </p>
+        </div>
       </div>
 
-      <div class="cta-banner__copy">
-        <span class="cta-banner__eyebrow"
-          >Aplicacion fintech &middot; IA + WhatsApp</span
-        >
-        <h2>Tu dinero,<br />bajo control.</h2>
-        <p>Registra ingresos y gastos en segundos. Sin complicaciones.</p>
-      </div>
+      <div class="cta-banner__side">
+        <div class="cd-box" data-countdown aria-label="Cuenta regresiva al lanzamiento">
+          <div class="cd-box__row">
+            <div class="cd2"><b data-cd="days">--</b><span>dias</span></div>
+            <div class="cd2"><b data-cd="hours">--</b><span>hrs</span></div>
+            <div class="cd2"><b data-cd="mins">--</b><span>min</span></div>
+            <div class="cd2"><b data-cd="secs">--</b><span>seg</span></div>
+          </div>
+        </div>
 
-      <div class="cta-banner__buttons">
-        <a href="#" class="store-badge" aria-label="Descargalo en la App Store">
-          <img class="store-badge__icon" src="/apple-logo.png" alt="" />
-          <span class="store-badge__text">
-            <span class="store-badge__small">Descargalo en la</span>
-            <span class="store-badge__name">App Store</span>
-          </span>
-        </a>
-        <a href="#" class="store-badge" aria-label="Descargalo en Google Play">
-          <img class="store-badge__icon" src="/google-play.png" alt="" />
-          <span class="store-badge__text">
-            <span class="store-badge__small">Descargalo en</span>
-            <span class="store-badge__name">Google Play</span>
-          </span>
-        </a>
+        <div class="cta-banner__badges">
+          <div class="store-badge" aria-label="App Store - proximamente">
+            <img class="store-badge__icon" src="/apple-logo.png" alt="" />
+            <span class="store-badge__text">
+              <span class="store-badge__small">Proximamente en</span>
+              <span class="store-badge__name">App Store</span>
+            </span>
+            <span class="store-badge__soon">Jul 1</span>
+          </div>
+          <div class="store-badge" aria-label="Google Play - proximamente">
+            <img class="store-badge__icon" src="/google-play.png" alt="" />
+            <span class="store-badge__text">
+              <span class="store-badge__small">Proximamente en</span>
+              <span class="store-badge__name">Google Play</span>
+            </span>
+            <span class="store-badge__soon">Jul 1</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -47,37 +61,50 @@
   .cta-banner {
     position: relative;
     overflow: hidden;
-    background: var(--color-primary-green);
+    background: var(--color-green);
     color: var(--color-ink);
     border-radius: var(--radius-card);
-    padding: clamp(48px, 7vw, 88px);
+    padding: clamp(40px, 6vw, 80px);
     display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: clamp(24px, 5vw, 64px);
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: clamp(32px, 5vw, 64px);
     align-items: center;
   }
+  @media (max-width: 900px) {
+    .cta-banner {
+      grid-template-columns: 1fr;
+      padding: 36px;
+    }
+  }
+
+  .cta-banner__head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: clamp(20px, 3vw, 32px);
+    align-items: flex-start;
+  }
   .cta-banner__mark {
-    width: 116px;
-    height: 116px;
+    width: 96px;
+    height: 96px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    background: var(--color-sage);
-    border-radius: 28px;
-    box-shadow: 0 16px 40px rgba(14, 15, 12, 0.18);
-    z-index: 2;
+    background: var(--color-cream);
+    border-radius: 22px;
+    box-shadow: 0 16px 40px rgba(20, 19, 14, 0.18);
   }
   .cta-banner__logo {
-    width: 66px;
+    width: 56px;
     height: auto;
     display: block;
   }
-  .cta-banner__copy {
-    z-index: 2;
-    position: relative;
+  @media (max-width: 480px) {
+    .cta-banner__mark { width: 72px; height: 72px; border-radius: 18px; }
+    .cta-banner__logo { width: 42px; }
   }
   .cta-banner__eyebrow {
-    color: rgba(14, 15, 12, 0.6);
+    color: rgba(20, 19, 14, 0.62);
     margin-bottom: 12px;
     display: block;
     font-size: 11px;
@@ -86,44 +113,74 @@
     text-transform: uppercase;
   }
   .cta-banner__copy h2 {
-    font-size: clamp(36px, 5vw, 60px);
+    font-size: clamp(30px, 4vw, 52px);
     font-weight: 800;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.03em;
     line-height: 1;
     margin: 0;
   }
   .cta-banner__copy p {
     margin-top: 14px;
-    font-size: 16px;
-    color: rgba(14, 15, 12, 0.7);
-    max-width: 480px;
+    font-size: 15px;
+    color: rgba(20, 19, 14, 0.72);
+    max-width: 440px;
   }
-  .cta-banner__buttons {
+
+  .cta-banner__side {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .cd-box {
+    background: rgba(20, 19, 14, 0.06);
+    border: 1px solid rgba(20, 19, 14, 0.12);
+    border-radius: var(--radius-card-sm);
+    padding: 18px;
+  }
+  .cd-box__row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    text-align: center;
+  }
+  .cd2 { display: flex; flex-direction: column; gap: 6px; }
+  .cd2 b {
+    font-family: var(--font-body);
+    font-weight: 800;
+    font-feature-settings: "tnum" 1;
+    font-size: clamp(26px, 3.2vw, 36px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+  }
+  .cd2 span {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(20, 19, 14, 0.55);
+  }
+
+  .cta-banner__badges {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    position: relative;
-    z-index: 2;
   }
   .store-badge {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: #000000;
-    color: var(--color-white-pure);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: var(--color-navy);
+    color: var(--color-white);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
-    padding: 11px 22px;
-    transition:
-      transform 140ms var(--ease-out),
-      box-shadow 140ms var(--ease-out);
-  }
-  .store-badge:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 26px rgba(14, 15, 12, 0.28);
+    padding: 11px 18px;
+    position: relative;
   }
   .store-badge__icon {
-    height: 26px;
+    height: 24px;
     flex-shrink: 0;
     display: block;
   }
@@ -136,41 +193,34 @@
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.01em;
-    opacity: 0.82;
+    opacity: 0.78;
   }
   .store-badge__name {
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 700;
     letter-spacing: -0.01em;
   }
+  .store-badge__soon {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+    background: var(--color-green);
+    border-radius: 999px;
+    padding: 4px 9px;
+  }
   .cta-banner__ghost {
     position: absolute;
-    right: -2%;
-    top: 50%;
-    transform: translateY(-50%);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(180px, 22vw, 320px);
+    right: -1%;
+    bottom: -22%;
+    font-size: clamp(150px, 20vw, 280px);
     line-height: 0.85;
     letter-spacing: -0.02em;
-    color: rgba(14, 15, 12, 0.12);
+    color: rgba(20, 19, 14, 0.1);
     pointer-events: none;
     z-index: 1;
     user-select: none;
-  }
-  @media (max-width: 900px) {
-    .cta-banner {
-      grid-template-columns: 1fr;
-      padding: 36px;
-    }
-    .cta-banner__mark {
-      width: 88px;
-      height: 88px;
-      border-radius: 22px;
-    }
-    .cta-banner__logo {
-      width: 50px;
-      height: auto;
-    }
   }
 </style>

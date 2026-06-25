@@ -1,118 +1,84 @@
 ---
 ---
-<section class="ai-section" id="ia">
+<section class="otto" id="otto">
   <div class="wrap">
-    <div class="eyebrow-row reveal">
-      <span class="tick"></span> Inteligencia artificial &middot; Nuevo
+    <div class="eyebrow-row reveal on-dark">
+      <span class="tick"></span> Asistente con IA &middot; Otto
     </div>
-    <h2 class="section__h2 reveal reveal--lag-1">
-      Mandale una foto.<br />INOUT registra solo.
+    <h2 class="section__h2 reveal reveal--lag-1 otto__h">
+      Mandale una foto.<br />Otto la registra.
     </h2>
-    <p class="section__lead reveal reveal--lag-2">
-      Saca foto al recibo y mandala por WhatsApp, o pidele al chatbot dentro de la app. La IA detecta comercio, monto, categoria y fecha. Tu confirmas con un toque &mdash; sin abrir la app si no quieres.
+    <p class="section__lead reveal reveal--lag-2 otto__lead">
+      Saca foto a tu boleta o escribele en lenguaje normal. Otto detecta el
+      comercio, el monto, la categoria y la fecha, y te propone el movimiento.
+      Tu confirmas con un toque. Tambien puedes preguntarle como van tus finanzas.
     </p>
 
-    <div class="ai-grid reveal reveal--lag-3">
-      <article class="chat-card" aria-label="Ejemplo de chat con el asistente INOUT">
-        <header class="chat-card__header">
-          <div class="chat-card__avatar">
-            <img src="/logo-gray.svg" alt="" class="chat-card__logo" />
-          </div>
-          <div>
-            <div class="chat-card__title">INOUT &middot; Asistente</div>
-            <div class="chat-card__sub">
-              <span class="live"></span> via WhatsApp &middot; en linea
+    <div class="otto__grid reveal reveal--lag-3">
+      <div class="otto__media">
+        <div class="otto__stage">
+          <div class="phone phone--1">
+            <div class="phone__notch"></div>
+            <div class="phone__screen">
+              <img
+                src="/screenshots/app-mobile-screenshot.jpeg"
+                alt="Chat con Otto: foto de un recibo y propuesta de registro"
+                loading="lazy"
+              />
             </div>
           </div>
-          <div class="chat-card__verified">
-            <i data-lucide="badge-check"></i> Verificado
-          </div>
-        </header>
 
-        <div class="chat-card__body">
-          <div class="bubble bubble--user">
-            <div class="bubble__photo">
-              <div class="receipt">
-                <div class="receipt__title">TOTTUS</div>
-                <div class="receipt__sub">SUPERMERCADO &middot; TICKET</div>
-                <div class="receipt__sep"></div>
-                <div class="receipt__row"><span>PAN INTEGRAL</span><span>S/ 8.90</span></div>
-                <div class="receipt__row"><span>LECHE 1L x2</span><span>S/ 12.40</span></div>
-                <div class="receipt__row"><span>PALTA HASS</span><span>S/ 14.10</span></div>
-                <div class="receipt__row"><span>ARROZ COSTE&Ntilde;O</span><span>S/ 22.00</span></div>
-                <div class="receipt__row"><span>POLLO 1.2KG</span><span>S/ 30.00</span></div>
-                <div class="receipt__sep"></div>
-                <div class="receipt__total"><span>TOTAL</span><span>S/ 87.40</span></div>
-                <div class="receipt__notch"></div>
-              </div>
+          <div class="phone phone--2">
+            <div class="phone__notch"></div>
+            <div class="phone__screen">
+              <img
+                src="/screenshots/app-mobile-screenshot-3.jpeg"
+                alt="Chat con Otto respondiendo una consulta sobre tus finanzas"
+                loading="lazy"
+              />
             </div>
-            <div class="bubble__time">10:42</div>
-          </div>
-
-          <div class="bubble bubble--bot">
-            <div class="bubble__text">Detect&eacute; un gasto. &iquest;Lo registro?</div>
-            <div class="detected">
-              <div class="detected__head"><span class="pip"></span> Movimiento OUT &middot; detectado</div>
-              <div class="detected__row">
-                <span>Monto</span>
-                <b class="detected__amount out">S/&nbsp;87.40</b>
-              </div>
-              <div class="detected__row"><span>Comercio</span><b>Tottus</b></div>
-              <div class="detected__row"><span>Categoria</span><b>Alimentaci&oacute;n</b></div>
-              <div class="detected__row"><span>Fecha</span><b>Hoy &middot; 10:38</b></div>
-              <div class="detected__actions">
-                <button class="ai-btn ai-btn--green"><i data-lucide="check"></i> Confirmar</button>
-                <button class="ai-btn ai-btn--ghost">Editar</button>
-              </div>
-            </div>
-            <div class="bubble__time">10:42 &middot; INOUT bot</div>
-          </div>
-
-          <div class="bubble bubble--user">
-            <div class="bubble__text">gast&eacute; 45 en uber</div>
-            <div class="bubble__time">10:43</div>
-          </div>
-
-          <div class="bubble bubble--bot">
-            <div class="bubble__text">Listo. Registrado.</div>
-            <div class="detected detected--sm">
-              <div class="detected__head"><span class="pip"></span> Movimiento OUT</div>
-              <div class="detected__row">
-                <span>Monto</span>
-                <b class="detected__amount out detected__amount--sm">S/&nbsp;45.00</b>
-              </div>
-              <div class="detected__row"><span>Categoria</span><b>Transporte</b></div>
-            </div>
-            <div class="bubble__time">10:43</div>
           </div>
         </div>
-      </article>
 
-      <div class="ai-features">
-        <article class="ai-feat">
-          <div class="ai-feat__icon green"><i data-lucide="message-square"></i></div>
+        <div class="otto__dots" aria-hidden="true">
+          <span class="otto__dot otto__dot--a"></span>
+          <span class="otto__dot otto__dot--b"></span>
+        </div>
+      </div>
+
+      <div class="otto__features">
+        <article class="ofeat">
+          <div class="ofeat__icon green"><i data-lucide="camera"></i></div>
           <div>
-            <h3>Chatbot dentro de la app</h3>
-            <p>Preguntale "&iquest;cuanto gast&eacute; en comida esta semana?" o dile "registra 80 soles de gasolina". Te responde con los numeros reales &mdash; sin abrir menus.</p>
-            <span class="ai-feat__tag">Conversacion natural</span>
+            <h3>Foto del recibo, y listo</h3>
+            <p>
+              Sacale foto a tu boleta o voucher. Otto lee comercio, monto y fecha,
+              asigna categoria y arma el movimiento. Tu solo revisas y confirmas.
+            </p>
           </div>
         </article>
 
-        <article class="ai-feat">
-          <div class="ai-feat__icon"><i data-lucide="message-circle-more"></i></div>
+        <article class="ofeat">
+          <div class="ofeat__icon navy"><i data-lucide="message-square"></i></div>
           <div>
-            <h3>Integraci&oacute;n con WhatsApp</h3>
-            <p>Conectas tu numero una vez. Despues, registra movimientos mandando texto, audio o foto al bot. No necesitas abrir la app.</p>
-            <span class="ai-feat__tag">Sin abrir la app</span>
+            <h3>Hablale como a una persona</h3>
+            <p>
+              "Gaste 20 soles en uber" o "como voy este mes". Otto entiende el
+              lenguaje natural y responde con tus numeros reales, en una interfaz
+              limpia y ordenada.
+            </p>
           </div>
         </article>
 
-        <article class="ai-feat">
-          <div class="ai-feat__icon navy"><i data-lucide="scan-line"></i></div>
+        <article class="ofeat">
+          <div class="ofeat__icon blue"><i data-lucide="sparkles"></i></div>
           <div>
-            <h3>OCR por foto del recibo</h3>
-            <p>La IA lee el ticket: comercio, monto, fecha. Asigna categoria por contexto. Tu solo confirmas con un toque desde el chat.</p>
-            <span class="ai-feat__tag">Detecci&oacute;n autom&aacute;tica</span>
+            <h3>Cada vez mas capaz</h3>
+            <p>
+              El chat esta en mejora continua. Poco a poco va a soportar consultas
+              mas complejas sobre tus finanzas, manteniendo la misma simpleza.
+            </p>
+            <span class="ofeat__tag">En desarrollo activo</span>
           </div>
         </article>
       </div>
@@ -121,320 +87,200 @@
 </section>
 
 <style>
-  .ai-section {
-    background: var(--color-ink);
-    color: var(--color-white-pure);
+  .otto {
+    background: var(--color-navy);
+    color: var(--color-white);
     position: relative;
     overflow: hidden;
   }
-  .ai-section::before {
+  .otto::before {
     content: "";
     position: absolute;
-    top: 64px;
+    top: 56px;
     right: var(--gutter);
     width: 180px;
     height: 180px;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1.5px, transparent 1.6px);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.5px, transparent 1.6px);
     background-size: 16px 16px;
-    opacity: 0.7;
+    opacity: 0.6;
     pointer-events: none;
     z-index: 1;
   }
-  .ai-section .wrap { position: relative; z-index: 2; }
-  .ai-section :global(.eyebrow-row) { color: var(--color-white-60); }
-  .ai-section :global(h2) { color: var(--color-white-pure); }
-  .ai-section :global(.section__lead) { color: var(--color-white-60); }
+  .otto .wrap { position: relative; z-index: 2; }
+  .otto__h { color: var(--color-white); }
+  .otto__lead { color: var(--color-white-70); }
 
-  .ai-grid {
+  .otto__grid {
     margin-top: 56px;
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    gap: clamp(32px, 5vw, 64px);
-    align-items: start;
+    grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+    gap: clamp(40px, 6vw, 80px);
+    align-items: center;
   }
-  @media (max-width: 900px) {
-    .ai-grid { grid-template-columns: 1fr; }
+  @media (max-width: 980px) {
+    .otto__grid { grid-template-columns: 1fr; gap: 56px; }
   }
 
-  .chat-card {
-    background: var(--color-white-pure);
-    border-radius: var(--radius-card);
-    border: 1px solid var(--color-ink-12);
-    overflow: hidden;
+  /* Dos iPhones que se intercambian en 3D */
+  .otto__media {
     display: flex;
     flex-direction: column;
-  }
-  .chat-card__header {
-    display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 18px 22px;
-    border-bottom: 1px solid var(--color-ink-12);
-    background: var(--color-white-pure);
-    color: var(--color-ink);
+    gap: 26px;
   }
-  .chat-card__avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-    background: var(--color-ink);
-    color: var(--color-white-pure);
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-  }
-  .chat-card__logo {
-    width: 24px;
-    height: auto;
-    display: block;
-  }
-  .chat-card__title {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -0.005em;
-    color: var(--color-ink);
-  }
-  .chat-card__sub {
-    font-size: 12px;
-    color: var(--color-ink-60);
-    margin-top: 2px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .chat-card__sub .live {
-    width: 6px;
-    height: 6px;
-    background: var(--color-primary-green);
-    border-radius: 999px;
-    animation: inout-blink 1.6s var(--ease-in-out) infinite;
-  }
-  .chat-card__verified {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--color-ink-60);
-  }
-  .chat-card__verified :global(.lucide) {
-    width: 14px;
-    height: 14px;
-    color: var(--color-primary-green);
-  }
-
-  .chat-card__body {
-    padding: 22px;
-    background: var(--color-sage);
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .bubble {
-    max-width: 88%;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    color: var(--color-ink);
-  }
-  .bubble--user { align-self: flex-end; align-items: flex-end; }
-  .bubble--bot  { align-self: flex-start; align-items: flex-start; }
-  .bubble__text {
-    padding: 12px 16px;
-    border-radius: 18px;
-    font-size: 15px;
-    line-height: 1.4;
-    border: 1px solid transparent;
-    color: var(--color-ink);
-  }
-  .bubble--user .bubble__text {
-    background: var(--color-primary-green);
-    color: var(--color-ink);
-    border-bottom-right-radius: 6px;
-  }
-  .bubble--bot .bubble__text {
-    background: var(--color-white-pure);
-    color: var(--color-ink);
-    border: 1px solid var(--color-ink-12);
-    border-bottom-left-radius: 6px;
-  }
-  .bubble__time {
-    font-size: 11px;
-    color: var(--color-ink-40);
-    padding: 0 8px;
-  }
-
-  .bubble__photo {
-    background: var(--color-white-pure);
-    border: 1px solid var(--color-ink-12);
-    border-radius: 18px;
-    border-bottom-right-radius: 6px;
-    padding: 8px;
-    width: 200px;
-  }
-  .receipt {
-    background: #F4F2EC;
-    border-radius: 12px;
-    padding: 14px 14px 18px;
-    font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
-    font-size: 9px;
-    line-height: 1.6;
-    color: var(--color-ink);
+  .otto__stage {
     position: relative;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 9 / 19.5;
+    perspective: 1600px;
   }
-  .receipt__title {
-    font-weight: 700;
-    text-align: center;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-  }
-  .receipt__sub {
-    text-align: center;
-    color: var(--color-ink-60);
-    margin-top: 4px;
-    font-size: 8.5px;
-  }
-  .receipt__sep {
-    height: 1px;
-    border-top: 1px dashed var(--color-ink-40);
-    margin: 10px 0;
-  }
-  .receipt__row { display: flex; justify-content: space-between; }
-  .receipt__total {
-    display: flex;
-    justify-content: space-between;
-    font-weight: 700;
-    margin-top: 8px;
-    font-size: 11px;
-  }
-  .receipt__notch {
+  .phone {
     position: absolute;
-    bottom: -8px;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background: radial-gradient(circle at 6px 0, transparent 4px, #F4F2EC 4.5px) 0 0 / 12px 8px repeat-x;
+    inset: 0;
+    background: #0E1430;
+    border-radius: 44px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+    transform-origin: center center;
+    will-change: transform, opacity;
+    animation: otto-swap 9s var(--ease-in-out) infinite;
   }
-
-  .detected {
-    background: var(--color-white-pure);
-    border: 1px solid var(--color-ink-12);
-    border-radius: 14px;
-    padding: 14px;
-    width: 260px;
-    margin-top: 4px;
+  /* Cada uno sale por un lado distinto y se desplazan en paralelo (no se
+     atraviesan por el centro). --shift = cuanto se corren a los lados. */
+  .phone { --shift: 150px; }
+  .phone--1 { --dir: 1; }
+  .phone--2 { --dir: -1; animation-delay: -4.5s; }
+  @media (max-width: 600px) {
+    .phone { --shift: 96px; }
   }
-  .detected--sm { width: 220px; }
-  .detected__head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-ink-40);
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid var(--color-ink-12);
-  }
-  .detected__head .pip {
-    width: 6px;
-    height: 6px;
+  .phone__notch {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92px;
+    height: 24px;
+    background: #0E1430;
     border-radius: 999px;
-    background: var(--color-action-red);
+    z-index: 3;
   }
-  .detected__head.in .pip { background: var(--color-primary-green); }
-  .detected__row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-    font-size: 13px;
+  .phone__screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 36px;
+    overflow: hidden;
+    background: var(--color-cream);
   }
-  .detected__row span { color: var(--color-ink-60); }
-  .detected__row b { font-weight: 600; color: var(--color-ink); }
-  .detected__amount {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 22px;
-    line-height: 1;
+  .phone__screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
   }
-  .detected__amount.out { color: var(--color-action-red); }
-  .detected__amount--sm { font-size: 18px; }
-  .detected__actions {
+
+  /* Al frente: centrado y plano. Atras: emerge desde el costado, girado,
+     mas chico y en profundidad (translateZ negativo). Mismo keyframe para los
+     dos; el segundo va medio ciclo desfasado, asi se cruzan al intercambiarse. */
+  @keyframes otto-swap {
+    0%, 38% {
+      transform: translateX(0) translateZ(0) rotateY(0deg) scale(1);
+      opacity: 1;
+      z-index: 2;
+    }
+    44% { z-index: 1; }
+    50%, 88% {
+      transform: translateX(calc(var(--shift) * var(--dir))) translateZ(-200px)
+        rotateY(calc(-24deg * var(--dir))) scale(0.88);
+      opacity: 0.55;
+      z-index: 1;
+    }
+    94% { z-index: 2; }
+    100% {
+      transform: translateX(0) translateZ(0) rotateY(0deg) scale(1);
+      opacity: 1;
+      z-index: 2;
+    }
+  }
+
+  /* Indicador de paso */
+  .otto__dots {
     display: flex;
     gap: 8px;
-    margin-top: 12px;
   }
-  .ai-btn {
-    flex: 1;
-    height: 36px;
-    border-radius: var(--radius-pill);
-    font-weight: 600;
-    font-size: 13px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: transform 120ms var(--ease-out), background 120ms var(--ease-out);
+  .otto__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.35);
   }
-  .ai-btn--green { background: var(--color-primary-green); color: var(--color-ink); }
-  .ai-btn--ghost { background: transparent; color: var(--color-ink); border: 1px solid var(--color-ink-12); }
-  .ai-btn:hover { transform: translateY(-1px); }
+  .otto__dot--a { animation: otto-dot-a 9s var(--ease-in-out) infinite; }
+  .otto__dot--b { animation: otto-dot-b 9s var(--ease-in-out) infinite; }
+  @keyframes otto-dot-a {
+    0%, 38% { background: var(--color-green); }
+    50%, 100% { background: rgba(255, 255, 255, 0.35); }
+  }
+  @keyframes otto-dot-b {
+    0%, 46% { background: rgba(255, 255, 255, 0.35); }
+    50%, 88% { background: var(--color-green); }
+    100% { background: rgba(255, 255, 255, 0.35); }
+  }
 
-  .ai-features { display: flex; flex-direction: column; gap: 0; }
-  .ai-feat {
-    background: transparent;
-    border: 0;
+  @media (prefers-reduced-motion: reduce) {
+    .phone { animation: none; }
+    .phone--2 {
+      transform: translateX(-150px) translateZ(-200px) rotateY(24deg) scale(0.88);
+      opacity: 0.55;
+    }
+  }
+
+  /* Feature list */
+  .otto__features { display: flex; flex-direction: column; }
+  .ofeat {
     border-top: 1px solid var(--color-white-15);
-    border-radius: 0;
-    padding: 28px 0;
+    padding: 26px 0;
     display: grid;
     grid-template-columns: 52px 1fr;
     gap: 20px;
     align-items: start;
-    transition: transform 120ms var(--ease-out);
+    transition: transform 140ms var(--ease-out);
   }
-  .ai-feat:first-child { border-top: 0; padding-top: 0; }
-  .ai-feat:hover { transform: translateX(4px); }
-  .ai-feat__icon {
+  .ofeat:first-child { border-top: 0; padding-top: 0; }
+  .ofeat:hover { transform: translateX(4px); }
+  .ofeat__icon {
     width: 52px;
     height: 52px;
     border-radius: 14px;
-    background: var(--color-white-pure);
-    color: var(--color-ink);
     display: grid;
     place-items: center;
   }
-  .ai-feat__icon.green { background: var(--color-primary-green); color: var(--color-ink); }
-  .ai-feat__icon.navy  { background: var(--color-navy-deep); color: var(--color-white-pure); }
-  .ai-feat__icon :global(.lucide) { width: 24px; height: 24px; stroke-width: 2; }
-  .ai-feat h3 {
+  .ofeat__icon.green { background: var(--color-green); color: var(--color-ink); }
+  .ofeat__icon.navy { background: var(--color-white); color: var(--color-navy-2); }
+  .ofeat__icon.blue { background: var(--color-blue); color: var(--color-white); }
+  .ofeat__icon :global(.lucide) { width: 24px; height: 24px; stroke-width: 2; }
+  .ofeat h3 {
     font-size: 19px;
     font-weight: 700;
     letter-spacing: -0.005em;
     margin: 4px 0 8px;
-    color: var(--color-white-pure);
+    color: var(--color-white);
   }
-  .ai-feat p {
+  .ofeat p {
     font-size: 15px;
     color: var(--color-white-60);
     line-height: 1.5;
   }
-  .ai-feat__tag {
+  .ofeat__tag {
     display: inline-block;
     margin-top: 14px;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 4px 10px;
+    padding: 5px 11px;
     border-radius: 999px;
-    background: var(--color-primary-green);
-    color: var(--color-ink);
+    background: var(--color-green-soft);
+    color: var(--color-green-deep);
   }
 </style>
