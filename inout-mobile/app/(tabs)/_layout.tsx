@@ -4,9 +4,9 @@ import { BlurView } from "expo-blur";
 import {
   ArrowLeftRight,
   BarChart3,
+  Bot,
   Home,
   Plus,
-  Sparkles,
 } from "lucide-react-native";
 import { useThemeTokens } from "@/shared/theme";
 import { useAuthHydrated, useAuthStore } from "@/shared/auth";
@@ -129,7 +129,7 @@ export default function TabLayout() {
         options={{
           title: "Chat",
           tabBarIcon: ({ color, size }) => (
-            <Sparkles size={size} color={color} onPress={() => router.push("/chat")} />
+            <Bot size={size} color={color} onPress={() => router.push("/chat")} />
           ),
         }}
         listeners={{
