@@ -1,17 +1,18 @@
 ---
+
 ---
+
 <section class="otto" id="otto">
   <div class="wrap">
-    <div class="eyebrow-row reveal on-dark">
-      <span class="tick"></span> Asistente con IA &middot; Otto
-    </div>
+    <div class="eyebrow-row reveal on-dark">Asistente con IA &middot; Otto</div>
     <h2 class="section__h2 reveal reveal--lag-1 otto__h">
       Mandale una foto.<br />Otto la registra.
     </h2>
     <p class="section__lead reveal reveal--lag-2 otto__lead">
       Saca foto a tu boleta o escribele en lenguaje normal. Otto detecta el
       comercio, el monto, la categoria y la fecha, y te propone el movimiento.
-      Tu confirmas con un toque. Tambien puedes preguntarle como van tus finanzas.
+      Tu confirmas con un toque. Tambien puedes preguntarle como van tus
+      finanzas.
     </p>
 
     <div class="otto__grid reveal reveal--lag-3">
@@ -52,20 +53,23 @@
           <div>
             <h3>Foto del recibo, y listo</h3>
             <p>
-              Sacale foto a tu boleta o voucher. Otto lee comercio, monto y fecha,
-              asigna categoria y arma el movimiento. Tu solo revisas y confirmas.
+              Sacale foto a tu boleta o voucher. Otto lee comercio, monto y
+              fecha, asigna categoria y arma el movimiento. Tu solo revisas y
+              confirmas.
             </p>
           </div>
         </article>
 
         <article class="ofeat">
-          <div class="ofeat__icon navy"><i data-lucide="message-square"></i></div>
+          <div class="ofeat__icon navy">
+            <i data-lucide="message-square"></i>
+          </div>
           <div>
             <h3>Hablale como a una persona</h3>
             <p>
               "Gaste 20 soles en uber" o "como voy este mes". Otto entiende el
-              lenguaje natural y responde con tus numeros reales, en una interfaz
-              limpia y ordenada.
+              lenguaje natural y responde con tus numeros reales, en una
+              interfaz limpia y ordenada.
             </p>
           </div>
         </article>
@@ -75,8 +79,9 @@
           <div>
             <h3>Cada vez mas capaz</h3>
             <p>
-              El chat esta en mejora continua. Poco a poco va a soportar consultas
-              mas complejas sobre tus finanzas, manteniendo la misma simpleza.
+              El chat esta en mejora continua. Poco a poco va a soportar
+              consultas mas complejas sobre tus finanzas, manteniendo la misma
+              simpleza.
             </p>
             <span class="ofeat__tag">En desarrollo activo</span>
           </div>
@@ -100,15 +105,25 @@
     right: var(--gutter);
     width: 180px;
     height: 180px;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.5px, transparent 1.6px);
+    background-image: radial-gradient(
+      rgba(255, 255, 255, 0.16) 1.5px,
+      transparent 1.6px
+    );
     background-size: 16px 16px;
     opacity: 0.6;
     pointer-events: none;
     z-index: 1;
   }
-  .otto .wrap { position: relative; z-index: 2; }
-  .otto__h { color: var(--color-white); }
-  .otto__lead { color: var(--color-white-70); }
+  .otto .wrap {
+    position: relative;
+    z-index: 2;
+  }
+  .otto__h {
+    color: var(--color-white);
+  }
+  .otto__lead {
+    color: var(--color-white-70);
+  }
 
   .otto__grid {
     margin-top: 56px;
@@ -118,7 +133,10 @@
     align-items: center;
   }
   @media (max-width: 980px) {
-    .otto__grid { grid-template-columns: 1fr; gap: 56px; }
+    .otto__grid {
+      grid-template-columns: 1fr;
+      gap: 56px;
+    }
   }
 
   /* Dos iPhones que se intercambian en 3D */
@@ -138,7 +156,7 @@
   .phone {
     position: absolute;
     inset: 0;
-    background: #0E1430;
+    background: #0e1430;
     border-radius: 44px;
     padding: 10px;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -149,11 +167,20 @@
   }
   /* Cada uno sale por un lado distinto y se desplazan en paralelo (no se
      atraviesan por el centro). --shift = cuanto se corren a los lados. */
-  .phone { --shift: 150px; }
-  .phone--1 { --dir: 1; }
-  .phone--2 { --dir: -1; animation-delay: -4.5s; }
+  .phone {
+    --shift: 150px;
+  }
+  .phone--1 {
+    --dir: 1;
+  }
+  .phone--2 {
+    --dir: -1;
+    animation-delay: -4.5s;
+  }
   @media (max-width: 600px) {
-    .phone { --shift: 96px; }
+    .phone {
+      --shift: 96px;
+    }
   }
   .phone__notch {
     position: absolute;
@@ -162,7 +189,7 @@
     transform: translateX(-50%);
     width: 92px;
     height: 24px;
-    background: #0E1430;
+    background: #0e1430;
     border-radius: 999px;
     z-index: 3;
   }
@@ -184,19 +211,25 @@
      mas chico y en profundidad (translateZ negativo). Mismo keyframe para los
      dos; el segundo va medio ciclo desfasado, asi se cruzan al intercambiarse. */
   @keyframes otto-swap {
-    0%, 38% {
+    0%,
+    38% {
       transform: translateX(0) translateZ(0) rotateY(0deg) scale(1);
       opacity: 1;
       z-index: 2;
     }
-    44% { z-index: 1; }
-    50%, 88% {
+    44% {
+      z-index: 1;
+    }
+    50%,
+    88% {
       transform: translateX(calc(var(--shift) * var(--dir))) translateZ(-200px)
         rotateY(calc(-24deg * var(--dir))) scale(0.88);
       opacity: 0.55;
       z-index: 1;
     }
-    94% { z-index: 2; }
+    94% {
+      z-index: 2;
+    }
     100% {
       transform: translateX(0) translateZ(0) rotateY(0deg) scale(1);
       opacity: 1;
@@ -215,28 +248,52 @@
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.35);
   }
-  .otto__dot--a { animation: otto-dot-a 9s var(--ease-in-out) infinite; }
-  .otto__dot--b { animation: otto-dot-b 9s var(--ease-in-out) infinite; }
+  .otto__dot--a {
+    animation: otto-dot-a 9s var(--ease-in-out) infinite;
+  }
+  .otto__dot--b {
+    animation: otto-dot-b 9s var(--ease-in-out) infinite;
+  }
   @keyframes otto-dot-a {
-    0%, 38% { background: var(--color-green); }
-    50%, 100% { background: rgba(255, 255, 255, 0.35); }
+    0%,
+    38% {
+      background: var(--color-green);
+    }
+    50%,
+    100% {
+      background: rgba(255, 255, 255, 0.35);
+    }
   }
   @keyframes otto-dot-b {
-    0%, 46% { background: rgba(255, 255, 255, 0.35); }
-    50%, 88% { background: var(--color-green); }
-    100% { background: rgba(255, 255, 255, 0.35); }
+    0%,
+    46% {
+      background: rgba(255, 255, 255, 0.35);
+    }
+    50%,
+    88% {
+      background: var(--color-green);
+    }
+    100% {
+      background: rgba(255, 255, 255, 0.35);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .phone { animation: none; }
+    .phone {
+      animation: none;
+    }
     .phone--2 {
-      transform: translateX(-150px) translateZ(-200px) rotateY(24deg) scale(0.88);
+      transform: translateX(-150px) translateZ(-200px) rotateY(24deg)
+        scale(0.88);
       opacity: 0.55;
     }
   }
 
   /* Feature list */
-  .otto__features { display: flex; flex-direction: column; }
+  .otto__features {
+    display: flex;
+    flex-direction: column;
+  }
   .ofeat {
     border-top: 1px solid var(--color-white-15);
     padding: 26px 0;
@@ -246,8 +303,13 @@
     align-items: start;
     transition: transform 140ms var(--ease-out);
   }
-  .ofeat:first-child { border-top: 0; padding-top: 0; }
-  .ofeat:hover { transform: translateX(4px); }
+  .ofeat:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .ofeat:hover {
+    transform: translateX(4px);
+  }
   .ofeat__icon {
     width: 52px;
     height: 52px;
@@ -255,10 +317,23 @@
     display: grid;
     place-items: center;
   }
-  .ofeat__icon.green { background: var(--color-green); color: var(--color-ink); }
-  .ofeat__icon.navy { background: var(--color-white); color: var(--color-navy-2); }
-  .ofeat__icon.blue { background: var(--color-blue); color: var(--color-white); }
-  .ofeat__icon :global(.lucide) { width: 24px; height: 24px; stroke-width: 2; }
+  .ofeat__icon.green {
+    background: var(--color-green);
+    color: var(--color-ink);
+  }
+  .ofeat__icon.navy {
+    background: var(--color-cream);
+    color: var(--color-navy-2);
+  }
+  .ofeat__icon.blue {
+    background: var(--color-blue);
+    color: var(--color-white);
+  }
+  .ofeat__icon :global(.lucide) {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2;
+  }
   .ofeat h3 {
     font-size: 19px;
     font-weight: 700;
@@ -279,7 +354,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 5px 11px;
-    border-radius: 999px;
+    border-radius: 8px;
     background: var(--color-green-soft);
     color: var(--color-green-deep);
   }

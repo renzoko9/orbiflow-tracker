@@ -147,7 +147,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-ink-60);
 }
 .eyebrow-row.on-dark { color: var(--color-white-60); }
-.eyebrow-row .tick { width: 18px; height: 1px; background: currentColor; }
 
 /* ============================================================================
    Section title + lead
