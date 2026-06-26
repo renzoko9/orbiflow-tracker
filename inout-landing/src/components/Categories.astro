@@ -1,9 +1,33 @@
 ---
 const cats = [
-  { name: "Salud", amount: "333.00", pct: 46, color: "#2E8B8B", icon: "stethoscope" },
-  { name: "Educacion", amount: "250.00", pct: 34, color: "#7BAE8E", icon: "graduation-cap" },
-  { name: "Ocio", amount: "80.00", pct: 11, color: "#9B6EC4", icon: "gamepad-2" },
-  { name: "Alimentacion", amount: "45.50", pct: 6, color: "#B2804C", icon: "utensils" },
+  {
+    name: "Salud",
+    amount: "333.00",
+    pct: 46,
+    color: "#2E8B8B",
+    icon: "stethoscope",
+  },
+  {
+    name: "Educacion",
+    amount: "250.00",
+    pct: 34,
+    color: "#7BAE8E",
+    icon: "graduation-cap",
+  },
+  {
+    name: "Ocio",
+    amount: "80.00",
+    pct: 11,
+    color: "#9B6EC4",
+    icon: "gamepad-2",
+  },
+  {
+    name: "Alimentacion",
+    amount: "45.50",
+    pct: 6,
+    color: "#B2804C",
+    icon: "utensils",
+  },
 ];
 
 const tint = (hex: string) => {
@@ -13,6 +37,7 @@ const tint = (hex: string) => {
   return `rgba(${r}, ${g}, ${b}, 0.14)`;
 };
 ---
+
 <section class="cats-section" id="categorias">
   <div class="wrap">
     <div class="eyebrow-row reveal">
@@ -23,27 +48,29 @@ const tint = (hex: string) => {
     </h2>
     <p class="section__lead reveal reveal--lag-2">
       Cada gasto va a una categoria con nombre humano y un color propio. Asi se
-      ven en tu desglose del mes &mdash; tal cual la app.
+      ven en tu desglose del mes tal cual la app.
     </p>
 
     <div class="cats reveal reveal--lag-3">
-      {cats.map((c) => (
-        <article class="cat">
-          <div class="cat__tile" style={`background:${tint(c.color)};`}>
-            <i data-lucide={c.icon} style={`color:${c.color}`}></i>
-          </div>
-          <div>
-            <div class="cat__row">
-              <span class="cat__name">{c.name}</span>
-              <span class="cat__amt amount">S/&nbsp;{c.amount}</span>
+      {
+        cats.map((c) => (
+          <article class="cat">
+            <div class="cat__tile" style={`background:${tint(c.color)};`}>
+              <i data-lucide={c.icon} style={`color:${c.color}`} />
             </div>
-            <div class="cat__bar">
-              <span style={`background:${c.color}; width:${c.pct}%;`}></span>
+            <div>
+              <div class="cat__row">
+                <span class="cat__name">{c.name}</span>
+                <span class="cat__amt amount">S/&nbsp;{c.amount}</span>
+              </div>
+              <div class="cat__bar">
+                <span style={`background:${c.color}; width:${c.pct}%;`} />
+              </div>
+              <div class="cat__pct">{c.pct}% del total</div>
             </div>
-            <div class="cat__pct">{c.pct}% del total</div>
-          </div>
-        </article>
-      ))}
+          </article>
+        ))
+      }
     </div>
   </div>
 </section>
@@ -61,7 +88,17 @@ const tint = (hex: string) => {
     gap: 16px;
   }
   @media (max-width: 900px) {
-    .cats { grid-template-columns: repeat(2, 1fr); }
+    .cats {
+      grid-template-columns: repeat(2, 1fr);
+      margin-top: 40px;
+    }
+  }
+  @media (max-width: 520px) {
+    .cats {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 32px;
+    }
   }
   .cat {
     border: 1px solid var(--color-ink-12);
@@ -74,6 +111,12 @@ const tint = (hex: string) => {
     transition:
       border-color 120ms var(--ease-out),
       transform 120ms var(--ease-out);
+  }
+  @media (max-width: 520px) {
+    .cat {
+      padding: 20px;
+      gap: 16px;
+    }
   }
   .cat:hover {
     border-color: var(--color-navy);
