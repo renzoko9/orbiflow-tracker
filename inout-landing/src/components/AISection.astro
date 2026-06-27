@@ -18,18 +18,7 @@
     <div class="otto__grid reveal reveal--lag-3">
       <div class="otto__media">
         <div class="otto__stage">
-          <div class="phone phone--1">
-            <div class="phone__notch"></div>
-            <div class="phone__screen">
-              <img
-                src="/screenshots/app-mobile-screenshot.jpeg"
-                alt="Chat con Otto: foto de un recibo y propuesta de registro"
-                loading="lazy"
-              />
-            </div>
-          </div>
-
-          <div class="phone phone--2">
+          <div class="phone phone--back">
             <div class="phone__notch"></div>
             <div class="phone__screen">
               <img
@@ -39,11 +28,17 @@
               />
             </div>
           </div>
-        </div>
 
-        <div class="otto__dots" aria-hidden="true">
-          <span class="otto__dot otto__dot--a"></span>
-          <span class="otto__dot otto__dot--b"></span>
+          <div class="phone phone--front">
+            <div class="phone__notch"></div>
+            <div class="phone__screen">
+              <img
+                src="/screenshots/app-mobile-screenshot.jpeg"
+                alt="Chat con Otto: foto de un recibo y propuesta de registro"
+                loading="lazy"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -139,56 +134,59 @@
     }
   }
 
-  /* Dos iPhones que se intercambian en 3D */
+  /* Dos iPhones escalonados en abanico: el de adelante nitido abajo-izquierda,
+     el de atras mas chico arriba-derecha. Float suave en sentidos opuestos. */
   .otto__media {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 26px;
+    justify-content: center;
   }
   .otto__stage {
     position: relative;
     width: 100%;
-    max-width: 300px;
-    aspect-ratio: 9 / 19.5;
-    perspective: 1600px;
+    max-width: 420px;
+    aspect-ratio: 1 / 1.42;
+    margin: 0 auto;
   }
   .phone {
     position: absolute;
-    inset: 0;
+    aspect-ratio: 9 / 19.5;
     background: #0e1430;
-    border-radius: 44px;
-    padding: 10px;
+    border-radius: 40px;
+    padding: 9px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
-    transform-origin: center center;
-    will-change: transform, opacity;
-    animation: otto-swap 9s var(--ease-in-out) infinite;
+    will-change: transform;
   }
-  /* Cada uno sale por un lado distinto y se desplazan en paralelo (no se
-     atraviesan por el centro). --shift = cuanto se corren a los lados. */
-  .phone {
-    --shift: 150px;
+  .phone--front {
+    width: 62%;
+    left: 0;
+    bottom: 0;
+    z-index: 2;
+    animation: otto-float-front 7s var(--ease-in-out) infinite;
   }
-  .phone--1 {
-    --dir: 1;
-  }
-  .phone--2 {
-    --dir: -1;
-    animation-delay: -4.5s;
+  .phone--back {
+    width: 54%;
+    right: 0;
+    top: 0;
+    z-index: 1;
+    opacity: 0.9;
+    animation: otto-float-back 7.6s var(--ease-in-out) 0.4s infinite;
   }
   @media (max-width: 600px) {
-    .phone {
-      --shift: 96px;
+    .phone--front {
+      width: 66%;
+    }
+    .phone--back {
+      width: 56%;
     }
   }
   .phone__notch {
     position: absolute;
-    top: 20px;
+    top: 14px;
     left: 50%;
     transform: translateX(-50%);
-    width: 92px;
-    height: 24px;
+    width: 32%;
+    height: 18px;
     background: #0e1430;
     border-radius: 999px;
     z-index: 3;
@@ -196,7 +194,7 @@
   .phone__screen {
     width: 100%;
     height: 100%;
-    border-radius: 36px;
+    border-radius: 32px;
     overflow: hidden;
     background: var(--color-cream);
   }
@@ -207,85 +205,28 @@
     object-position: top center;
   }
 
-  /* Al frente: centrado y plano. Atras: emerge desde el costado, girado,
-     mas chico y en profundidad (translateZ negativo). Mismo keyframe para los
-     dos; el segundo va medio ciclo desfasado, asi se cruzan al intercambiarse. */
-  @keyframes otto-swap {
+  @keyframes otto-float-front {
     0%,
-    38% {
-      transform: translateX(0) translateZ(0) rotateY(0deg) scale(1);
-      opacity: 1;
-      z-index: 2;
-    }
-    44% {
-      z-index: 1;
-    }
-    50%,
-    88% {
-      transform: translateX(calc(var(--shift) * var(--dir))) translateZ(-200px)
-        rotateY(calc(-24deg * var(--dir))) scale(0.88);
-      opacity: 0.55;
-      z-index: 1;
-    }
-    94% {
-      z-index: 2;
-    }
     100% {
-      transform: translateX(0) translateZ(0) rotateY(0deg) scale(1);
-      opacity: 1;
-      z-index: 2;
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
     }
   }
-
-  /* Indicador de paso */
-  .otto__dots {
-    display: flex;
-    gap: 8px;
-  }
-  .otto__dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.35);
-  }
-  .otto__dot--a {
-    animation: otto-dot-a 9s var(--ease-in-out) infinite;
-  }
-  .otto__dot--b {
-    animation: otto-dot-b 9s var(--ease-in-out) infinite;
-  }
-  @keyframes otto-dot-a {
+  @keyframes otto-float-back {
     0%,
-    38% {
-      background: var(--color-green);
-    }
-    50%,
     100% {
-      background: rgba(255, 255, 255, 0.35);
+      transform: translateY(0);
     }
-  }
-  @keyframes otto-dot-b {
-    0%,
-    46% {
-      background: rgba(255, 255, 255, 0.35);
-    }
-    50%,
-    88% {
-      background: var(--color-green);
-    }
-    100% {
-      background: rgba(255, 255, 255, 0.35);
+    50% {
+      transform: translateY(8px);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .phone {
       animation: none;
-    }
-    .phone--2 {
-      transform: translateX(-150px) translateZ(-200px) rotateY(24deg)
-        scale(0.88);
-      opacity: 0.55;
     }
   }
 
